@@ -1,0 +1,25 @@
+{
+  "_note": "Curated kelurahan list for Bandar Lampung. adm4 codes use Permendagri 137-2017 format (PP.KK.CC.DDDD). If BMKG returns empty for any entry, the kelurahan code may need to be corrected against https://kodewilayah.github.io/permendagri-72-2019/wilayah.html.",
+  "items": [
+    { "kecamatan": "Kemiling",                "kelurahan": "Beringin Jaya",     "adm4": "18.71.13.1001" },
+    { "kecamatan": "Kemiling",                "kelurahan": "Beringin Raya",     "adm4": "18.71.13.1002" },
+    { "kecamatan": "Kemiling",                "kelurahan": "Kedaung",           "adm4": "18.71.13.1003" },
+    { "kecamatan": "Kemiling",                "kelurahan": "Kemiling Permai",   "adm4": "18.71.13.1004" },
+    { "kecamatan": "Kemiling",                "kelurahan": "Kemiling Raya",     "adm4": "18.71.13.1005" },
+    { "kecamatan": "Kemiling",                "kelurahan": "Pinang Jaya",       "adm4": "18.71.13.1007" },
+    { "kecamatan": "Rajabasa",                "kelurahan": "Rajabasa",          "adm4": "18.71.10.1001" },
+    { "kecamatan": "Rajabasa",                "kelurahan": "Rajabasa Jaya",     "adm4": "18.71.10.1002" },
+    { "kecamatan": "Rajabasa",                "kelurahan": "Rajabasa Raya",     "adm4": "18.71.10.1006" },
+    { "kecamatan": "Sukarame",                "kelurahan": "Sukarame",          "adm4": "18.71.06.1001" },
+    { "kecamatan": "Sukarame",                "kelurahan": "Way Dadi",          "adm4": "18.71.06.1003" },
+    { "kecamatan": "Kedaton",                 "kelurahan": "Kedaton",           "adm4": "18.71.05.1001" },
+    { "kecamatan": "Kedaton",                 "kelurahan": "Sidodadi",          "adm4": "18.71.05.1004" },
+    { "kecamatan": "Way Halim",               "kelurahan": "Way Halim Permai",  "adm4": "18.71.15.1006" },
+    { "kecamatan": "Way Halim",               "kelurahan": "Perumnas Way Halim","adm4": "18.71.15.1005" },
+    { "kecamatan": "Sukabumi",                "kelurahan": "Sukabumi Indah",    "adm4": "18.71.12.1005" },
+    { "kecamatan": "Sukabumi",                "kelurahan": "Sukabumi",          "adm4": "18.71.12.1004" },
+    { "kecamatan": "Tanjung Karang Pusat",    "kelurahan": "Gotong Royong",     "adm4": "18.71.03.1002" },
+    { "kecamatan": "Tanjung Karang Pusat",    "kelurahan": "Palapa",            "adm4": "18.71.03.1006" },
+    { "kecamatan": "Labuhan Ratu",            "kelurahan": "Labuhan Ratu",      "adm4": "18.71.14.1004" }
+  ]
+}

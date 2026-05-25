@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  System splash window icon. Android 12+ scales this into a 240dp circle by default;
+  the actual visible icon is ~108dp so we keep the droplet inside that footprint.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,18 C54,18 28,42 28,67 C28,82.5 39,94 54,94 C69,94 80,82.5 80,67 C80,42 54,18 54,18 Z" />
+    <path
+        android:strokeColor="#99E2D2"
+        android:strokeWidth="2.6"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M44,60 C44,60 40,68 46,75 C51,79 57,77 57,72" />
+</vector>

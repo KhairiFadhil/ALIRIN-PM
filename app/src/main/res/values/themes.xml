@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- The post-splash theme — picked up by the Activity once content draws. -->
+    <style name="Theme.ALIRINMOBILE" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <!--
+      Splash theme — applied as the Activity theme so the system shows our droplet
+      logo on a teal background during cold start (no white flash). After
+      installSplashScreen() runs, the Activity switches to Theme.ALIRINMOBILE.
+    -->
+    <style name="Theme.ALIRINMOBILE.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_bg</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.ALIRINMOBILE</item>
+    </style>
+
+</resources>
