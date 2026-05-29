@@ -8,12 +8,18 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.alirinmobile.AlirinApplication
 import com.example.alirinmobile.data.Report
 import com.example.alirinmobile.data.ReportMode
-import com.example.alirinmobile.data.ReportRepository
 import com.example.alirinmobile.data.ReportStatus
-import com.example.alirinmobile.data.WeatherRepository
-import com.example.alirinmobile.data.WeatherState
-import com.example.alirinmobile.data.auth.AuthRepository
 import com.example.alirinmobile.data.auth.AuthSession
+import com.example.alirinmobile.data.repository.AuthRepository
+import com.example.alirinmobile.data.repository.Kelurahan
+import com.example.alirinmobile.data.repository.KelurahanRepository
+import com.example.alirinmobile.data.repository.LocationRepository
+import com.example.alirinmobile.data.repository.PredictionRepository
+import com.example.alirinmobile.data.repository.PredictionUiModel
+import com.example.alirinmobile.data.repository.ReportRepository
+import com.example.alirinmobile.data.repository.UserLocation
+import com.example.alirinmobile.data.repository.WeatherRepository
+import com.example.alirinmobile.data.repository.WeatherState
 import com.example.alirinmobile.feature.lapor.LaporForm
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,13 +27,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-private fun repo(): ReportRepository = AlirinApplication.get().repository
+private fun repo(): ReportRepository = AlirinApplication.get().reportRepository
 private fun authRepo(): AuthRepository = AlirinApplication.get().authRepository
 private fun weatherRepo(): WeatherRepository = AlirinApplication.get().weatherRepository
-private fun predictionRepo(): com.example.alirinmobile.data.ml.PredictionRepository =
-    AlirinApplication.get().predictionRepository
-private fun locationRepo(): com.example.alirinmobile.data.LocationRepository =
-    AlirinApplication.get().locationRepository
+private fun predictionRepo(): PredictionRepository = AlirinApplication.get().predictionRepository
+private fun locationRepo(): LocationRepository = AlirinApplication.get().locationRepository
+private fun kelurahanRepo(): KelurahanRepository = AlirinApplication.get().kelurahanRepository
 
 // ── Auth ────────────────────────────────────────────────────────
 sealed interface AuthUiState {
@@ -45,11 +50,11 @@ class AuthViewModel(private val repository: AuthRepository = authRepo()) : ViewM
     val onboardingDone: StateFlow<Boolean> = repository.onboardingDone
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
+    val ui = MutableStateFlow<AuthUiState>(AuthUiState.Initial)
+
     fun finishOnboarding() {
         viewModelScope.launch { repository.markOnboardingDone() }
     }
-
-    val ui = MutableStateFlow<AuthUiState>(AuthUiState.Initial)
 
     fun login(username: String, password: String) {
         if (username.isBlank() || password.isBlank()) {
@@ -94,27 +99,25 @@ class LaporViewModel(private val repository: ReportRepository = repo()) : ViewMo
 
     fun update(newForm: LaporForm) {
         form.value = newForm
-        viewModelScope.launch { repository.saveDraft(newForm, mode.value) }
+        repository.saveDraft(newForm)
     }
 
     fun pickMode(m: ReportMode) {
         mode.value = m
-        viewModelScope.launch { repository.saveDraft(form.value, m) }
+        repository.saveDraft(form.value)
     }
 
     fun submit() {
         val m = mode.value ?: ReportMode.Cepat
-        viewModelScope.launch {
-            val result = repository.submitReport(form.value, m)
-            submitted.value = result.code
-        }
+        val result = repository.submitReport(form.value, m)
+        submitted.value = result.code
     }
 
     fun reset() {
         form.value = LaporForm()
         mode.value = null
         submitted.value = null
-        viewModelScope.launch { repository.clearDraft() }
+        repository.clearDraft()
     }
 }
 
@@ -123,48 +126,42 @@ class StaffViewModel(
     private val repository: ReportRepository = repo(),
     private val authRepository: AuthRepository = authRepo(),
 ) : ViewModel() {
-    /** All reports that still need staff attention. */
     val queue: StateFlow<List<Report>> = repository.observeReports()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    val actorLabel: StateFlow<String?> = authRepository.session
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-        .let { sessFlow ->
-            MutableStateFlow<String?>(null).also { out ->
-                viewModelScope.launch {
-                    sessFlow.collect { out.value = it?.displayName }
-                }
-            }
+    private val _actor = MutableStateFlow<String?>(null)
+    val actorLabel: StateFlow<String?> = _actor
+
+    init {
+        viewModelScope.launch {
+            authRepository.session.collect { _actor.value = it?.displayName }
         }
+    }
 
     fun transition(reportId: String, newStatus: ReportStatus, note: String?) {
-        viewModelScope.launch {
-            repository.updateReportStatus(
-                reportId = reportId,
-                newStatus = newStatus,
-                note = note,
-                actorLabel = actorLabel.value,
-            )
-        }
+        repository.updateReportStatus(
+            reportId = reportId,
+            newStatus = newStatus,
+            note = note,
+            actorLabel = _actor.value,
+        )
     }
 }
 
-// ── Weather (BMKG) — exposed for future ML pipeline ─────────────
+// ── Weather (BMKG) ──────────────────────────────────────────────
 class WeatherViewModel(
     private val repository: WeatherRepository = weatherRepo(),
-    private val kelurahanRepo: com.example.alirinmobile.data.KelurahanRepository =
-        AlirinApplication.get().kelurahanRepository,
+    private val kelurahanRepo: KelurahanRepository = kelurahanRepo(),
 ) : ViewModel() {
     val state: StateFlow<WeatherState> = repository.state
-    val selected: StateFlow<com.example.alirinmobile.data.Kelurahan?> = repository.selected
-    val list: List<com.example.alirinmobile.data.Kelurahan> get() = kelurahanRepo.list
+    val selected: StateFlow<Kelurahan?> = repository.selected
+    val list: List<Kelurahan> get() = kelurahanRepo.list
 
     init {
-        // Fire an initial fetch when the VM comes alive (no-op if already loaded).
         viewModelScope.launch { repository.refresh() }
     }
 
-    fun pick(k: com.example.alirinmobile.data.Kelurahan) {
+    fun pick(k: Kelurahan) {
         repository.setSelected(k)
         viewModelScope.launch { repository.refresh(force = true) }
     }
@@ -174,11 +171,11 @@ class WeatherViewModel(
     }
 }
 
-// ── Prediction (rule-based ML) ──────────────────────────────────
+// ── Prediction (GROQ-backed) ────────────────────────────────────
 class PredictionViewModel(
-    private val repository: com.example.alirinmobile.data.ml.PredictionRepository = predictionRepo(),
+    private val repository: PredictionRepository = predictionRepo(),
 ) : ViewModel() {
-    val prediction: StateFlow<com.example.alirinmobile.data.ml.PredictionResult?> =
+    val prediction: StateFlow<PredictionUiModel?> =
         repository.observe().stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5_000),
@@ -188,13 +185,13 @@ class PredictionViewModel(
 
 // ── Location ────────────────────────────────────────────────────
 class LocationViewModel(
-    private val repository: com.example.alirinmobile.data.LocationRepository = locationRepo(),
+    private val repository: LocationRepository = locationRepo(),
 ) : ViewModel() {
-    val last: StateFlow<com.example.alirinmobile.data.UserLocation?> = repository.last
+    val last: StateFlow<UserLocation?> = repository.last
 
     fun hasPermission(): Boolean = repository.hasFinePermission()
 
-    fun fetchOnce(onResult: (com.example.alirinmobile.data.UserLocation?) -> Unit = {}) {
+    fun fetchOnce(onResult: (UserLocation?) -> Unit = {}) {
         viewModelScope.launch { onResult(repository.currentLocation()) }
     }
 }

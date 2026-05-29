@@ -27,7 +27,8 @@ import com.example.alirinmobile.data.Report
 import com.example.alirinmobile.data.ReportMode
 import com.example.alirinmobile.data.ReportStatus
 import com.example.alirinmobile.data.RiskLevel
-import com.example.alirinmobile.data.SampleData
+import com.example.alirinmobile.data.repository.HotspotSeed
+import com.example.alirinmobile.data.repository.ReportSeed
 import com.example.alirinmobile.feature.lapor.TextField
 import com.example.alirinmobile.feature.peta.MapBackground
 import com.example.alirinmobile.feature.peta.MapMarker
@@ -208,8 +209,8 @@ private fun PhotoStripCard(report: Report) {
 @Composable
 private fun ValidationSignalsCard(report: Report) {
     // Approximate signals from existing data
-    val reporterCount = SampleData.reports.count { it.kelurahan == report.kelurahan }.coerceAtLeast(1)
-    val nearbyHistoric = SampleData.hotspots.count {
+    val reporterCount = ReportSeed.count { it.kelurahan == report.kelurahan }.coerceAtLeast(1)
+    val nearbyHistoric = HotspotSeed.count {
         it.kel == report.kelurahan || it.kec == report.kecamatan
     }
 
@@ -318,7 +319,7 @@ private fun ReporterCard(report: Report) {
                         fontWeight = FontWeight.W600, fontSize = 14.sp, color = Ink,
                     )
                     Text(
-                        "Sudah ${SampleData.reports.size} laporan valid · trust score 87/100",
+                        "Sudah ${ReportSeed.size} laporan valid · trust score 87/100",
                         style = AlirinText.caption,
                     )
                 }

@@ -1,4 +1,4 @@
-package com.example.alirinmobile.data
+package com.example.alirinmobile.data.repository
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -15,10 +15,6 @@ import kotlin.coroutines.resume
 
 data class UserLocation(val lat: Double, val lng: Double, val accuracyMeters: Float)
 
-/**
- * Wraps FusedLocationProviderClient. Permission checks stay here so callers don't have to
- * touch ContextCompat directly.
- */
 class LocationRepository(private val appContext: Context) {
     private val client = LocationServices.getFusedLocationProviderClient(appContext)
 

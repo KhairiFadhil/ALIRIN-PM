@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.example.alirinmobile.data.Hotspot
 import com.example.alirinmobile.data.HotspotSource
 import com.example.alirinmobile.data.RiskLevel
-import com.example.alirinmobile.data.SampleData
+import com.example.alirinmobile.data.repository.HotspotSeed
 import com.example.alirinmobile.ui.components.*
 import com.example.alirinmobile.ui.theme.*
 
@@ -43,7 +43,7 @@ fun PetaScreen(
 ) {
     var filter by remember { mutableStateOf<HotspotSource?>(null) }   // null = All
     var selected by remember { mutableStateOf<Hotspot?>(null) }
-    val filtered = if (filter == null) SampleData.hotspots else SampleData.hotspots.filter { it.src == filter }
+    val filtered = if (filter == null) HotspotSeed else HotspotSeed.filter { it.src == filter }
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     val density = LocalDensity.current
 

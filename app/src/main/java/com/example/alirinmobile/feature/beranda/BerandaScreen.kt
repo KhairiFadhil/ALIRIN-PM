@@ -32,8 +32,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.alirinmobile.data.*
-import com.example.alirinmobile.data.ml.Factor
-import com.example.alirinmobile.data.ml.PredictionResult
+import com.example.alirinmobile.data.network.dto.AiForecast
+import com.example.alirinmobile.data.repository.Kelurahan
+import com.example.alirinmobile.data.repository.NearbyTeaserSeed
+import com.example.alirinmobile.data.repository.PredictionUiModel
+import com.example.alirinmobile.data.repository.WeatherState
 import com.example.alirinmobile.feature.AlirinViewModelFactory
 import com.example.alirinmobile.feature.PredictionViewModel
 import com.example.alirinmobile.feature.WeatherViewModel
@@ -119,7 +122,7 @@ fun BerandaScreen(
 
             WeatherStrip()
             PredictionCard(onOpenMap = onPetaClick)
-            NearbyStrip(items = SampleData.nearbyTeasers, onOpenMap = onPetaClick)
+            NearbyStrip(items = NearbyTeaserSeed, onOpenMap = onPetaClick)
             MyReports(recent = reports, onSeeAll = onStatusClick, onItemClick = onStatusItemClick)
             Spacer(Modifier.height(16.dp))
         }
@@ -407,125 +410,107 @@ private fun KelurahanPickerSheet(
     }
 }
 
-// ── Prediction card (rule-based ML, future TFLite) ──────────────
+// ── Prediction card — backed by GROQ AI, falls back to rule-based ──
 @Composable
 private fun PredictionCard(onOpenMap: () -> Unit) {
     val vm: PredictionViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
     val prediction by vm.prediction.collectAsStateWithLifecycle()
-    val p = prediction ?: return PredictionCardSkeleton()
-    PredictionCardContent(prediction = p, onOpenMap = onOpenMap)
+    val p = prediction
+    if (p == null) PredictionCardSkeleton()
+    else PredictionCardContent(model = p, onOpenMap = onOpenMap)
 }
 
 @Composable
 private fun PredictionCardSkeleton() {
-    AlirinCard(
-        modifier = Modifier.fillMaxWidth(),
-        padding = PaddingValues(18.dp),
-    ) {
+    AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(18.dp)) {
         Column {
-            Text("PREDIKSI 3 JAM KE DEPAN", style = AlirinText.eyebrow)
-            Text("Menghitung dari BMKG + laporan...", style = AlirinText.bodyR, modifier = Modifier.padding(top = 6.dp))
+            Text("PREDIKSI AI 3 JAM KE DEPAN", style = AlirinText.eyebrow)
+            Text("Memuat prakiraan dari BMKG + GROQ...", style = AlirinText.bodyR, modifier = Modifier.padding(top = 6.dp))
         }
     }
 }
 
 @Composable
-private fun PredictionCardContent(prediction: PredictionResult, onOpenMap: () -> Unit) {
-    val accent = prediction.level.dot
-    val softBg = prediction.level.bg
+private fun PredictionCardContent(model: PredictionUiModel, onOpenMap: () -> Unit) {
+    val ai = model.ai
+    val riskTint = when {
+        ai.curahHujanMm >= 10.0 -> RiskKritisDot to RiskKritisBg
+        ai.curahHujanMm >= 5.0  -> RiskTinggiDot to RiskTinggiBg
+        ai.curahHujanMm >= 1.0  -> RiskWaspadaDot to RiskWaspadaBg
+        else                    -> RiskNormalDot to RiskNormalBg
+    }
+    val sourceLabel = when (model.source) {
+        PredictionUiModel.Source.Groq     -> "GROQ AI"
+        PredictionUiModel.Source.Fallback -> "Rule-based"
+        PredictionUiModel.Source.Loading  -> "Memuat AI..."
+    }
     Box(
         Modifier
             .fillMaxWidth()
             .clip(Radius.lg)
-            .background(softBg)
+            .background(riskTint.second)
             .clickable(onClick = onOpenMap)
             .padding(18.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "PREDIKSI 3 JAM KE DEPAN",
-                    style = AlirinText.eyebrow.copy(color = prediction.level.ink),
+                    "PREDIKSI AI 3 JAM KE DEPAN",
+                    style = AlirinText.eyebrow.copy(color = Ink),
                     modifier = Modifier.weight(1f),
                 )
-                Icon(AlirinIcons.sparkles, null, tint = prediction.level.ink, modifier = Modifier.size(16.dp))
-            }
-            Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
-                    text = prediction.score.toString(),
-                    color = prediction.level.ink,
-                    fontWeight = FontWeight.W800,
-                    fontSize = 44.sp,
-                    letterSpacing = (-1.2).sp,
+                Pill(
+                    label = sourceLabel,
+                    bg = Color.White.copy(alpha = 0.7f),
+                    ink = Ink2,
+                    leadingIcon = AlirinIcons.sparkles,
                 )
-                Text(
-                    "/ 100",
-                    color = prediction.level.ink.copy(alpha = 0.55f),
-                    fontWeight = FontWeight.W600,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(bottom = 8.dp),
-                )
-                Spacer(Modifier.weight(1f))
-                RiskPill(level = prediction.level, score = null)
             }
+            // Headline: ringkasan from AI
             Text(
-                "Risiko ${prediction.level.label.lowercase()} di ${prediction.areaLabel}.",
-                color = prediction.level.ink,
-                fontWeight = FontWeight.W600,
-                fontSize = 13.5.sp,
+                ai.ringkasan,
+                color = Ink,
+                fontWeight = FontWeight.W700,
+                fontSize = 16.sp,
+                lineHeight = 22.sp,
+                letterSpacing = (-0.16).sp,
             )
-            // Factor mini-bars
+            // 4 KV stats
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                prediction.factors.forEach { f ->
-                    FactorRow(factor = f, accent = accent, inkColor = prediction.level.ink)
-                }
+                AiStatRow("Kondisi udara",  ai.kondisiUdara,                       accent = riskTint.first)
+                AiStatRow("Suhu",            "${"%.1f".format(ai.suhuCelsius)} °C", accent = riskTint.first)
+                AiStatRow("Curah hujan 3h",  "${"%.1f".format(ai.curahHujanMm)} mm", accent = riskTint.first)
+                AiStatRow("Debit air est.",  "${"%.3f".format(ai.debitAirMs)} m³/s", accent = riskTint.first)
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "Berbasis BMKG + ${SampleData.hotspots.size} titik historis",
-                    style = AlirinText.caption.copy(color = prediction.level.ink.copy(alpha = 0.7f)),
+                    "Sumber: BMKG + GROQ LLM · update tiap fetch",
+                    style = AlirinText.caption,
                     modifier = Modifier.weight(1f),
                 )
-                Icon(AlirinIcons.chevronRight, null, tint = prediction.level.ink, modifier = Modifier.size(18.dp))
+                Icon(AlirinIcons.chevronRight, null, tint = Ink, modifier = Modifier.size(18.dp))
             }
         }
     }
 }
 
 @Composable
-private fun FactorRow(factor: Factor, accent: Color, inkColor: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+private fun AiStatRow(label: String, value: String, accent: Color) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(6.dp).clip(CircleShape).background(accent))
         Text(
-            factor.label,
-            color = inkColor.copy(alpha = 0.8f),
-            fontSize = 11.5.sp,
+            label,
+            color = Ink2,
+            fontSize = 12.sp,
             fontWeight = FontWeight.W500,
-            modifier = Modifier.weight(1f),
-            maxLines = 1,
+            modifier = Modifier.padding(start = 8.dp).weight(1f),
         )
         Text(
-            factor.rawValue,
-            color = inkColor.copy(alpha = 0.7f),
-            fontSize = 11.5.sp,
-            fontWeight = FontWeight.W500,
+            value,
+            color = Ink,
+            fontWeight = FontWeight.W700,
+            fontSize = 12.5.sp,
         )
-        // Mini bar (segments out of MAX_WEIGHT)
-        Row(
-            Modifier.width(56.dp),
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            val maxWeight = 50
-            val filled = ((factor.weight.toFloat() / maxWeight) * 6f).toInt().coerceIn(0, 6)
-            repeat(6) { i ->
-                Box(
-                    Modifier
-                        .weight(1f)
-                        .height(6.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(if (i < filled) accent else inkColor.copy(alpha = 0.18f))
-                )
-            }
-        }
     }
 }
 
