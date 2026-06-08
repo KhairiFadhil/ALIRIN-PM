@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -176,7 +177,9 @@ private fun MainShell(role: Role, onLogout: () -> Unit) {
                                     else -> startDestination
                                 }
                                 nav.navigate(route) {
-                                    popUpTo(startDestination) { inclusive = false; saveState = true }
+                                    popUpTo(nav.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
                                     launchSingleTop = true
                                     restoreState = true
                                 }

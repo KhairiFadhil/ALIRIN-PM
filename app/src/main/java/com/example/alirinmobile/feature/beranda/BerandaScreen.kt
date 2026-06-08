@@ -65,8 +65,8 @@ fun BerandaScreen(
         Greeting(area = areaKecamatan)
         Column(
             Modifier
-                .padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(start = Space.s5, end = Space.s5, bottom = Space.s6),
+            verticalArrangement = Arrangement.spacedBy(Space.s4),
         ) {
             // Grid hero: eyebrow + display title (no big green CTA card)
             Column {
@@ -135,9 +135,9 @@ private fun Greeting(area: String) {
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 18.dp),
+            .padding(start = Space.s5, end = Space.s5, top = Space.s1, bottom = Space.s5),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(Space.s3),
     ) {
         Avatar(seed = 0, size = 42, label = "BL", badge = true)
         Column(Modifier.weight(1f)) {
@@ -210,11 +210,11 @@ private fun PrimaryReportCTA(onClick: () -> Unit) {
                 verticalAlignment = Alignment.Bottom,
             ) {
                 Column {
-                    Text("Lapormu", color = Color.White.copy(alpha = 0.65f), fontSize = 11.5.sp, fontWeight = FontWeight.W500)
+                    Text("Lapormu", color = SkySoft, fontSize = 11.5.sp, fontWeight = FontWeight.W500)
                     Text("3 laporan", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.W700)
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("Total area", color = Color.White.copy(alpha = 0.65f), fontSize = 11.5.sp, fontWeight = FontWeight.W500)
+                    Text("Total area", color = SkySoft, fontSize = 11.5.sp, fontWeight = FontWeight.W500)
                     Text("13 laporan", color = PrimaryOnDark, fontSize = 18.sp, fontWeight = FontWeight.W700)
                 }
             }
@@ -225,7 +225,7 @@ private fun PrimaryReportCTA(onClick: () -> Unit) {
                     .fillMaxWidth()
                     .height(46.dp)
                     .clip(Radius.pill)
-                    .background(Color.Black.copy(alpha = 0.25f)),
+                    .background(Primary2), // Better contrast than transparent black
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
             ) {
@@ -539,7 +539,7 @@ private fun NearbyStrip(items: List<NearbyTeaser>, onOpenMap: () -> Unit) {
 private fun NearbyCard(item: NearbyTeaser, primaryFeatured: Boolean, onClick: () -> Unit) {
     val cardBg = if (primaryFeatured) Primary else Surface
     val titleColor = if (primaryFeatured) Color.White else Ink
-    val subColor = if (primaryFeatured) Color.White.copy(alpha = 0.7f) else Muted
+    val subColor = if (primaryFeatured) SkySoft else Muted
 
     Box(
         Modifier
@@ -569,7 +569,7 @@ private fun NearbyCard(item: NearbyTeaser, primaryFeatured: Boolean, onClick: ()
                         Dot(color = Color.White)
                         Text(
                             "${item.risk.label} · ${item.score}",
-                            color = Color.White.copy(alpha = 0.95f),
+                            color = Surface,
                             fontSize = 10.5.sp,
                             fontWeight = FontWeight.W600,
                         )
@@ -620,10 +620,11 @@ private fun MyReports(
         )
         if (recent.isEmpty()) {
             AlirinFlatCard(
-                modifier = Modifier.fillMaxWidth(),
-                padding = PaddingValues(20.dp),
+                modifier = Modifier.fillMaxWidth().border(1.dp, Hairline2, Radius.lg),
+                padding = PaddingValues(24.dp),
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(AlirinIcons.document, null, tint = Faint, modifier = Modifier.size(36.dp).padding(bottom = 8.dp))
                     Text("Kamu belum membuat laporan.", style = AlirinText.body)
                     Text("Mulai laporkan drainase di sekitarmu.", style = AlirinText.caption, modifier = Modifier.padding(top = 6.dp))
                 }

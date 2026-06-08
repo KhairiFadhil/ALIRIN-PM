@@ -8,6 +8,6 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- Brand greenish-teal — used by the system splash window. -->
-    <color name="splash_bg">#0E8770</color>
+    <!-- Brand primary blue — used by the system splash window. -->
+    <color name="splash_bg">#0B3A5B</color>
 </resources>

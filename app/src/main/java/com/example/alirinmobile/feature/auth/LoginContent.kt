@@ -1,6 +1,7 @@
 package com.example.alirinmobile.feature.auth
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -8,6 +9,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -146,8 +149,10 @@ private fun LabeledField(
     password: Boolean = false,
     suffix: String? = null,
 ) {
+    var passwordVisible by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+
     Column {
-        Text(label, style = AlirinText.eyebrow, modifier = Modifier.padding(bottom = 6.dp))
+        Text(label, style = AlirinText.eyebrow.copy(fontSize = 12.sp, fontWeight = FontWeight.Bold), modifier = Modifier.padding(bottom = 6.dp))
         Row(
             Modifier
                 .fillMaxWidth()
@@ -164,7 +169,7 @@ private fun LabeledField(
                 onValueChange = onValueChange,
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-                visualTransformation = if (password) PasswordVisualTransformation() else VisualTransformation.None,
+                visualTransformation = if (password && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
                 textStyle = AlirinText.body.copy(color = Ink),
                 cursorBrush = SolidColor(Primary),
                 modifier = Modifier.weight(1f),
@@ -177,7 +182,18 @@ private fun LabeledField(
                     }
                 }
             )
-            if (suffix != null) {
+            if (password) {
+                val icon = if (passwordVisible) AlirinIcons.eyeOff else AlirinIcons.eye
+                Box(
+                    modifier = Modifier
+                        .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
+                        .clip(Radius.pill)
+                        .clickable { passwordVisible = !passwordVisible },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(icon, contentDescription = "Toggle Password", tint = Muted, modifier = Modifier.size(20.dp))
+                }
+            } else if (suffix != null) {
                 Text(suffix, style = AlirinText.mono.copy(fontSize = 12.sp, color = Muted, fontWeight = FontWeight.W600))
             }
         }

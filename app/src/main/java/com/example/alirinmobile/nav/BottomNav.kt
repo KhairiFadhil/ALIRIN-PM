@@ -77,36 +77,19 @@ private fun PillCell(
     onTap: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier
-            .height(44.dp)
+    Box(
+        modifier = modifier
+            .height(48.dp)
             .clip(Radius.pill)
             .background(if (active) Primary else Color.Transparent)
-            .clickable(onClick = onTap)
-            .padding(horizontal = if (active) 10.dp else 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
+            .clickable(onClick = onTap),
+        contentAlignment = Alignment.Center,
     ) {
         Icon(
             item.icon,
-            null,
+            contentDescription = item.label,
             tint = if (active) Color.White else Muted,
-            modifier = Modifier.size(20.dp),
+            modifier = Modifier.size(24.dp),
         )
-        AnimatedVisibility(
-            visible = active,
-            enter = fadeIn() + expandHorizontally(),
-            exit = fadeOut() + shrinkHorizontally(),
-        ) {
-            Text(
-                text = item.label,
-                color = Color.White,
-                fontSize = 11.5.sp,
-                fontWeight = FontWeight.W600,
-                maxLines = 1,
-                overflow = androidx.compose.ui.text.style.TextOverflow.Visible,
-                softWrap = false,
-            )
-        }
     }
 }

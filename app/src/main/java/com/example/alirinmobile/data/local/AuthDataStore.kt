@@ -77,7 +77,17 @@ class AuthDataStore(private val appContext: Context) {
     fun clearBlocking() = runBlocking { clear() }
 
     suspend fun clear() {
-        appContext.authStore.edit { it.clear() }
+        appContext.authStore.edit { prefs ->
+            prefs.remove(K.userId)
+            prefs.remove(K.username)
+            prefs.remove(K.displayName)
+            prefs.remove(K.role)
+            prefs.remove(K.token)
+            prefs.remove(K.refreshToken)
+            prefs.remove(K.avatar)
+            prefs.remove(K.anonChosen)
+            // Catatan: K.onboardingDone tidak dihapus agar tutorial tidak muncul lagi setelah logout
+        }
     }
 
     suspend fun chooseAnonymous() {

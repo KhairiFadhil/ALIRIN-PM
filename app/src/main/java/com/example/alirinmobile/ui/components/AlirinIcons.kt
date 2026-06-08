@@ -32,6 +32,8 @@ import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material.icons.outlined.WifiOff
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /** Maps the design's "name" tokens to Compose Material icons. */
@@ -67,6 +69,8 @@ object AlirinIcons {
     val sparkles      = Icons.Outlined.AutoAwesome
     val bell          = Icons.Outlined.NotificationsNone
     val plus          = Icons.Outlined.Add
+    val eye           = Icons.Outlined.Visibility
+    val eyeOff        = Icons.Outlined.VisibilityOff
 
     fun byName(name: String): ImageVector = when (name) {
         "home" -> home; "map" -> map; "pin" -> pin; "clock" -> clock; "info" -> info
@@ -77,6 +81,7 @@ object AlirinIcons {
         "wifi-off" -> wifiOff; "droplet" -> droplet; "trash" -> trash; "cloud" -> cloud
         "sensor" -> sensor; "history" -> history; "share" -> share; "shield" -> shield
         "users" -> users; "sparkles" -> sparkles; "bell" -> bell; "plus" -> plus
+        "eye" -> eye; "eye-off" -> eyeOff
         else -> info
     }
 }
