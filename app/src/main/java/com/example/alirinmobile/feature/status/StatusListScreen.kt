@@ -9,11 +9,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,18 +31,37 @@ import com.example.alirinmobile.data.timelineIndex
 import com.example.alirinmobile.ui.components.*
 import com.example.alirinmobile.ui.theme.*
 
+private enum class StatusFilter(val label: String) { Semua("Semua"), Aktif("Aktif"), Selesai("Selesai") }
+
 @Composable
 fun StatusListScreen(
     reports: List<Report>,
     onBack: () -> Unit,
     onReportClick: (Report) -> Unit,
 ) {
+    var query by remember { mutableStateOf("") }
+    var filter by remember { mutableStateOf(StatusFilter.Semua) }
+
+    val filtered = reports
+        .filter { r ->
+            when (filter) {
+                StatusFilter.Semua -> true
+                StatusFilter.Selesai -> r.status == ReportStatus.Completed || r.status == ReportStatus.Rejected
+                StatusFilter.Aktif -> r.status != ReportStatus.Completed && r.status != ReportStatus.Rejected
+            }
+        }
+        .filter { r ->
+            query.isBlank() ||
+                r.code.contains(query, ignoreCase = true) ||
+                r.category.contains(query, ignoreCase = true) ||
+                r.kelurahan.contains(query, ignoreCase = true)
+        }
+
     Column(Modifier.fillMaxSize().background(Bg)) {
         AlirinTopBar(
             title = "Status Laporan",
-            subtitle = "${reports.size} laporan tersimpan",
+            subtitle = "${filtered.size} dari ${reports.size} laporan",
             onBack = onBack,
-            right = { AlirinIconBubble(icon = AlirinIcons.search, onClick = {}) },
         )
         LazyColumn(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
@@ -48,7 +73,7 @@ fun StatusListScreen(
                     padding = PaddingValues(14.dp),
                 ) {
                     Column {
-                        Text("Cari pakai nomor laporan", style = AlirinText.caption, modifier = Modifier.padding(bottom = 6.dp))
+                        Text("Cari nomor / kategori / kelurahan", style = AlirinText.caption, modifier = Modifier.padding(bottom = 6.dp))
                         Row(
                             Modifier
                                 .fillMaxWidth()
@@ -59,36 +84,48 @@ fun StatusListScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            Icon(AlirinIcons.document, null, tint = Muted, modifier = Modifier.size(18.dp))
-                            Text("ALR-2026-...", style = AlirinText.mono.copy(fontSize = 14.sp, color = Faint), modifier = Modifier.weight(1f))
-                            Box(
-                                Modifier
-                                    .clip(Radius.pill)
-                                    .background(Ink)
-                                    .clickable {}
-                                    .padding(horizontal = 12.dp, vertical = 8.dp)
-                            ) {
-                                Text("Cari", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.W600)
+                            Icon(AlirinIcons.search, null, tint = Muted, modifier = Modifier.size(18.dp))
+                            BasicTextField(
+                                value = query,
+                                onValueChange = { query = it },
+                                singleLine = true,
+                                textStyle = AlirinText.mono.copy(fontSize = 14.sp, color = Ink),
+                                cursorBrush = SolidColor(Primary),
+                                modifier = Modifier.weight(1f),
+                                decorationBox = { inner ->
+                                    Box(contentAlignment = Alignment.CenterStart) {
+                                        if (query.isEmpty()) Text(
+                                            "ALR-2026-...",
+                                            style = AlirinText.mono.copy(fontSize = 14.sp, color = Faint),
+                                        )
+                                        inner()
+                                    }
+                                },
+                            )
+                            if (query.isNotEmpty()) {
+                                Icon(
+                                    AlirinIcons.close, null, tint = Muted,
+                                    modifier = Modifier.size(18.dp).clickable { query = "" },
+                                )
                             }
                         }
                     }
                 }
             }
             item {
-                // Filter tabs
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)) {
-                    listOf("Semua", "Aktif", "Selesai").forEachIndexed { i, label ->
-                        val active = i == 0
+                    StatusFilter.entries.forEach { f ->
+                        val active = filter == f
                         Box(
                             Modifier
                                 .clip(Radius.pill)
                                 .background(if (active) Ink else Surface)
                                 .then(if (!active) Modifier.border(1.dp, Hairline, Radius.pill) else Modifier)
-                                .clickable {}
+                                .clickable { filter = f }
                                 .padding(horizontal = 14.dp, vertical = 8.dp)
                         ) {
                             Text(
-                                label,
+                                f.label,
                                 color = if (active) Color.White else Ink3,
                                 fontSize = 12.5.sp,
                                 fontWeight = FontWeight.W600,
@@ -97,8 +134,18 @@ fun StatusListScreen(
                     }
                 }
             }
-            items(reports) { r ->
+            items(filtered) { r ->
                 ReportListItem(report = r, onClick = { onReportClick(r) })
+            }
+            if (filtered.isEmpty()) {
+                item {
+                    Box(Modifier.fillMaxWidth().padding(top = 40.dp), contentAlignment = Alignment.Center) {
+                        Text(
+                            if (query.isNotBlank()) "Tidak ada laporan cocok \"$query\"." else "Belum ada laporan.",
+                            style = AlirinText.caption,
+                        )
+                    }
+                }
             }
             item { Spacer(Modifier.height(16.dp)) }
         }

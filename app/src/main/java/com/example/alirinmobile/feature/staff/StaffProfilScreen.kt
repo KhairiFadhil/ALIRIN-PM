@@ -21,6 +21,7 @@ import com.example.alirinmobile.ui.theme.*
 
 @Composable
 fun StaffProfilScreen(actor: AuthSession?, onLogout: () -> Unit) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     Column(Modifier.fillMaxSize().background(Bg)) {
         AlirinTopBar(title = "Profil")
         Column(
@@ -66,7 +67,7 @@ fun StaffProfilScreen(actor: AuthSession?, onLogout: () -> Unit) {
                         Row(
                             Modifier
                                 .fillMaxWidth()
-                                .clickable { /* TODO */ }
+                                .clickable { ctx.toast("$label: $value") }
                                 .padding(horizontal = 18.dp, vertical = 14.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween,

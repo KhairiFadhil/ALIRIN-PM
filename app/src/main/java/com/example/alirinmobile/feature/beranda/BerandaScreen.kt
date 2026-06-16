@@ -60,13 +60,22 @@ fun BerandaScreen(
     val areaKecamatan = selected?.kecamatan ?: "Bandar Lampung"
 
     val kritisCount = reports.count { it.risk == RiskLevel.Kritis }
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val activeCount = reports.count { it.status != ReportStatus.Completed && it.status != ReportStatus.Rejected }
     Column(
         modifier
             .fillMaxSize()
             .background(Bg)
             .verticalScroll(rememberScrollState())
     ) {
-        Greeting(area = areaKecamatan)
+        Greeting(
+            area = areaKecamatan,
+            onBell = {
+                ctx.toast(
+                    if (activeCount > 0) "$activeCount laporan kamu sedang diproses." else "Belum ada notifikasi baru.",
+                )
+            },
+        )
         Column(
             Modifier
                 .padding(start = Space.s5, end = Space.s5, bottom = Space.s6),
@@ -135,7 +144,7 @@ fun BerandaScreen(
 
 // ── Greeting ────────────────────────────────────────────────────
 @Composable
-private fun Greeting(area: String) {
+private fun Greeting(area: String, onBell: () -> Unit = {}) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -165,7 +174,7 @@ private fun Greeting(area: String) {
                     .matchParentSize()
                     .clip(CircleShape)
                     .background(Surface2)
-                    .clickable { /* TODO: notifications screen */ },
+                    .clickable(onClick = onBell),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(AlirinIcons.bell, null, tint = Ink, modifier = Modifier.size(20.dp))

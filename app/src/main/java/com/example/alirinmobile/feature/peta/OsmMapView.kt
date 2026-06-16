@@ -28,6 +28,7 @@ fun OsmMapView(
     selectedId: Int?,
     onHotspotTap: (Hotspot) -> Unit,
     modifier: Modifier = Modifier,
+    onMapReady: (MapView) -> Unit = {},
 ) {
     AndroidView(
         modifier = modifier,
@@ -44,6 +45,7 @@ fun OsmMapView(
                 setUseDataConnection(true)
                 isHorizontalMapRepetitionEnabled = false
                 isVerticalMapRepetitionEnabled = false
+                onMapReady(this)
             }
         },
         update = { map ->

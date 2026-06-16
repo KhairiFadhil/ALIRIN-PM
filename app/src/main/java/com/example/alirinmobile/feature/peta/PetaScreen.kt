@@ -44,7 +44,15 @@ fun PetaScreen(
 ) {
     var filter by remember { mutableStateOf<HotspotSource?>(null) }   // null = All
     var selected by remember { mutableStateOf<Hotspot?>(null) }
-    val filtered = if (filter == null) HotspotSeed else HotspotSeed.filter { it.src == filter }
+    var query by remember { mutableStateOf("") }
+    val filtered = HotspotSeed
+        .filter { filter == null || it.src == filter }
+        .filter { h ->
+            query.isBlank() ||
+                h.name.contains(query, ignoreCase = true) ||
+                h.kel.contains(query, ignoreCase = true) ||
+                h.kec.contains(query, ignoreCase = true)
+        }
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     val density = LocalDensity.current
 
@@ -69,6 +77,8 @@ fun PetaScreen(
         )
     }
 
+    var mapRef by remember { mutableStateOf<org.osmdroid.views.MapView?>(null) }
+
     Box(modifier.fillMaxSize()) {
         // Real OSM map layer (back)
         OsmMapView(
@@ -76,6 +86,7 @@ fun PetaScreen(
             selectedId = selected?.id,
             onHotspotTap = { selected = it },
             modifier = Modifier.fillMaxSize(),
+            onMapReady = { mapRef = it },
         )
 
         // Top overlay: back + search + Area card + filter chips
@@ -105,11 +116,29 @@ fun PetaScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Icon(AlirinIcons.search, null, tint = Muted, modifier = Modifier.size(16.dp))
-                    Text(
-                        "Cari kecamatan atau kelurahan...",
-                        color = Faint,
-                        fontSize = 14.sp,
+                    androidx.compose.foundation.text.BasicTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        singleLine = true,
+                        textStyle = AlirinText.body.copy(color = Ink, fontSize = 14.sp),
+                        cursorBrush = androidx.compose.ui.graphics.SolidColor(Primary),
+                        modifier = Modifier.weight(1f),
+                        decorationBox = { inner ->
+                            Box(contentAlignment = Alignment.CenterStart) {
+                                if (query.isEmpty()) Text(
+                                    "Cari kecamatan atau kelurahan...",
+                                    color = Faint, fontSize = 14.sp,
+                                )
+                                inner()
+                            }
+                        },
                     )
+                    if (query.isNotEmpty()) {
+                        Icon(
+                            AlirinIcons.close, null, tint = Muted,
+                            modifier = Modifier.size(16.dp).clickable { query = "" },
+                        )
+                    }
                 }
             }
 
@@ -125,9 +154,12 @@ fun PetaScreen(
                 .padding(end = 14.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            MapButton(icon = AlirinIcons.plus)
-            MapButton(icon = AlirinIcons.close)
-            MapButton(icon = AlirinIcons.pin, primary = true)
+            MapButton(icon = AlirinIcons.plus, onClick = { mapRef?.controller?.zoomIn() })
+            MapButton(icon = AlirinIcons.layers, onClick = { mapRef?.controller?.zoomOut() })
+            MapButton(icon = AlirinIcons.pin, primary = true, onClick = {
+                mapRef?.controller?.animateTo(org.osmdroid.util.GeoPoint(-5.3971, 105.2668))
+                mapRef?.controller?.setZoom(14.0)
+            })
         }
 
         // Legend bottom-left
@@ -246,7 +278,7 @@ private fun FilterChips(value: HotspotSource?, onChange: (HotspotSource?) -> Uni
 
 // ── Map control buttons ────────────────────────────────────────
 @Composable
-private fun MapButton(icon: ImageVector, primary: Boolean = false) {
+private fun MapButton(icon: ImageVector, primary: Boolean = false, onClick: () -> Unit = {}) {
     val bg = if (primary) Primary else Color.White.copy(alpha = 0.95f)
     val tint = if (primary) Color.White else Ink
     Box(
@@ -255,7 +287,7 @@ private fun MapButton(icon: ImageVector, primary: Boolean = false) {
             .clip(RoundedCornerShape(14.dp))
             .background(bg)
             .border(0.5.dp, Hairline, RoundedCornerShape(14.dp))
-            .clickable { },
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp))
@@ -269,6 +301,7 @@ private fun HotspotSheetContent(
     onClose: () -> Unit,
     onAddHere: () -> Unit,
 ) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     Column(
         Modifier
             .verticalScroll(rememberScrollState())
@@ -357,7 +390,12 @@ private fun HotspotSheetContent(
                 label = "Bagikan",
                 leadingIcon = AlirinIcons.share,
                 variant = BtnVariant.Soft,
-                onClick = {},
+                onClick = {
+                    ctx.shareText(
+                        "Titik rawan ALIRIN: ${hotspot.name}\n" +
+                            "${hotspot.kel}, ${hotspot.kec} · ${hotspot.risk.label} (skor ${hotspot.score})",
+                    )
+                },
                 modifier = Modifier.weight(1f),
             )
             AlirinButton(

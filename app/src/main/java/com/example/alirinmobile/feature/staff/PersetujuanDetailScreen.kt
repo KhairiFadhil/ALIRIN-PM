@@ -47,6 +47,7 @@ fun PersetujuanDetailScreen(
 ) {
     var sheet by remember { mutableStateOf<SheetKind?>(null) }
     var actioned by remember { mutableStateOf<SheetKind?>(null) }
+    val ctx = androidx.compose.ui.platform.LocalContext.current
 
     if (actioned != null) {
         StaffActionSuccess(action = actioned!!, report = report, onDone = onBack)
@@ -59,7 +60,17 @@ fun PersetujuanDetailScreen(
                 title = report.code,
                 subtitle = report.createdAt,
                 onBack = onBack,
-                right = { AlirinIconBubble(icon = AlirinIcons.share, onClick = {}) },
+                right = {
+                    AlirinIconBubble(
+                        icon = AlirinIcons.share,
+                        onClick = {
+                            ctx.shareText(
+                                "Laporan ${report.code} · ${report.category}\n" +
+                                    "${report.kelurahan}, ${report.kecamatan} · skor ${report.score}",
+                            )
+                        },
+                    )
+                },
             )
             Column(
                 Modifier
@@ -294,12 +305,20 @@ private fun MapSnippetCard(report: Report) {
                     )
                     Text("-5.39812, 105.26012", style = AlirinText.mono.copy(color = Muted))
                 }
+                val navCtx = androidx.compose.ui.platform.LocalContext.current
                 Text(
                     "Navigasi",
                     color = Primary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.W600,
-                    modifier = Modifier.clickable {},
+                    modifier = Modifier.clickable {
+                        // Open the location in any maps app via a geo: URI.
+                        val label = android.net.Uri.encode("${report.kelurahan}, ${report.kecamatan}")
+                        val uri = android.net.Uri.parse("geo:-5.39812,105.26012?q=-5.39812,105.26012($label)")
+                        runCatching {
+                            navCtx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, uri))
+                        }.onFailure { navCtx.toast("Tidak ada aplikasi peta terpasang.") }
+                    },
                 )
             }
         }

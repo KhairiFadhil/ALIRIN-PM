@@ -24,7 +24,10 @@ import com.example.alirinmobile.ui.components.*
 import com.example.alirinmobile.ui.theme.*
 
 @Composable
-fun StaffTindakLanjutScreen(reports: List<Report>) {
+fun StaffTindakLanjutScreen(
+    reports: List<Report>,
+    onClose: (Report) -> Unit = {},
+) {
     var tab by rememberSaveable { mutableStateOf("berjalan") }
 
     val berjalan = reports.filter { it.status == ReportStatus.Scheduled || it.status == ReportStatus.InProgress }
@@ -65,7 +68,7 @@ fun StaffTindakLanjutScreen(reports: List<Report>) {
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            items(visible) { TindakLanjutItem(it) }
+            items(visible) { TindakLanjutItem(it, onClose = { onClose(it) }) }
             if (visible.isEmpty()) {
                 item {
                     Box(
@@ -129,7 +132,7 @@ private fun SegBtn(label: String, active: Boolean, onClick: () -> Unit, modifier
 }
 
 @Composable
-private fun TindakLanjutItem(report: Report) {
+private fun TindakLanjutItem(report: Report, onClose: () -> Unit) {
     val teamName = listOf("Tim Kebersihan A", "Tim Drainase B", "Tim PUPR C")[
         (report.id.hashCode() % 3 + 3) % 3
     ]
@@ -177,7 +180,7 @@ private fun TindakLanjutItem(report: Report) {
                             .clip(Radius.pill)
                             .background(Surface)
                             .border(1.dp, Hairline, Radius.pill)
-                            .clickable { /* TODO close action */ }
+                            .clickable(onClick = onClose)
                             .padding(horizontal = 14.dp, vertical = 8.dp),
                     ) {
                         Text("Tutup", color = Ink, fontWeight = FontWeight.W600, fontSize = 12.5.sp)

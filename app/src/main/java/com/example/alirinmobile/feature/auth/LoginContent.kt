@@ -44,6 +44,7 @@ fun LoginContent(
     modifier: Modifier = Modifier,
 ) {
     val canSubmit = username.isNotBlank() && password.length >= 4 && ui !is AuthUiState.Submitting
+    val ctx = androidx.compose.ui.platform.LocalContext.current
 
     Column(modifier.fillMaxSize().background(Bg)) {
         Row(
@@ -105,6 +106,9 @@ fun LoginContent(
                 fontSize = 12.5.sp,
                 fontWeight = FontWeight.W600,
                 style = TextStyle(textDecoration = TextDecoration.Underline),
+                modifier = Modifier.clickable {
+                    ctx.toast("Hubungi admin kelurahan untuk reset PIN staff.")
+                },
             )
 
             Spacer(Modifier.height(24.dp))

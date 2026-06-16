@@ -305,7 +305,13 @@ private fun MainShell(role: Role, onLogout: () -> Unit) {
                     }
                 }
                 composable(Routes.StaffLanjut) {
-                    StaffTindakLanjutScreen(reports = reports)
+                    val staffVm: StaffViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
+                    StaffTindakLanjutScreen(
+                        reports = reports,
+                        onClose = { report ->
+                            staffVm.transition(report.id, com.example.alirinmobile.data.ReportStatus.Completed, "Pekerjaan ditutup oleh staff.")
+                        },
+                    )
                 }
                 composable(Routes.StaffStats) {
                     StaffStatistikScreen(reports = reports)

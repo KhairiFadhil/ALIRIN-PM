@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,12 +34,24 @@ fun StatusDetailScreen(
     report: Report,
     onBack: () -> Unit,
 ) {
+    val ctx = LocalContext.current
     Column(Modifier.fillMaxSize().background(Bg)) {
         AlirinTopBar(
             title = report.code,
             subtitle = report.category,
             onBack = onBack,
-            right = { AlirinIconBubble(icon = AlirinIcons.share, onClick = {}) },
+            right = {
+                AlirinIconBubble(
+                    icon = AlirinIcons.share,
+                    onClick = {
+                        ctx.shareText(
+                            "Laporan drainase ALIRIN ${report.code}\n" +
+                                "${report.category} · ${report.kelurahan}, ${report.kecamatan}\n" +
+                                "Status: ${report.status.label}",
+                        )
+                    },
+                )
+            },
         )
         Column(
             Modifier
