@@ -70,9 +70,12 @@ class PredictionRepository(
             Output WAJIB JSON valid persis dengan kunci:
             kondisi_udara (string ringkas), suhu_celsius (number), curah_hujan_mm (number, 3 jam ke depan),
             debit_air_ms (number — perkiraan debit air drainase mikro dalam m³/s berdasarkan curah hujan),
-            ringkasan (string ≤ 140 char, Bahasa Indonesia, jelas + actionable).
+            ringkasan (string ≤ 140 char, Bahasa Indonesia, jelas + actionable),
+            rekomendasi (array of string — 2 sampai 4 saran tindakan SINGKAT & konkret untuk warga/petugas,
+            masing-masing ≤ 60 char, Bahasa Indonesia, contoh: "Bersihkan sampah di mulut got").
             Estimasi debit pakai rumus sederhana: debit_air_ms ≈ curah_hujan_mm × 0.0015 × faktor_area.
-            Jika curah_hujan_mm ≥ 5 ringkasan harus mengandung peringatan genangan.
+            Jika curah_hujan_mm ≥ 5 ringkasan harus mengandung peringatan genangan, dan rekomendasi
+            harus berisi langkah mitigasi genangan.
         """.trimIndent()
         val userPrompt = """
             Wilayah: ${kelurahan.kelurahan}, ${kelurahan.kecamatan}, Bandar Lampung.
@@ -110,12 +113,26 @@ class PredictionRepository(
             precip > 0   -> "Hujan ringan — kondisi drainase masih aman."
             else         -> "Cerah/berawan — tidak ada peringatan banjir."
         }
+        val recs = when {
+            precip >= 10 -> listOf(
+                "Bersihkan sampah di mulut got sekarang",
+                "Hindari area cekungan & underpass",
+                "Laporkan titik genangan via ALIRIN",
+            )
+            precip >= 5  -> listOf(
+                "Pantau drainase dekat rumah",
+                "Siapkan karung pasir bila perlu",
+            )
+            precip > 0   -> listOf("Cek saluran air tetap lancar")
+            else         -> listOf("Manfaatkan cuaca cerah untuk bersihkan got")
+        }
         return AiForecast(
             kondisiUdara = desc,
             suhuCelsius = temp,
             curahHujanMm = precip,
             debitAirMs = debit,
             ringkasan = summary,
+            rekomendasi = recs,
         )
     }
 }

@@ -43,4 +43,6 @@ data class AiForecast(
     @SerialName("curah_hujan_mm") val curahHujanMm: Double,   // 3h cumulative
     @SerialName("debit_air_ms")   val debitAirMs: Double,     // m³/s estimated water debit
     val ringkasan: String,                                    // 1-sentence summary
+    /** AI-generated actionable recommendations (2–4 short bullet points). */
+    val rekomendasi: List<String> = emptyList(),
 )

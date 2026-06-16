@@ -25,7 +25,7 @@ import com.example.alirinmobile.ui.components.*
 import com.example.alirinmobile.ui.theme.*
 
 @Composable
-fun TentangScreen(onBack: () -> Unit) {
+fun TentangScreen(onBack: () -> Unit, onOpenWeb: () -> Unit = {}) {
     Column(Modifier.fillMaxSize().background(Bg)) {
         AlirinTopBar(title = "Tentang ALIRIN", onBack = onBack)
         Column(
@@ -175,10 +175,11 @@ fun TentangScreen(onBack: () -> Unit) {
 
             // Link list
             Column {
+                TentangLink(icon = AlirinIcons.layers,   label = "Buka ALIRIN Web", onClick = onOpenWeb)
                 TentangLink(icon = AlirinIcons.document, label = "Panduan singkat")
                 TentangLink(icon = AlirinIcons.shield,   label = "Kebijakan privasi")
                 TentangLink(icon = AlirinIcons.info,     label = "FAQ")
-                TentangLink(icon = AlirinIcons.bell,     label = "Versi 1.0 · build 2026.05.19", muted = true)
+                TentangLink(icon = AlirinIcons.bell,     label = "Versi 1.0 · build 2026.05.25", muted = true)
             }
         }
     }
@@ -302,11 +303,11 @@ private fun StatCol(n: String, l: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun TentangLink(icon: ImageVector, label: String, muted: Boolean = false) {
+private fun TentangLink(icon: ImageVector, label: String, muted: Boolean = false, onClick: () -> Unit = {}) {
     Row(
         Modifier
             .fillMaxWidth()
-            .clickable {}
+            .clickable(enabled = !muted, onClick = onClick)
             .padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),

@@ -21,9 +21,13 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.alirinmobile.feature.AlirinViewModelFactory
 import com.example.alirinmobile.feature.LocationViewModel
+import com.example.alirinmobile.feature.WeatherViewModel
 import com.example.alirinmobile.feature.peta.MapBackground
 import com.example.alirinmobile.feature.peta.MapStyle
 import com.example.alirinmobile.ui.components.*
@@ -39,8 +43,17 @@ fun LokasiStep(
     total: Int,
 ) {
     val locVm: LocationViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
+    val weatherVm: WeatherViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
+    val selectedKel by weatherVm.selected.collectAsStateWithLifecycle()
     var fetching by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+
+    // Seed the report region from the user's currently-selected kelurahan once.
+    LaunchedEffect(selectedKel) {
+        if (form.kecamatan.isBlank() && selectedKel != null) {
+            onUpdate(form.copy(kecamatan = selectedKel!!.kecamatan, kelurahan = selectedKel!!.kelurahan))
+        }
+    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -138,8 +151,16 @@ fun LokasiStep(
                 } else "-5.39812, 105.26012 · belum di-GPS"
                 ReadOnlyFieldBordered(label = "Latitude · Longitude", value = coordsLabel, mono = true)
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    ReadOnlyFieldBordered(label = "Kecamatan", value = "Kemiling", modifier = Modifier.weight(1f))
-                    ReadOnlyFieldBordered(label = "Kelurahan", value = "Pinang Jaya", modifier = Modifier.weight(1f))
+                    ReadOnlyFieldBordered(
+                        label = "Kecamatan",
+                        value = form.kecamatan.ifBlank { selectedKel?.kecamatan ?: "—" },
+                        modifier = Modifier.weight(1f),
+                    )
+                    ReadOnlyFieldBordered(
+                        label = "Kelurahan",
+                        value = form.kelurahan.ifBlank { selectedKel?.kelurahan ?: "—" },
+                        modifier = Modifier.weight(1f),
+                    )
                 }
                 TextField(
                     value = form.alamat,

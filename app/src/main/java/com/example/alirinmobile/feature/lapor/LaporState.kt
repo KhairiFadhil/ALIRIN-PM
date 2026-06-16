@@ -23,6 +23,9 @@ data class LaporForm(
     val lat: Double? = null,
     val lng: Double? = null,
     val accuracyMeters: Float? = null,
+    /** Region — defaults to the user's selected kelurahan, editable in the Lokasi step. */
+    val kecamatan: String = "",
+    val kelurahan: String = "",
 )
 
 class LaporFlowState(

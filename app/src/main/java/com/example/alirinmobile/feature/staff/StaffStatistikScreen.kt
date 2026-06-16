@@ -25,19 +25,25 @@ fun StaffStatistikScreen(reports: List<Report>) {
         it.status == ReportStatus.Verified || it.status == ReportStatus.Scheduled ||
         it.status == ReportStatus.InProgress || it.status == ReportStatus.Completed
     }
-    val bars = listOf(2, 3, 4, 3, 5, 6, 4, 7, 5, 4, 6, 5, 3, 4)  // mock 14d
-    val categoryBreakdown = listOf(
-        Triple("Sumbatan sampah", 22, 47) to Primary,
-        Triple("Genangan jalan",  12, 26) to RiskTinggiDot,
-        Triple("Aliran lambat",   8,  17) to RiskWaspadaDot,
-        Triple("Drainase rusak",  5,  10) to Ink3,
-    )
-    val topKel = listOf(
-        "Pinang Jaya" to 12,
-        "Sukabumi Indah" to 9,
-        "Way Halim Permai" to 7,
-        "Rajabasa Raya" to 5,
-    )
+    val bars = listOf(2, 3, 4, 3, 5, 6, 4, 7, 5, 4, 6, 5, 3, 4)  // 14d trend (no per-day source yet)
+
+    // Category breakdown computed from the live report list.
+    val palette = listOf(Primary, RiskTinggiDot, RiskWaspadaDot, Ink3, RiskKritisDot, Sky)
+    val total = reports.size.coerceAtLeast(1)
+    val categoryBreakdown = reports
+        .groupingBy { it.category }.eachCount()
+        .entries.sortedByDescending { it.value }
+        .take(palette.size)
+        .mapIndexed { i, e ->
+            Triple(e.key, e.value, (e.value * 100) / total) to palette[i]
+        }
+
+    // Top kelurahan by report volume — also from live data.
+    val topKel = reports
+        .groupingBy { it.kelurahan }.eachCount()
+        .entries.sortedByDescending { it.value }
+        .take(4)
+        .map { it.key to it.value }
 
     Column(Modifier.fillMaxSize().background(Bg)) {
         AlirinTopBar(title = "Statistik", subtitle = "Wilayah Kemiling · Mei 2026")
@@ -65,7 +71,7 @@ fun StaffStatistikScreen(reports: List<Report>) {
                     Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                         Column(Modifier.weight(1f)) {
                             Text(
-                                validated.coerceAtLeast(47).toString(),
+                                validated.toString(),
                                 color = Color.White,
                                 fontSize = 36.sp,
                                 fontWeight = FontWeight.W800,

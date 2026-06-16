@@ -94,7 +94,7 @@ fun SuccessScreen(
             ) {
                 KvCol(label = "Nomor", value = code, mono = true, modifier = Modifier.weight(1f))
                 KvCol(label = "Severity", value = sev.label, modifier = Modifier.weight(1f))
-                KvCol(label = "Lokasi", value = "Pinang Jaya", align = Alignment.End, modifier = Modifier.weight(1f))
+                KvCol(label = "Lokasi", value = form.kelurahan.ifBlank { "—" }, align = Alignment.End, modifier = Modifier.weight(1f))
             }
 
             // Mini map
@@ -117,7 +117,7 @@ fun SuccessScreen(
                         .background(Surface)
                         .padding(horizontal = 10.dp, vertical = 4.dp),
                 ) {
-                    Text("Pinang Jaya", fontSize = 11.sp, fontWeight = FontWeight.W600, color = Ink)
+                    Text(form.kelurahan.ifBlank { "Lokasi" }, fontSize = 11.sp, fontWeight = FontWeight.W600, color = Ink)
                 }
                 Row(
                     Modifier
@@ -127,7 +127,7 @@ fun SuccessScreen(
                         .background(Surface)
                         .padding(horizontal = 10.dp, vertical = 4.dp),
                 ) {
-                    Text("Kemiling", fontSize = 11.sp, fontWeight = FontWeight.W600, color = Ink)
+                    Text(form.kecamatan.ifBlank { "Bandar Lampung" }, fontSize = 11.sp, fontWeight = FontWeight.W600, color = Ink)
                 }
             }
             Spacer(Modifier.height(18.dp))

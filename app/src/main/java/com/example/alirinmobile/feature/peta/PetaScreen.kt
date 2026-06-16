@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.alirinmobile.data.Hotspot
 import com.example.alirinmobile.data.HotspotSource
 import com.example.alirinmobile.data.RiskLevel
@@ -46,6 +47,27 @@ fun PetaScreen(
     val filtered = if (filter == null) HotspotSeed else HotspotSeed.filter { it.src == filter }
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     val density = LocalDensity.current
+
+    // "Area kamu" summary computed from the selected kelurahan + current markers.
+    val weatherVm: com.example.alirinmobile.feature.WeatherViewModel =
+        androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.alirinmobile.feature.AlirinViewModelFactory.Factory)
+    val selectedKel by weatherVm.selected.collectAsStateWithLifecycle()
+    val areaSummary = remember(filtered, selectedKel) {
+        val active = filtered.count { it.count > 0 }.coerceAtLeast(filtered.size.coerceAtMost(1))
+        val topScore = filtered.maxOfOrNull { it.score } ?: 0
+        val level = when {
+            topScore >= 80 -> RiskLevel.Kritis
+            topScore >= 60 -> RiskLevel.Tinggi
+            topScore >= 40 -> RiskLevel.Waspada
+            else -> RiskLevel.Normal
+        }
+        AreaSummary(
+            kecamatan = selectedKel?.kecamatan ?: "Bandar Lampung",
+            activeCount = active,
+            level = level,
+            score = topScore,
+        )
+    }
 
     Box(modifier.fillMaxSize()) {
         // Real OSM map layer (back)
@@ -91,14 +113,7 @@ fun PetaScreen(
                 }
             }
 
-            AreaKamuCard(
-                summary = AreaSummary(
-                    kecamatan = "Kemiling",
-                    activeCount = filtered.count { it.count > 0 }.coerceAtLeast(filtered.size.coerceAtMost(1)),
-                    level = RiskLevel.Tinggi,
-                    score = 72,
-                ),
-            )
+            AreaKamuCard(summary = areaSummary)
 
             FilterChips(value = filter, onChange = { filter = it })
         }

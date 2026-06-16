@@ -47,7 +47,6 @@ import kotlin.math.ceil
 @Composable
 fun BerandaScreen(
     reports: List<Report>,
-    areaKecamatan: String = "Kemiling",
     onLaporClick: () -> Unit,
     onPetaClick: () -> Unit,
     onStatusClick: () -> Unit,
@@ -55,6 +54,11 @@ fun BerandaScreen(
     onTentangClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Area name follows the user's selected kelurahan (picked via the weather strip).
+    val weatherVm: WeatherViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
+    val selected by weatherVm.selected.collectAsStateWithLifecycle()
+    val areaKecamatan = selected?.kecamatan ?: "Bandar Lampung"
+
     val kritisCount = reports.count { it.risk == RiskLevel.Kritis }
     Column(
         modifier
@@ -481,6 +485,28 @@ private fun PredictionCardContent(model: PredictionUiModel, onOpenMap: () -> Uni
                 AiStatRow("Suhu",            "${"%.1f".format(ai.suhuCelsius)} °C", accent = riskTint.first)
                 AiStatRow("Curah hujan 3h",  "${"%.1f".format(ai.curahHujanMm)} mm", accent = riskTint.first)
                 AiStatRow("Debit air est.",  "${"%.3f".format(ai.debitAirMs)} m³/s", accent = riskTint.first)
+            }
+            // AI recommendations
+            if (ai.rekomendasi.isNotEmpty()) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(Radius.md)
+                        .background(Color.White.copy(alpha = 0.6f))
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Icon(AlirinIcons.sparkles, null, tint = riskTint.first, modifier = Modifier.size(14.dp))
+                        Text("REKOMENDASI AI", style = AlirinText.eyebrow.copy(color = Ink2))
+                    }
+                    ai.rekomendasi.take(4).forEach { rec ->
+                        Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Box(Modifier.padding(top = 6.dp).size(5.dp).clip(CircleShape).background(riskTint.first))
+                            Text(rec, color = Ink, fontSize = 12.5.sp, lineHeight = 17.sp, fontWeight = FontWeight.W500)
+                        }
+                    }
+                }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(

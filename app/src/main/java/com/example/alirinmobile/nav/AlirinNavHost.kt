@@ -1,10 +1,14 @@
 package com.example.alirinmobile.nav
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -13,14 +17,19 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.alirinmobile.feature.WeatherViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -50,6 +59,7 @@ import com.example.alirinmobile.feature.staff.StaffTindakLanjutScreen
 import com.example.alirinmobile.feature.status.StatusDetailScreen
 import com.example.alirinmobile.feature.status.StatusListScreen
 import com.example.alirinmobile.feature.tentang.TentangScreen
+import com.example.alirinmobile.feature.web.WebViewScreen
 import com.example.alirinmobile.ui.components.AlirinIcons
 import com.example.alirinmobile.ui.theme.Bg
 import com.example.alirinmobile.ui.theme.Radius
@@ -68,6 +78,8 @@ object Routes {
     const val StaffLanjut = "staff_lanjut"
     const val StaffStats = "staff_stats"
     const val StaffProfil = "staff_profil"
+    // Shared
+    const val Web = "web"
 
     fun statusDetail(id: String) = "status_detail/$id"
     fun staffInboxDetail(id: String) = "staff_inbox/$id"
@@ -154,11 +166,29 @@ private fun MainShell(role: Role, onLogout: () -> Unit) {
     val authVm: AuthViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
     val session by authVm.session.collectAsStateWithLifecycle()
 
+    // Refresh BMKG weather + AI prediction whenever the app returns to foreground
+    // (ON_RESUME) so the home card always reflects the latest forecast — and stop work
+    // on ON_PAUSE. This is the lifecycle-aware smoothing requested.
+    val weatherVm: WeatherViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) weatherVm.refresh()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize().background(Bg),
         containerColor = Bg,
         bottomBar = {
-            if (showBottomBar) {
+            // Slide the bar in/out smoothly when entering/leaving detail screens.
+            AnimatedVisibility(
+                visible = showBottomBar,
+                enter = slideInVertically(tween(SLIDE_MS)) { it } + fadeIn(tween(SLIDE_MS)),
+                exit = slideOutVertically(tween(SLIDE_MS)) { it } + fadeOut(tween(SLIDE_MS)),
+            ) {
                 BottomNav(
                     current = currentTab,
                     onSelect = { tabId ->
@@ -191,7 +221,10 @@ private fun MainShell(role: Role, onLogout: () -> Unit) {
             }
         },
     ) { padding ->
-        Box(Modifier.fillMaxSize().padding(if (showBottomBar) padding else PaddingValues(0.dp))) {
+        // Always consume the scaffold insets (status bar top + bottom-bar/nav bar) so
+        // detail screens don't draw their top bars under the notch. The bottom inset
+        // collapses automatically when the bar is hidden.
+        Box(Modifier.fillMaxSize().padding(padding)) {
             NavHost(
                 navController = nav,
                 startDestination = startDestination,
@@ -234,7 +267,13 @@ private fun MainShell(role: Role, onLogout: () -> Unit) {
                     if (report != null) StatusDetailScreen(report = report, onBack = { nav.popBackStack() })
                 }
                 composable(Routes.Tentang) {
-                    TentangScreen(onBack = { nav.popBackStack() })
+                    TentangScreen(
+                        onBack = { nav.popBackStack() },
+                        onOpenWeb = { nav.navigate(Routes.Web) },
+                    )
+                }
+                composable(Routes.Web) {
+                    WebViewScreen(onBack = { nav.popBackStack() })
                 }
 
                 // ── Staff ────────────────────────────────────────
