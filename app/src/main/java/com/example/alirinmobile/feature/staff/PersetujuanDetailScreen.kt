@@ -88,7 +88,6 @@ fun PersetujuanDetailScreen(
             }
         }
 
-        // Fixed action bar at bottom
         ActionBar(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -138,7 +137,6 @@ fun PersetujuanDetailScreen(
     }
 }
 
-// ── Hero card ──────────────────────────────────────────────────
 @Composable
 private fun HeroCard(report: Report) {
     AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(18.dp)) {
@@ -198,7 +196,7 @@ private fun PhotoStripCard(report: Report) {
                             tone = if (i == 0) PlaceholderTone.Indigo else PlaceholderTone.Neutral,
                             shape = Radius.md,
                         )
-                        // Watermark badge bottom-right
+
                         Column(
                             Modifier
                                 .align(Alignment.BottomEnd)
@@ -219,7 +217,7 @@ private fun PhotoStripCard(report: Report) {
 
 @Composable
 private fun ValidationSignalsCard(report: Report) {
-    // Approximate signals from existing data
+
     val reporterCount = ReportSeed.count { it.kelurahan == report.kelurahan }.coerceAtLeast(1)
     val nearbyHistoric = HotspotSeed.count {
         it.kel == report.kelurahan || it.kec == report.kecamatan
@@ -312,7 +310,7 @@ private fun MapSnippetCard(report: Report) {
                     fontSize = 12.sp,
                     fontWeight = FontWeight.W600,
                     modifier = Modifier.clickable {
-                        // Open the location in any maps app via a geo: URI.
+
                         val label = android.net.Uri.encode("${report.kelurahan}, ${report.kecamatan}")
                         val uri = android.net.Uri.parse("geo:-5.39812,105.26012?q=-5.39812,105.26012($label)")
                         runCatching {
@@ -347,7 +345,6 @@ private fun ReporterCard(report: Report) {
     }
 }
 
-// ── Action bar (fixed bottom) ──────────────────────────────────
 @Composable
 private fun ActionBar(
     onReject: () -> Unit,
@@ -417,7 +414,6 @@ private fun ActionBarButton(
     }
 }
 
-// ── Action sheets ──────────────────────────────────────────────
 @Composable
 private fun SheetHandle() {
     Box(
@@ -616,7 +612,6 @@ private fun TeamChip(label: String, active: Boolean, onClick: () -> Unit, modifi
     }
 }
 
-// ── Success screen ─────────────────────────────────────────────
 @Composable
 private fun StaffActionSuccess(action: SheetKind, report: Report, onDone: () -> Unit) {
     val (headline, body, label, isReject) = when (action) {
@@ -724,5 +719,4 @@ private fun SuccessKv(label: String, value: String, align: Alignment.Horizontal 
     }
 }
 
-/** Tiny tuple used in StaffActionSuccess destructuring. */
 private data class Quad(val a: String, val b: String, val c: String, val d: Boolean)

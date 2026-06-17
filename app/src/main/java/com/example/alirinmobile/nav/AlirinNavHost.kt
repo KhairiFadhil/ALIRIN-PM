@@ -66,19 +66,19 @@ import com.example.alirinmobile.ui.theme.Radius
 import com.example.alirinmobile.ui.theme.Surface
 
 object Routes {
-    // Citizen
+
     const val Beranda = "beranda"
     const val Peta = "peta"
     const val Status = "status"
     const val StatusDetail = "status_detail/{reportId}"
     const val Tentang = "tentang"
-    // Staff
+
     const val StaffInbox = "staff_inbox"
     const val StaffInboxDetail = "staff_inbox/{reportId}"
     const val StaffLanjut = "staff_lanjut"
     const val StaffStats = "staff_stats"
     const val StaffProfil = "staff_profil"
-    // Shared
+
     const val Web = "web"
 
     fun statusDetail(id: String) = "status_detail/$id"
@@ -111,7 +111,6 @@ fun AlirinNavHost() {
     }
 }
 
-// iOS-style horizontal push/pop transitions
 private const val SLIDE_MS = 280
 private fun AnimatedContentTransitionScope<*>.iosEnter() =
     slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(SLIDE_MS))
@@ -131,7 +130,6 @@ private fun MainShell(role: Role, onLogout: () -> Unit) {
 
     var showLaporSheet by remember { mutableStateOf(false) }
 
-    // Different bottom navs per role.
     val isStaff = role == Role.Staff
     val tabsForRole: List<NavItem> = remember(role) {
         if (isStaff) listOf(
@@ -166,9 +164,6 @@ private fun MainShell(role: Role, onLogout: () -> Unit) {
     val authVm: AuthViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
     val session by authVm.session.collectAsStateWithLifecycle()
 
-    // Refresh BMKG weather + AI prediction whenever the app returns to foreground
-    // (ON_RESUME) so the home card always reflects the latest forecast — and stop work
-    // on ON_PAUSE. This is the lifecycle-aware smoothing requested.
     val weatherVm: WeatherViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -183,7 +178,7 @@ private fun MainShell(role: Role, onLogout: () -> Unit) {
         modifier = Modifier.fillMaxSize().background(Bg),
         containerColor = Bg,
         bottomBar = {
-            // Slide the bar in/out smoothly when entering/leaving detail screens.
+
             AnimatedVisibility(
                 visible = showBottomBar,
                 enter = slideInVertically(tween(SLIDE_MS)) { it } + fadeIn(tween(SLIDE_MS)),
@@ -221,9 +216,7 @@ private fun MainShell(role: Role, onLogout: () -> Unit) {
             }
         },
     ) { padding ->
-        // Always consume the scaffold insets (status bar top + bottom-bar/nav bar) so
-        // detail screens don't draw their top bars under the notch. The bottom inset
-        // collapses automatically when the bar is hidden.
+
         Box(Modifier.fillMaxSize().padding(padding)) {
             NavHost(
                 navController = nav,
@@ -234,7 +227,7 @@ private fun MainShell(role: Role, onLogout: () -> Unit) {
                 popEnterTransition = { iosPopEnter() },
                 popExitTransition = { iosPopExit() },
             ) {
-                // ── Citizen ──────────────────────────────────────
+
                 composable(Routes.Beranda) {
                     BerandaScreen(
                         reports = reports,
@@ -276,7 +269,6 @@ private fun MainShell(role: Role, onLogout: () -> Unit) {
                     WebViewScreen(onBack = { nav.popBackStack() })
                 }
 
-                // ── Staff ────────────────────────────────────────
                 composable(Routes.StaffInbox) {
                     val staffVm: StaffViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
                     val queue by staffVm.queue.collectAsStateWithLifecycle()
@@ -321,7 +313,6 @@ private fun MainShell(role: Role, onLogout: () -> Unit) {
                 }
             }
 
-            // Lapor drawer (citizen only — but kept in MainShell so any future shortcut works)
             if (showLaporSheet) {
                 val laporVm: LaporViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
                 val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)

@@ -99,7 +99,6 @@ fun AvatarStack(
     }
 }
 
-/** Square logo badge (the "W"-style box in design). */
 @Composable
 fun LogoBadge(size: Int = 44, radius: Int = 12, modifier: Modifier = Modifier) {
     Box(
@@ -113,7 +112,7 @@ fun LogoBadge(size: Int = 44, radius: Int = 12, modifier: Modifier = Modifier) {
         Canvas(Modifier.size(droplet)) {
             val w = this.size.width
             val h = this.size.height
-            // Outer droplet shape (white)
+
             val path = Path().apply {
                 moveTo(w * 0.5f, h * 0.125f)
                 cubicTo(
@@ -139,7 +138,7 @@ fun LogoBadge(size: Int = 44, radius: Int = 12, modifier: Modifier = Modifier) {
                 close()
             }
             drawPath(path, color = Color.White)
-            // Highlight stroke
+
             val highlight = Path().apply {
                 moveTo(w * 0.5f, h * 0.125f)
                 cubicTo(
@@ -153,7 +152,7 @@ fun LogoBadge(size: Int = 44, radius: Int = 12, modifier: Modifier = Modifier) {
                 brush = SolidColor(PrimaryOnDark),
                 style = Stroke(width = 2.dp.toPx())
             )
-            // Touch unused import warning
+
             Offset.Zero
         }
     }

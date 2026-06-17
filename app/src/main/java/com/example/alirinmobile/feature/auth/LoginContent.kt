@@ -28,10 +28,6 @@ import com.example.alirinmobile.feature.AuthUiState
 import com.example.alirinmobile.ui.components.*
 import com.example.alirinmobile.ui.theme.*
 
-/**
- * Stateless UI for the staff-login page. All inputs come in via parameters; all
- * interactions flow out via lambdas. Easy to preview and to test.
- */
 @Composable
 fun LoginContent(
     ui: AuthUiState,
@@ -141,7 +137,6 @@ fun LoginContent(
     }
 }
 
-// ── Small UI atoms used only by LoginContent ──────────────────────
 @Composable
 private fun LabeledField(
     label: String,

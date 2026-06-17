@@ -31,9 +31,6 @@ val JetBrainsMono = FontFamily(
     Font(googleFont = MonoName, fontProvider = GoogleFontsProvider, weight = FontWeight.W500),
 )
 
-/**
- * Custom text styles. Maps theme.css .t-* classes.
- */
 object AlirinText {
     val display   = TextStyle(fontFamily = PlusJakartaSans, fontWeight = FontWeight.W700, fontSize = 30.sp, lineHeight = 32.sp, letterSpacing = (-0.75).sp, color = Ink)
     val h1        = TextStyle(fontFamily = PlusJakartaSans, fontWeight = FontWeight.W700, fontSize = 24.sp, lineHeight = 28.sp, letterSpacing = (-0.48).sp, color = Ink)

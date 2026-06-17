@@ -25,9 +25,8 @@ fun StaffStatistikScreen(reports: List<Report>) {
         it.status == ReportStatus.Verified || it.status == ReportStatus.Scheduled ||
         it.status == ReportStatus.InProgress || it.status == ReportStatus.Completed
     }
-    val bars = listOf(2, 3, 4, 3, 5, 6, 4, 7, 5, 4, 6, 5, 3, 4)  // 14d trend (no per-day source yet)
+    val bars = listOf(2, 3, 4, 3, 5, 6, 4, 7, 5, 4, 6, 5, 3, 4)
 
-    // Category breakdown computed from the live report list.
     val palette = listOf(Primary, RiskTinggiDot, RiskWaspadaDot, Ink3, RiskKritisDot, Sky)
     val total = reports.size.coerceAtLeast(1)
     val categoryBreakdown = reports
@@ -38,7 +37,6 @@ fun StaffStatistikScreen(reports: List<Report>) {
             Triple(e.key, e.value, (e.value * 100) / total) to palette[i]
         }
 
-    // Top kelurahan by report volume — also from live data.
     val topKel = reports
         .groupingBy { it.kelurahan }.eachCount()
         .entries.sortedByDescending { it.value }
@@ -54,7 +52,7 @@ fun StaffStatistikScreen(reports: List<Report>) {
                 .padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            // Hero green card — kamu vs respon
+
             AlirinGreenCard(
                 modifier = Modifier.fillMaxWidth(),
                 padding = PaddingValues(20.dp),
@@ -107,7 +105,6 @@ fun StaffStatistikScreen(reports: List<Report>) {
                 }
             }
 
-            // Bar chart — 14d daily reports
             AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(16.dp)) {
                 Column {
                     Row(
@@ -124,7 +121,7 @@ fun StaffStatistikScreen(reports: List<Report>) {
                             Text("4.2/hari", fontSize = 16.sp, fontWeight = FontWeight.W700, color = Primary, modifier = Modifier.padding(top = 2.dp))
                         }
                     }
-                    // Bars
+
                     Row(
                         Modifier.fillMaxWidth().height(120.dp),
                         verticalAlignment = Alignment.Bottom,
@@ -152,7 +149,6 @@ fun StaffStatistikScreen(reports: List<Report>) {
                 }
             }
 
-            // Category breakdown
             AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(16.dp)) {
                 Column {
                     Text("PECAHAN KATEGORI", style = AlirinText.eyebrow, modifier = Modifier.padding(bottom = 12.dp))
@@ -188,7 +184,6 @@ fun StaffStatistikScreen(reports: List<Report>) {
                 }
             }
 
-            // Top kelurahan
             AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(16.dp)) {
                 Column {
                     Text("TOP KELURAHAN", style = AlirinText.eyebrow, modifier = Modifier.padding(bottom = 12.dp))

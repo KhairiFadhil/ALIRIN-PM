@@ -105,7 +105,7 @@ fun FotoStep(
                 .verticalScroll(rememberScrollState())
                 .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
         ) {
-            // 3-up grid (square-ish)
+
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 repeat(3) { i ->
                     val photo = photos.getOrNull(i)
@@ -229,7 +229,7 @@ private fun PhotoSlot(photo: Photo, onRemove: () -> Unit) {
                 shape = Radius.md,
             )
         }
-        // Gallery warning (camera photos already carry their watermark in the bitmap)
+
         if (photo.kind == PhotoKind.Gallery) {
             Text(
                 "tidak diverifikasi lokasi",
@@ -244,7 +244,7 @@ private fun PhotoSlot(photo: Photo, onRemove: () -> Unit) {
                     .padding(horizontal = 5.dp, vertical = 2.dp),
             )
         }
-        // Remove button
+
         Box(
             Modifier
                 .align(Alignment.TopEnd)

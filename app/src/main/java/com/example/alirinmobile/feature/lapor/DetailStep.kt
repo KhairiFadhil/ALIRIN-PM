@@ -47,7 +47,7 @@ fun DetailStep(
                 .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
         ) {
             SubLabel("Kategori")
-            // Grid 2 columns
+
             val rows = Kategoris.chunked(2)
             rows.forEach { row ->
                 Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

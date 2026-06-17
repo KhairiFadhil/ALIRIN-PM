@@ -3,7 +3,6 @@ package com.example.alirinmobile.data
 import androidx.compose.ui.graphics.Color
 import com.example.alirinmobile.ui.theme.*
 
-// ── Risk level ─────────────────────────────────────────────────────
 enum class RiskLevel(val label: String, val bg: Color, val ink: Color, val dot: Color) {
     Normal ("Normal",  RiskNormalBg,  RiskNormalInk,  RiskNormalDot),
     Waspada("Waspada", RiskWaspadaBg, RiskWaspadaInk, RiskWaspadaDot),
@@ -11,7 +10,6 @@ enum class RiskLevel(val label: String, val bg: Color, val ink: Color, val dot: 
     Kritis ("Kritis",  RiskKritisBg,  RiskKritisInk,  RiskKritisDot),
 }
 
-// ── Report status ──────────────────────────────────────────────────
 enum class ReportStatus(val label: String, val bg: Color, val ink: Color, val dot: Color) {
     Pending     ("Menunggu Verifikasi", StatusPendingBg,    StatusPendingInk,    StatusPendingDot),
     Verified    ("Sudah Diverifikasi",  StatusVerifiedBg,   StatusVerifiedInk,   StatusVerifiedDot),
@@ -23,7 +21,6 @@ enum class ReportStatus(val label: String, val bg: Color, val ink: Color, val do
 
 enum class ReportMode { Cepat, Lengkap }
 
-// ── Status steps (timeline) ────────────────────────────────────────
 data class StatusStep(val status: ReportStatus, val iconName: String)
 val StatusSteps = listOf(
     StatusStep(ReportStatus.Pending,    "clock"),
@@ -34,7 +31,6 @@ val StatusSteps = listOf(
 )
 fun ReportStatus.timelineIndex(): Int = StatusSteps.indexOfFirst { it.status == this }
 
-// ── Kategori ───────────────────────────────────────────────────────
 data class Kategori(val id: String, val label: String, val iconName: String, val desc: String)
 
 val Kategoris = listOf(
@@ -46,7 +42,6 @@ val Kategoris = listOf(
     Kategori("lain",     "Lainnya",         "document", "Masalah lain di drainase"),
 )
 
-// ── Severity ───────────────────────────────────────────────────────
 data class Severity(val id: String, val label: String, val desc: String, val bg: Color, val ink: Color)
 
 val Severities = listOf(
@@ -56,12 +51,9 @@ val Severities = listOf(
     Severity("kritis", "Kritis", "Banjir / tidak bisa dilewati",     SeverityKritisBg, SeverityKritisInk),
 )
 
-// ── Photo (for Lapor form state) ───────────────────────────────────
-/** uri = file path on internal storage (watermarked file for Camera, copy for Gallery). */
 data class Photo(val id: Long, val kind: PhotoKind, val ts: Long, val uri: String? = null)
 enum class PhotoKind { Camera, Gallery }
 
-// ── History entry ──────────────────────────────────────────────────
 data class HistoryEntry(
     val status: ReportStatus,
     val when_: String,
@@ -69,7 +61,6 @@ data class HistoryEntry(
     val live: Boolean = false,
 )
 
-// ── Report ─────────────────────────────────────────────────────────
 data class Report(
     val id: String,
     val code: String,
@@ -88,7 +79,6 @@ data class Report(
     val history: List<HistoryEntry> = emptyList(),
 )
 
-// ── Hotspot (map marker) ───────────────────────────────────────────
 enum class HotspotSource(val label: String) {
     Warga("Laporan warga"), Historis("Data historis"), Cuaca("Alert BMKG"), Iot("Sensor IoT")
 }
@@ -98,11 +88,11 @@ data class Hotspot(
     val risk: RiskLevel,
     val score: Int,
     val count: Int,
-    /** fractional X position 0..1 on the faux map (legacy) */
+
     val xFrac: Float,
-    /** fractional Y position 0..1 on the faux map (legacy) */
+
     val yFrac: Float,
-    /** real WGS84 coordinates — used by osmdroid */
+
     val lat: Double,
     val lng: Double,
     val name: String,
@@ -115,7 +105,6 @@ data class Hotspot(
     val when_: String,
 )
 
-// ── Nearby teaser ──────────────────────────────────────────────────
 data class NearbyTeaser(
     val id: Int,
     val label: String,

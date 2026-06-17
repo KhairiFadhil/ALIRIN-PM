@@ -54,7 +54,7 @@ fun BerandaScreen(
     onTentangClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // Area name follows the user's selected kelurahan (picked via the weather strip).
+
     val weatherVm: WeatherViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
     val selected by weatherVm.selected.collectAsStateWithLifecycle()
     val areaKecamatan = selected?.kecamatan ?: "Bandar Lampung"
@@ -81,7 +81,7 @@ fun BerandaScreen(
                 .padding(start = Space.s5, end = Space.s5, bottom = Space.s6),
             verticalArrangement = Arrangement.spacedBy(Space.s4),
         ) {
-            // Grid hero: eyebrow + display title (no big green CTA card)
+
             Column {
                 Text(
                     "Apa kabar drainase hari ini?",
@@ -95,7 +95,6 @@ fun BerandaScreen(
                 )
             }
 
-            // 2x2 grid: Lapor Cepat / Lapor Lengkap / Peta / Status
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     ActionCell(
@@ -142,7 +141,6 @@ fun BerandaScreen(
     }
 }
 
-// ── Greeting ────────────────────────────────────────────────────
 @Composable
 private fun Greeting(area: String, onBell: () -> Unit = {}) {
     Row(
@@ -165,9 +163,7 @@ private fun Greeting(area: String, onBell: () -> Unit = {}) {
                 )
             }
         }
-        // Bell button with notification dot.
-        // The dot lives in an outer wrapper (not inside the clipped circle) so it
-        // sits flush against the top-right edge without being chopped.
+
         Box(Modifier.size(40.dp)) {
             Box(
                 Modifier
@@ -192,7 +188,6 @@ private fun Greeting(area: String, onBell: () -> Unit = {}) {
     }
 }
 
-// ── Hero CTA (bike-rods style) ─────────────────────────────────
 @Composable
 private fun PrimaryReportCTA(onClick: () -> Unit) {
     AlirinGreenCard(
@@ -232,13 +227,13 @@ private fun PrimaryReportCTA(onClick: () -> Unit) {
                 }
             }
             SegmentedProgress(filled = 3, total = 10, modifier = Modifier.padding(bottom = 16.dp))
-            // Inner pill button
+
             Row(
                 Modifier
                     .fillMaxWidth()
                     .height(46.dp)
                     .clip(Radius.pill)
-                    .background(Primary2), // Better contrast than transparent black
+                    .background(Primary2),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
             ) {
@@ -249,7 +244,6 @@ private fun PrimaryReportCTA(onClick: () -> Unit) {
     }
 }
 
-// ── Action cell (flat icon, no rounded-square background) ───────
 enum class ActionAccent { Default, Indigo, Amber }
 
 @Composable
@@ -281,7 +275,6 @@ private fun ActionCell(
     }
 }
 
-// ── Weather strip — backed by real BMKG forecast ────────────────
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WeatherStrip() {
@@ -423,7 +416,6 @@ private fun KelurahanPickerSheet(
     }
 }
 
-// ── Prediction card — backed by GROQ AI, falls back to rule-based ──
 @Composable
 private fun PredictionCard(onOpenMap: () -> Unit) {
     val vm: PredictionViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
@@ -479,7 +471,7 @@ private fun PredictionCardContent(model: PredictionUiModel, onOpenMap: () -> Uni
                     leadingIcon = AlirinIcons.sparkles,
                 )
             }
-            // Headline: ringkasan from AI
+
             Text(
                 ai.ringkasan,
                 color = Ink,
@@ -488,14 +480,14 @@ private fun PredictionCardContent(model: PredictionUiModel, onOpenMap: () -> Uni
                 lineHeight = 22.sp,
                 letterSpacing = (-0.16).sp,
             )
-            // 4 KV stats
+
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 AiStatRow("Kondisi udara",  ai.kondisiUdara,                       accent = riskTint.first)
                 AiStatRow("Suhu",            "${"%.1f".format(ai.suhuCelsius)} °C", accent = riskTint.first)
                 AiStatRow("Curah hujan 3h",  "${"%.1f".format(ai.curahHujanMm)} mm", accent = riskTint.first)
                 AiStatRow("Debit air est.",  "${"%.3f".format(ai.debitAirMs)} m³/s", accent = riskTint.first)
             }
-            // AI recommendations
+
             if (ai.rekomendasi.isNotEmpty()) {
                 Column(
                     Modifier
@@ -549,7 +541,6 @@ private fun AiStatRow(label: String, value: String, accent: Color) {
     }
 }
 
-// ── Nearby strip (horizontal list) ──────────────────────────────
 @Composable
 private fun NearbyStrip(items: List<NearbyTeaser>, onOpenMap: () -> Unit) {
     Column {
@@ -639,7 +630,6 @@ private fun NearbyCard(item: NearbyTeaser, primaryFeatured: Boolean, onClick: ()
     }
 }
 
-// ── My reports list ─────────────────────────────────────────────
 @Composable
 private fun MyReports(
     recent: List<Report>,

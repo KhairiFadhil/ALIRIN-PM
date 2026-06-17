@@ -33,15 +33,15 @@ data class BmkgDataBlock(
 data class BmkgWeatherHour(
     @SerialName("datetime")        val datetime: String? = null,
     @SerialName("local_datetime")  val localDatetime: String? = null,
-    val t: Int? = null,         // temperature °C
-    val tcc: Int? = null,       // total cloud cover %
-    val tp: Double? = null,     // total precipitation mm
+    val t: Int? = null,
+    val tcc: Int? = null,
+    val tp: Double? = null,
     val weather: Int? = null,
     @SerialName("weather_desc")    val weatherDesc: String? = null,
     @SerialName("weather_desc_en") val weatherDescEn: String? = null,
     val wd: String? = null,
     val ws: Double? = null,
-    val hu: Int? = null,        // humidity %
+    val hu: Int? = null,
     val vs: Int? = null,
     @SerialName("time_index")      val timeIndex: String? = null,
 )

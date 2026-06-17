@@ -38,15 +38,13 @@ fun AlirinButton(
         BtnVariant.OnDark  -> Color.White.copy(alpha = 0.10f) to Color.White
         BtnVariant.Danger  -> RiskKritisDot to Color.White
     }
-    
-    // Improved disabled state for better contrast
+
     val currentBg = if (enabled) bg else Surface3
     val currentInk = if (enabled) ink else Muted
 
     val height = if (small) 38.dp else 56.dp
     val padH = if (small) 14.dp else 22.dp
-    
-    // Outer Box ensures minimum 48dp touch target for accessibility
+
     Box(
         modifier = modifier
             .then(if (block) Modifier.fillMaxWidth() else Modifier)
@@ -77,7 +75,6 @@ fun AlirinButton(
     }
 }
 
-/** Small icon-only round button used as back arrow on top bars. */
 @Composable
 fun AlirinIconBubble(
     icon: ImageVector,
@@ -87,7 +84,7 @@ fun AlirinIconBubble(
     tint: Color = Ink,
     size: Int = 40,
 ) {
-    // Outer Box ensures minimum 48dp touch target for accessibility
+
     Box(
         modifier = modifier
             .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)

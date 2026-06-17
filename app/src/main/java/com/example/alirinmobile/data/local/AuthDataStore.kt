@@ -24,9 +24,9 @@ class AuthDataStore(private val appContext: Context) {
         val token        = stringPreferencesKey("token")
         val refreshToken = stringPreferencesKey("refresh_token")
         val avatar       = stringPreferencesKey("avatar")
-        /** Set when user explicitly chose "Lewati (lapor sebagai warga)" without login. */
+
         val anonChosen   = intPreferencesKey("anon_chosen")
-        /** Set once the user finishes (or skips) the first-launch onboarding carousel. */
+
         val onboardingDone = intPreferencesKey("onboarding_done")
     }
 
@@ -59,7 +59,6 @@ class AuthDataStore(private val appContext: Context) {
         }
     }
 
-    /** Update tokens (used by the OkHttp Authenticator after a 401 refresh). */
     suspend fun updateTokens(accessToken: String, refreshToken: String) {
         appContext.authStore.edit { prefs ->
             prefs[K.token] = accessToken
@@ -67,10 +66,8 @@ class AuthDataStore(private val appContext: Context) {
         }
     }
 
-    /** Synchronous snapshot for non-Composable callers (Authenticator). */
     fun snapshotBlocking(): AuthSession? = runBlocking { session.first() }
 
-    /** Synchronous mutation for the Authenticator (which runs on a background OkHttp thread). */
     fun updateTokensBlocking(accessToken: String, refreshToken: String) =
         runBlocking { updateTokens(accessToken, refreshToken) }
 
@@ -86,7 +83,7 @@ class AuthDataStore(private val appContext: Context) {
             prefs.remove(K.refreshToken)
             prefs.remove(K.avatar)
             prefs.remove(K.anonChosen)
-            // Catatan: K.onboardingDone tidak dihapus agar tutorial tidak muncul lagi setelah logout
+
         }
     }
 

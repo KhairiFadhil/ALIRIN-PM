@@ -15,7 +15,6 @@ private fun Request.isAuthRequest(): Boolean {
     return path.endsWith("/auth/login") || path.endsWith("/auth/refresh")
 }
 
-/** Adds Bearer header to every authed request that doesn't already have one. */
 internal class AuthInterceptor(private val store: AuthDataStore) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val original = chain.request()
@@ -29,10 +28,6 @@ internal class AuthInterceptor(private val store: AuthDataStore) : Interceptor {
     }
 }
 
-/**
- * On 401: try /auth/refresh with the stored refreshToken. On success persist new tokens
- * and retry; on failure clear the session so the app drops back to LoginScreen.
- */
 internal class AuthAuthenticator(
     private val store: AuthDataStore,
     private val refreshApi: () -> AuthService,
@@ -40,7 +35,7 @@ internal class AuthAuthenticator(
 
     override fun authenticate(route: Route?, response: Response): Request? {
         if (response.request.isAuthRequest()) return null
-        if (response.priorResponse != null) return null   // already tried once
+        if (response.priorResponse != null) return null
 
         val session = store.snapshotBlocking() ?: return null
         val refreshToken = session.refreshToken ?: run { store.clearBlocking(); return null }

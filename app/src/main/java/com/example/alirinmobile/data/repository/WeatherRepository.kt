@@ -13,10 +13,6 @@ sealed interface WeatherState {
     data class Error(val message: String) : WeatherState
 }
 
-/**
- * Wraps BMKG forecast calls + caches per-selected-kelurahan state. Refresh policy is
- * "load once per selection, force refresh on demand" — kept simple, no DB.
- */
 class WeatherRepository(private val api: ApiClient) {
 
     private val _selected = MutableStateFlow<Kelurahan?>(null)

@@ -12,13 +12,6 @@ import com.example.alirinmobile.data.repository.ReportRepository
 import com.example.alirinmobile.data.repository.WeatherRepository
 import org.osmdroid.config.Configuration
 
-/**
- * Hand-rolled DI container. Wires the network client + repositories once at process
- * start; ViewModels reach in via the static `get()` accessor.
- *
- * No DB now — ReportRepository keeps state in memory; auth tokens live in DataStore
- * (preferences only, not a database).
- */
 class AlirinApplication : Application() {
 
     lateinit var apiClient: ApiClient
@@ -49,10 +42,8 @@ class AlirinApplication : Application() {
         kelurahanRepository = KelurahanRepository(this)
         locationRepository = LocationRepository(this)
 
-        // Seed the weather repo with the default kelurahan so the first VM read has data.
         weatherRepository.setSelected(kelurahanRepository.default)
 
-        // osmdroid: required user-agent for tile provider TOS.
         @Suppress("DEPRECATION")
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         Configuration.getInstance().load(this, prefs)

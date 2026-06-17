@@ -21,11 +21,6 @@ import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
-/**
- * In-memory single-source of truth for reports. No database — state lives in a
- * MutableStateFlow seeded with dummy sample data so the UI has something to display
- * immediately. ViewModels collect the flow; submit / updateStatus emit new lists.
- */
 class ReportRepository {
 
     private val _reports = MutableStateFlow<List<Report>>(seed())
@@ -36,14 +31,12 @@ class ReportRepository {
         reports.map { list -> list.find { it.id == id } }
     fun snapshot(id: String): Report? = _reports.value.find { it.id == id }
 
-    // ── Drafts (in-memory) ───────────────────────────────────────
     private val _draft = MutableStateFlow<LaporForm?>(null)
     val draft: StateFlow<LaporForm?> = _draft.asStateFlow()
 
     fun saveDraft(form: LaporForm) { _draft.value = form }
     fun clearDraft() { _draft.value = null }
 
-    // ── Submit ───────────────────────────────────────────────────
     private val codeSeq = AtomicInteger(4220)
 
     data class SubmitResult(val id: String, val code: String)
@@ -110,11 +103,9 @@ class ReportRepository {
     private fun nowLabel(): String =
         SimpleDateFormat("d MMM · HH:mm", Locale("id")).format(Date())
 
-    // ── Dummy seed data (replaces former SampleData object) ──────
     private fun seed(): List<Report> = ReportSeed
 }
 
-// Module-visible seed constants used by ReportRepository + a few demo screens.
 internal val ReportSeed: List<Report> = listOf(
     Report(
         id = "r1", code = "ALR-2026-04217", mode = ReportMode.Lengkap,

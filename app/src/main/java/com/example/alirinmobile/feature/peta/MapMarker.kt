@@ -19,10 +19,6 @@ import androidx.compose.ui.unit.sp
 import com.example.alirinmobile.data.RiskLevel
 import com.example.alirinmobile.ui.components.AlirinIcons
 
-/**
- * Pin-style marker: white circle, colored ring, colored fill inner circle
- * containing either count or droplet icon.
- */
 @Composable
 fun MapMarker(
     risk: RiskLevel,

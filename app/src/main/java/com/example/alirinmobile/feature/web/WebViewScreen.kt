@@ -26,13 +26,8 @@ import com.example.alirinmobile.ui.components.AlirinTopBar
 import com.example.alirinmobile.ui.theme.Bg
 import com.example.alirinmobile.ui.theme.Primary
 
-/** Public ALIRIN web app URL. Change here when the site is deployed. */
 const val ALIRIN_WEB_URL = "https://github.com/odlaver/alirin"
 
-/**
- * In-app browser for the ALIRIN web platform (admin dashboard / public site).
- * Wraps a system WebView in an AndroidView; hardware back navigates web history first.
- */
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun WebViewScreen(
@@ -44,7 +39,6 @@ fun WebViewScreen(
     var progress by remember { mutableIntStateOf(0) }
     var canGoBack by remember { mutableStateOf(false) }
 
-    // Hardware back: pop web history before leaving the screen.
     BackHandler(enabled = canGoBack) { webView?.goBack() }
 
     Column(Modifier.fillMaxSize().background(Bg)) {

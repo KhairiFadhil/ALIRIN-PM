@@ -9,14 +9,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.alirinmobile.feature.AuthUiState
 import com.example.alirinmobile.feature.AuthViewModel
 
-/**
- * Stateful page — owns the form state + hooks the ViewModel.
- * UI is rendered by [LoginContent] which stays pure (no logic / no VM).
- *
- * This is the canonical "Screen / Content" split: Screen = logic + state hosting,
- * Content = display. Apply the same pattern to other screens (e.g. BerandaScreen +
- * BerandaContent) as you refactor.
- */
 @Composable
 fun LoginScreen(
     viewModel: AuthViewModel,

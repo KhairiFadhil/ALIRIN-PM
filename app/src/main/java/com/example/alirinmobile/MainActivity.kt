@@ -10,8 +10,7 @@ import com.example.alirinmobile.ui.theme.ALIRINMOBILETheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        // installSplashScreen() must run BEFORE super.onCreate() so the system
-        // splash hands off cleanly to our post-splash theme without a white flash.
+
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

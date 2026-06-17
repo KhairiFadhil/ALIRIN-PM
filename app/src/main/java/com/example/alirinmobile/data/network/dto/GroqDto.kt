@@ -32,17 +32,13 @@ data class Choice(
     @SerialName("finish_reason") val finishReason: String? = null,
 )
 
-/**
- * Structured response we ask the LLM to produce. Stored separately from the LLM DTOs so
- * the repository can map raw JSON → domain model.
- */
 @Serializable
 data class AiForecast(
-    @SerialName("kondisi_udara")  val kondisiUdara: String,   // e.g. "Berawan tebal"
-    @SerialName("suhu_celsius")   val suhuCelsius: Double,    // current/next-hour
-    @SerialName("curah_hujan_mm") val curahHujanMm: Double,   // 3h cumulative
-    @SerialName("debit_air_ms")   val debitAirMs: Double,     // m³/s estimated water debit
-    val ringkasan: String,                                    // 1-sentence summary
-    /** AI-generated actionable recommendations (2–4 short bullet points). */
+    @SerialName("kondisi_udara")  val kondisiUdara: String,
+    @SerialName("suhu_celsius")   val suhuCelsius: Double,
+    @SerialName("curah_hujan_mm") val curahHujanMm: Double,
+    @SerialName("debit_air_ms")   val debitAirMs: Double,
+    val ringkasan: String,
+
     val rekomendasi: List<String> = emptyList(),
 )

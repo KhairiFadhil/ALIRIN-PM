@@ -36,7 +36,7 @@ fun StepHeader(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             AlirinIconBubble(icon = AlirinIcons.arrowLeft, onClick = onBack)
-            // Progress bar
+
             Row(
                 Modifier.weight(1f),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),

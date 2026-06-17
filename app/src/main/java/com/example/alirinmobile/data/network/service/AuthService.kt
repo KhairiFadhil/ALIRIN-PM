@@ -10,7 +10,6 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
 
-/** https://dummyjson.com/docs/auth — root for all auth calls. */
 interface AuthService {
     @POST("auth/login")
     suspend fun login(@Body body: LoginRequest): LoginResponse

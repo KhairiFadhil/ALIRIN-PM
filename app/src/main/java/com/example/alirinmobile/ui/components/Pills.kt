@@ -19,7 +19,6 @@ import com.example.alirinmobile.data.RiskLevel
 import com.example.alirinmobile.ui.theme.PrimaryOnDark
 import com.example.alirinmobile.ui.theme.Radius
 
-/** Tiny color dot used in pills, legend, etc. */
 @Composable
 fun Dot(color: Color, size: Int = 6, modifier: Modifier = Modifier) {
     Box(
@@ -30,7 +29,6 @@ fun Dot(color: Color, size: Int = 6, modifier: Modifier = Modifier) {
     )
 }
 
-/** Generic pill (rounded chip with optional dot + label). */
 @Composable
 fun Pill(
     label: String,
@@ -116,7 +114,6 @@ fun StatusPill(status: ReportStatus, modifier: Modifier = Modifier) {
     }
 }
 
-/** "Pill on dark" — used over green hero cards */
 @Composable
 fun PillOnDark(label: String, fontSize: Int = 11, modifier: Modifier = Modifier) {
     Row(

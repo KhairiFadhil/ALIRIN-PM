@@ -34,7 +34,6 @@ private fun predictionRepo(): PredictionRepository = AlirinApplication.get().pre
 private fun locationRepo(): LocationRepository = AlirinApplication.get().locationRepository
 private fun kelurahanRepo(): KelurahanRepository = AlirinApplication.get().kelurahanRepository
 
-// ── Auth ────────────────────────────────────────────────────────
 sealed interface AuthUiState {
     data object Initial : AuthUiState
     data object Submitting : AuthUiState
@@ -81,7 +80,6 @@ class AuthViewModel(private val repository: AuthRepository = authRepo()) : ViewM
     }
 }
 
-// ── Reports (citizen-facing) ────────────────────────────────────
 class ReportsViewModel(private val repository: ReportRepository = repo()) : ViewModel() {
     val reports: StateFlow<List<Report>> = repository.observeReports()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -91,7 +89,6 @@ class ReportsViewModel(private val repository: ReportRepository = repo()) : View
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 }
 
-// ── Lapor flow ──────────────────────────────────────────────────
 class LaporViewModel(private val repository: ReportRepository = repo()) : ViewModel() {
     val form = MutableStateFlow(LaporForm())
     val mode = MutableStateFlow<ReportMode?>(null)
@@ -121,7 +118,6 @@ class LaporViewModel(private val repository: ReportRepository = repo()) : ViewMo
     }
 }
 
-// ── Staff (approval flows) ──────────────────────────────────────
 class StaffViewModel(
     private val repository: ReportRepository = repo(),
     private val authRepository: AuthRepository = authRepo(),
@@ -148,7 +144,6 @@ class StaffViewModel(
     }
 }
 
-// ── Weather (BMKG) ──────────────────────────────────────────────
 class WeatherViewModel(
     private val repository: WeatherRepository = weatherRepo(),
     private val kelurahanRepo: KelurahanRepository = kelurahanRepo(),
@@ -171,7 +166,6 @@ class WeatherViewModel(
     }
 }
 
-// ── Prediction (GROQ-backed) ────────────────────────────────────
 class PredictionViewModel(
     private val repository: PredictionRepository = predictionRepo(),
 ) : ViewModel() {
@@ -183,7 +177,6 @@ class PredictionViewModel(
         )
 }
 
-// ── Location ────────────────────────────────────────────────────
 class LocationViewModel(
     private val repository: LocationRepository = locationRepo(),
 ) : ViewModel() {

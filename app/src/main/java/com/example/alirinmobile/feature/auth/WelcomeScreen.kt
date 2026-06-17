@@ -35,14 +35,14 @@ fun WelcomeScreen(
             .fillMaxSize()
             .background(Bg)
     ) {
-        // Hero — green block taking most of the screen
+
         Box(
             Modifier
                 .weight(1f)
                 .fillMaxWidth()
                 .background(Primary),
         ) {
-            // Concentric dashed rings background
+
             Canvas(Modifier.fillMaxSize()) {
                 val cx = size.width / 2f
                 val cy = size.height / 2f - 80.dp.toPx()
@@ -57,7 +57,7 @@ fun WelcomeScreen(
                     )
                 }
             }
-            // Logo top-left
+
             Row(
                 Modifier
                     .align(Alignment.TopStart)
@@ -74,7 +74,7 @@ fun WelcomeScreen(
                     letterSpacing = (-0.16).sp,
                 )
             }
-            // Headline bottom-left
+
             Column(
                 Modifier
                     .align(Alignment.BottomStart)
@@ -98,7 +98,6 @@ fun WelcomeScreen(
             }
         }
 
-        // CTA area
         Column(
             Modifier
                 .fillMaxWidth()

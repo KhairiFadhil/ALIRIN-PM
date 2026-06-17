@@ -54,7 +54,6 @@ fun StaffProfilScreen(actor: AuthSession?, onLogout: () -> Unit) {
                 }
             }
 
-            // Settings list
             AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(0.dp)) {
                 Column {
                     val items = listOf(
@@ -94,7 +93,6 @@ fun StaffProfilScreen(actor: AuthSession?, onLogout: () -> Unit) {
                 }
             }
 
-            // Ganti peran
             Row(
                 Modifier
                     .fillMaxWidth()

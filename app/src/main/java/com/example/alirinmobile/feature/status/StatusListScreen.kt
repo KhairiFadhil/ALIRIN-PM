@@ -181,7 +181,7 @@ private fun ReportListItem(report: Report, onClick: () -> Unit) {
                 }
                 StatusPill(status = report.status)
             }
-            // mini step bar
+
             Row(horizontalArrangement = Arrangement.spacedBy(3.dp), modifier = Modifier.fillMaxWidth()) {
                 StatusSteps.forEachIndexed { i, _ ->
                     val color = when {

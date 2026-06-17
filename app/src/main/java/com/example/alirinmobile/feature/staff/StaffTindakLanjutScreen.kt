@@ -40,7 +40,6 @@ fun StaffTindakLanjutScreen(
             subtitle = "${berjalan.size} berjalan · ${selesai.size} selesai",
         )
 
-        // Segmented tab control
         Row(
             Modifier
                 .padding(horizontal = 16.dp, vertical = 4.dp)
@@ -159,7 +158,7 @@ private fun TindakLanjutItem(report: Report, onClose: () -> Unit) {
                 }
                 StatusPill(status = report.status)
             }
-            // Team row
+
             Row(
                 Modifier
                     .fillMaxWidth()

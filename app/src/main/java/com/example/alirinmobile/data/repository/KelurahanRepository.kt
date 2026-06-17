@@ -18,10 +18,6 @@ private data class KelurahanFile(
     val items: List<Kelurahan> = emptyList(),
 )
 
-/**
- * Loads the bundled curated Bandar Lampung kelurahan list once (assets/) and exposes it.
- * Pure data — no network calls.
- */
 class KelurahanRepository(private val appContext: Context) {
     private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
 
@@ -31,7 +27,6 @@ class KelurahanRepository(private val appContext: Context) {
         json.decodeFromString<KelurahanFile>(raw).items
     }
 
-    /** Default fallback if nothing selected yet. */
     val default: Kelurahan
         get() = list.firstOrNull { it.adm4 == "18.71.13.1007" } ?: list.first()
 }

@@ -44,7 +44,7 @@ fun SuccessScreen(
     }
 
     Column(Modifier.fillMaxSize().background(Bg)) {
-        // Header
+
         Row(
             Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -84,7 +84,6 @@ fun SuccessScreen(
                 }
             }
 
-            // Top divider above key-value row
             Box(Modifier.fillMaxWidth().height(1.dp).background(Hairline))
             Row(
                 Modifier
@@ -97,7 +96,6 @@ fun SuccessScreen(
                 KvCol(label = "Lokasi", value = form.kelurahan.ifBlank { "—" }, align = Alignment.End, modifier = Modifier.weight(1f))
             }
 
-            // Mini map
             Box(
                 Modifier
                     .fillMaxWidth()
@@ -132,7 +130,6 @@ fun SuccessScreen(
             }
             Spacer(Modifier.height(18.dp))
 
-            // Stakeholders
             Text("Pihak terlibat · 3", style = AlirinText.caption, modifier = Modifier.padding(bottom = 10.dp))
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 StakeholderRow(seed = 0, label = "BL", name = "Kamu", role = "Pelapor", status = "Baru saja", statusPrimary = true)
@@ -141,7 +138,6 @@ fun SuccessScreen(
             }
             Spacer(Modifier.height(14.dp))
 
-            // Estimate
             Row(
                 Modifier
                     .fillMaxWidth()

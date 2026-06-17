@@ -36,10 +36,6 @@ private fun palette(style: MapStyle): Palette = when (style) {
     )
 }
 
-/**
- * Faux OSM-style map background. Mirrors the SVG in screens-peta.jsx using a virtual
- * 412x600 viewport scaled to fill.
- */
 @Composable
 fun MapBackground(style: MapStyle = MapStyle.Light, modifier: Modifier = Modifier) {
     val p = palette(style)
@@ -51,10 +47,8 @@ fun MapBackground(style: MapStyle = MapStyle.Light, modifier: Modifier = Modifie
 
         fun p(x: Float, y: Float) = Offset(x * sx, y * sy)
 
-        // Background
         drawRect(p.land, size = Size(w, h))
 
-        // Grid (subtle)
         val grid = 40f
         val gridColor = p.bg.copy(alpha = 0.3f)
         var gx = 0f
@@ -68,7 +62,6 @@ fun MapBackground(style: MapStyle = MapStyle.Light, modifier: Modifier = Modifie
             gy += grid
         }
 
-        // River (winding diagonal)
         val river = Path().apply {
             moveTo(-20f * sx, 200f * sy)
             quadraticBezierTo(60f * sx, 230f * sy, 100f * sx, 280f * sy)
@@ -84,14 +77,12 @@ fun MapBackground(style: MapStyle = MapStyle.Light, modifier: Modifier = Modifie
         }
         drawPath(river, color = p.water.copy(alpha = 0.9f))
 
-        // Small lake (oval)
         drawOval(
             color = p.water.copy(alpha = 0.85f),
             topLeft = p(80f - 55f, 500f - 22f),
             size = Size(55f * 2 * sx, 22f * 2 * sy),
         )
 
-        // Parks (ovals)
         drawOval(
             color = p.park.copy(alpha = 0.85f),
             topLeft = p(320f - 50f, 180f - 32f),
@@ -103,7 +94,6 @@ fun MapBackground(style: MapStyle = MapStyle.Light, modifier: Modifier = Modifie
             size = Size(40f * 2 * sx, 28f * 2 * sy),
         )
 
-        // Major roads (white core + thin stroke)
         fun drawRoad(path: Path, coreWidth: Float, strokeWidth: Float) {
             drawPath(path, color = p.road, style = Stroke(width = coreWidth))
             drawPath(path, color = p.roadStroke, style = Stroke(width = strokeWidth))
@@ -127,8 +117,6 @@ fun MapBackground(style: MapStyle = MapStyle.Light, modifier: Modifier = Modifie
         )
         minors.forEach { (path, core) -> drawRoad(path, core, 0.5f) }
 
-        // (District labels skipped — drawing text on Canvas is more involved;
-        //  the design's faux labels are decorative.)
         @Suppress("UNUSED_VARIABLE")
         val unused = Rect(Offset.Zero, Size.Zero)
     }

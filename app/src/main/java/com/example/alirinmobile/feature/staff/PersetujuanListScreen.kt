@@ -54,7 +54,7 @@ fun PersetujuanListScreen(
     val visible = pending.filter(filter.match)
 
     Column(Modifier.fillMaxSize().background(Bg)) {
-        // Identity row
+
         Row(
             Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 18.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -79,7 +79,7 @@ fun PersetujuanListScreen(
                     )
                 }
             }
-            // Logout (bell icon — reuse for now; tap = logout)
+
             Box(
                 Modifier
                     .size(40.dp)
@@ -97,7 +97,7 @@ fun PersetujuanListScreen(
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            // Stats hero
+
             item {
                 AlirinGreenCard(
                     modifier = Modifier.fillMaxWidth(),
@@ -110,7 +110,7 @@ fun PersetujuanListScreen(
                             verticalAlignment = Alignment.Top,
                         ) {
                             PillOnDark("Hari ini")
-                            // Kritis pill — danger-tinted on dark
+
                             Row(
                                 Modifier
                                     .clip(Radius.pill)
@@ -153,7 +153,7 @@ fun PersetujuanListScreen(
                     }
                 }
             }
-            // Filter chips
+
             item {
                 Spacer(Modifier.height(6.dp))
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -178,7 +178,7 @@ fun PersetujuanListScreen(
                     }
                 }
             }
-            // Section header
+
             item {
                 SectionHeader(
                     eyebrow = "Inbox validasi",
@@ -186,7 +186,7 @@ fun PersetujuanListScreen(
                     modifier = Modifier.padding(top = 8.dp),
                 )
             }
-            // Inbox cards
+
             items(visible) { r -> InboxItem(report = r, onTap = { onReportClick(r) }) }
 
             if (visible.isEmpty()) {

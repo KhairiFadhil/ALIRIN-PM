@@ -42,7 +42,7 @@ fun PetaScreen(
     onLaporInPlace: (Hotspot?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var filter by remember { mutableStateOf<HotspotSource?>(null) }   // null = All
+    var filter by remember { mutableStateOf<HotspotSource?>(null) }
     var selected by remember { mutableStateOf<Hotspot?>(null) }
     var query by remember { mutableStateOf("") }
     val filtered = HotspotSeed
@@ -56,7 +56,6 @@ fun PetaScreen(
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     val density = LocalDensity.current
 
-    // "Area kamu" summary computed from the selected kelurahan + current markers.
     val weatherVm: com.example.alirinmobile.feature.WeatherViewModel =
         androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.alirinmobile.feature.AlirinViewModelFactory.Factory)
     val selectedKel by weatherVm.selected.collectAsStateWithLifecycle()
@@ -80,7 +79,7 @@ fun PetaScreen(
     var mapRef by remember { mutableStateOf<org.osmdroid.views.MapView?>(null) }
 
     Box(modifier.fillMaxSize()) {
-        // Real OSM map layer (back)
+
         OsmMapView(
             hotspots = filtered,
             selectedId = selected?.id,
@@ -89,7 +88,6 @@ fun PetaScreen(
             onMapReady = { mapRef = it },
         )
 
-        // Top overlay: back + search + Area card + filter chips
         Column(
             Modifier
                 .fillMaxWidth()
@@ -147,7 +145,6 @@ fun PetaScreen(
             FilterChips(value = filter, onChange = { filter = it })
         }
 
-        // Right-side controls
         Column(
             Modifier
                 .align(Alignment.CenterEnd)
@@ -162,7 +159,6 @@ fun PetaScreen(
             })
         }
 
-        // Legend bottom-left
         Column(
             Modifier
                 .align(Alignment.BottomStart)
@@ -181,7 +177,6 @@ fun PetaScreen(
             }
         }
 
-        // Bottom sheet for selected
         if (selected != null) {
             val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
             ModalBottomSheet(
@@ -206,7 +201,6 @@ private fun UserDot(modifier: Modifier = Modifier) {
     Box(modifier.size(18.dp).clip(CircleShape).background(Primary))
 }
 
-// ── Area Kamu card ────────────────────────────────────────────
 data class AreaSummary(val kecamatan: String, val activeCount: Int, val level: RiskLevel, val score: Int)
 
 @Composable
@@ -244,7 +238,6 @@ fun AreaKamuCard(summary: AreaSummary) {
     }
 }
 
-// ── Filter chips ──────────────────────────────────────────────
 @Composable
 private fun FilterChips(value: HotspotSource?, onChange: (HotspotSource?) -> Unit) {
     val items = listOf<Triple<HotspotSource?, String, ImageVector>>(
@@ -276,7 +269,6 @@ private fun FilterChips(value: HotspotSource?, onChange: (HotspotSource?) -> Uni
     }
 }
 
-// ── Map control buttons ────────────────────────────────────────
 @Composable
 private fun MapButton(icon: ImageVector, primary: Boolean = false, onClick: () -> Unit = {}) {
     val bg = if (primary) Primary else Color.White.copy(alpha = 0.95f)
@@ -294,7 +286,6 @@ private fun MapButton(icon: ImageVector, primary: Boolean = false, onClick: () -
     }
 }
 
-// ── Hotspot sheet content ─────────────────────────────────────
 @Composable
 private fun HotspotSheetContent(
     hotspot: Hotspot,
@@ -307,7 +298,7 @@ private fun HotspotSheetContent(
             .verticalScroll(rememberScrollState())
             .padding(start = 20.dp, end = 20.dp, bottom = 24.dp, top = 4.dp)
     ) {
-        // Drag handle indicator
+
         Box(
             Modifier
                 .align(Alignment.CenterHorizontally)
@@ -365,7 +356,6 @@ private fun HotspotSheetContent(
 
         Spacer(Modifier.height(14.dp))
 
-        // 2x2 KVs
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             KV(label = "Kategori", value = hotspot.cat, modifier = Modifier.weight(1f))
             Box(Modifier.weight(1f)) {

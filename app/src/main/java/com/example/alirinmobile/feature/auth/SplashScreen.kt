@@ -34,7 +34,7 @@ fun SplashScreen(onDone: () -> Unit) {
             .background(Primary),
         contentAlignment = Alignment.Center,
     ) {
-        // Concentric dashed circles
+
         Canvas(Modifier.fillMaxSize()) {
             val cx = size.width / 2f
             val cy = size.height / 2f - 60.dp.toPx()
@@ -54,7 +54,7 @@ fun SplashScreen(onDone: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(22.dp),
         ) {
-            // Glassmorphism logo card
+
             Box(
                 Modifier
                     .size(100.dp)
@@ -64,7 +64,7 @@ fun SplashScreen(onDone: () -> Unit) {
             ) {
                 LogoBadge(size = 64, radius = 18)
             }
-            // Wordmark
+
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     "ALIRIN",
@@ -82,7 +82,7 @@ fun SplashScreen(onDone: () -> Unit) {
                     modifier = Modifier.padding(top = 6.dp),
                 )
             }
-            // Pulsing dots
+
             Row(horizontalArrangement = Arrangement.spacedBy(5.dp), modifier = Modifier.padding(top = 8.dp)) {
                 repeat(3) { i -> PulseDot(delayMs = i * 180) }
             }

@@ -36,7 +36,6 @@ import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.ui.graphics.vector.ImageVector
 
-/** Maps the design's "name" tokens to Compose Material icons. */
 object AlirinIcons {
     val home          = Icons.Outlined.Home
     val map           = Icons.Outlined.Map

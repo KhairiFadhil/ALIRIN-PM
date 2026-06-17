@@ -37,7 +37,6 @@ fun AlirinTopBar(
     }
 }
 
-/** Phone fake status bar (matches design's punchhole). */
 @Composable
 fun PhoneStatusBar(time: String = "13:24", modifier: Modifier = Modifier) {
     Row(
@@ -52,7 +51,7 @@ fun PhoneStatusBar(time: String = "13:24", modifier: Modifier = Modifier) {
             text = time,
             style = AlirinText.body.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.W600)
         )
-        // We omit drawing the punchhole notch since real Android handles its own status bar
+
         Spacer(Modifier.width(0.dp))
     }
 }

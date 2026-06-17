@@ -19,7 +19,6 @@ import com.example.alirinmobile.ui.theme.Primary
 import com.example.alirinmobile.ui.theme.Radius
 import com.example.alirinmobile.ui.theme.Surface
 
-/** Standard white card with soft shadow + 18 dp radius. */
 @Composable
 fun AlirinCard(
     modifier: Modifier = Modifier,
@@ -44,7 +43,6 @@ fun AlirinCard(
     }
 }
 
-/** Flat card variant (no shadow, hairline border). */
 @Composable
 fun AlirinFlatCard(
     modifier: Modifier = Modifier,
@@ -54,7 +52,6 @@ fun AlirinFlatCard(
     content: @Composable () -> Unit,
 ) = AlirinCard(modifier, bg, padding, elevation = false, border = true, onClick = onClick, content = content)
 
-/** Green primary card (the bike-rods hero style). */
 @Composable
 fun AlirinGreenCard(
     modifier: Modifier = Modifier,
@@ -64,7 +61,7 @@ fun AlirinGreenCard(
     onClick: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
-    // Shadow tint mirrors the brand teal so the soft drop matches the card colour.
+
     val shadowTint = Color(0x730E8770)
     Box(
         modifier

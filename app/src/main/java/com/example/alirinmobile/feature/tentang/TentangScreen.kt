@@ -35,14 +35,14 @@ fun TentangScreen(onBack: () -> Unit, onOpenWeb: () -> Unit = {}) {
                 .padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Hero brand block — droplet motif (top-end) lives behind the text.
+
             Box(
                 Modifier
                     .fillMaxWidth()
                     .clip(Radius.xl)
                     .background(Primary)
             ) {
-                // Decorative outline droplet bleeding off the top-right corner
+
                 HeroDropletMotif(
                     Modifier
                         .size(180.dp)
@@ -88,7 +88,6 @@ fun TentangScreen(onBack: () -> Unit, onOpenWeb: () -> Unit = {}) {
                 }
             }
 
-            // How it works
             Column {
                 SectionHeader(eyebrow = "Cara kerja", title = "Empat sumber, satu peta.")
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -107,7 +106,6 @@ fun TentangScreen(onBack: () -> Unit, onOpenWeb: () -> Unit = {}) {
                 }
             }
 
-            // Mode contrast
             Column {
                 SectionHeader(eyebrow = "Cara lapor", title = "Cepat atau lengkap.")
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -132,7 +130,6 @@ fun TentangScreen(onBack: () -> Unit, onOpenWeb: () -> Unit = {}) {
                 }
             }
 
-            // Privacy card
             AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(18.dp)) {
                 Column {
                     Text("Privasi", style = AlirinText.eyebrow, modifier = Modifier.padding(bottom = 8.dp))
@@ -152,7 +149,6 @@ fun TentangScreen(onBack: () -> Unit, onOpenWeb: () -> Unit = {}) {
                 }
             }
 
-            // Stats card (dark)
             AlirinCard(modifier = Modifier.fillMaxWidth(), bg = Ink, padding = PaddingValues(18.dp)) {
                 Column {
                     Text(
@@ -173,7 +169,6 @@ fun TentangScreen(onBack: () -> Unit, onOpenWeb: () -> Unit = {}) {
                 }
             }
 
-            // Link list
             Column {
                 TentangLink(icon = AlirinIcons.layers,   label = "Buka ALIRIN Web", onClick = onOpenWeb)
                 TentangLink(icon = AlirinIcons.document, label = "Panduan singkat")
@@ -185,11 +180,6 @@ fun TentangScreen(onBack: () -> Unit, onOpenWeb: () -> Unit = {}) {
     }
 }
 
-/**
- * Decorative outline droplet for the Tentang hero — mirrors the SVG used in the
- * Claude Design source (two concentric droplet curves, ~18% white over the green bg).
- * The path is drawn against a normalised 180×180 viewBox then scaled to fit.
- */
 @Composable
 private fun HeroDropletMotif(modifier: Modifier = Modifier) {
     Canvas(modifier) {
@@ -197,7 +187,7 @@ private fun HeroDropletMotif(modifier: Modifier = Modifier) {
         val sy = size.height / 180f
         val stroke = Stroke(width = 1.5.dp.toPx())
         val outerColor = Color.White.copy(alpha = 0.18f)
-        val innerColor = Color.White.copy(alpha = 0.126f) // 18% × 0.7 opacity
+        val innerColor = Color.White.copy(alpha = 0.126f)
 
         val outer = Path().apply {
             moveTo(90f * sx, 10f * sy)

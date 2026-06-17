@@ -22,10 +22,6 @@ import androidx.compose.ui.unit.sp
 import com.example.alirinmobile.ui.components.AlirinIcons
 import com.example.alirinmobile.ui.theme.*
 
-/**
- * NavItem.center is preserved for back-compat with role-aware sets but the pill-style
- * renderer treats all cells identically (Lapor is just another cell that opens the flow).
- */
 data class NavItem(val id: String, val icon: ImageVector, val label: String, val center: Boolean = false)
 
 val DefaultNavItems = listOf(
@@ -36,12 +32,6 @@ val DefaultNavItems = listOf(
     NavItem("tentang", AlirinIcons.info,     "Tentang"),
 )
 
-/**
- * Pill-style bottom nav (matches the reference's `'pill'` variant in components.jsx):
- *   – 5 equal-weight cells laid out in a row (grid-like spacing).
- *   – Active cell = primary-filled rounded pill with icon + label.
- *   – Inactive = transparent, icon-only in muted ink, no label.
- */
 @Composable
 fun BottomNav(
     current: String,

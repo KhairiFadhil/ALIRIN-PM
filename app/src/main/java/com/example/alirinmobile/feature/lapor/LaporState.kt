@@ -19,11 +19,11 @@ data class LaporForm(
     val photos: List<Photo> = emptyList(),
     val nama: String = "",
     val kontak: String = "",
-    /** Real GPS coords once "Gunakan lokasi saya" succeeded. */
+
     val lat: Double? = null,
     val lng: Double? = null,
     val accuracyMeters: Float? = null,
-    /** Region — defaults to the user's selected kelurahan, editable in the Lokasi step. */
+
     val kecamatan: String = "",
     val kelurahan: String = "",
 )

@@ -18,11 +18,6 @@ import java.util.Date
 import java.util.Locale
 import java.util.UUID
 
-/**
- * Loads + watermarks + saves photos for Lapor submissions. Lives in filesDir/photos/.
- * Real GPS isn't wired yet, so watermark uses a mock Bandar Lampung coordinate the
- * design already references (see screens-lapor.jsx).
- */
 object PhotoStore {
     private const val FALLBACK_LAT = -5.39812
     private const val FALLBACK_LNG = 105.26012
@@ -31,10 +26,6 @@ object PhotoStore {
     private fun ensureDir(ctx: Context): File =
         File(ctx.filesDir, "photos").apply { if (!exists()) mkdirs() }
 
-    /**
-     * Saves the given camera bitmap with a lat/long + timestamp watermark.
-     * Coords default to a Bandar Lampung centre point when real GPS isn't available.
-     */
     fun saveCameraBitmap(
         ctx: Context,
         bitmap: Bitmap,
@@ -47,7 +38,6 @@ object PhotoStore {
         return write(ctx, watermarked)
     }
 
-    /** Loads the gallery uri and stores a resized copy (no watermark; design flags this). */
     fun saveGalleryUri(ctx: Context, uri: Uri): String {
         val src = decode(ctx, uri)
         val resized = src.resizeTo(MAX_EDGE_PX)

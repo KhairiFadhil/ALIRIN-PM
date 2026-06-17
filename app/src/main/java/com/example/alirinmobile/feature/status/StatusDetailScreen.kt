@@ -60,7 +60,7 @@ fun StatusDetailScreen(
                 .padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            // Hero card
+
             AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(18.dp)) {
                 Column {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 12.dp)) {
@@ -110,7 +110,6 @@ fun StatusDetailScreen(
                 }
             }
 
-            // Gotong-royong verification card
             if (report.status == ReportStatus.Verified &&
                 report.history.find { it.status == ReportStatus.Verified }?.note?.contains("gotong") == true) {
                 Row(
@@ -144,7 +143,6 @@ fun StatusDetailScreen(
                 }
             }
 
-            // Timeline card
             AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(18.dp)) {
                 Column {
                     Row(
@@ -159,7 +157,6 @@ fun StatusDetailScreen(
                 }
             }
 
-            // Map snippet
             AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(0.dp)) {
                 Column {
                     Box(Modifier.fillMaxWidth().height(140.dp)) {
@@ -186,7 +183,6 @@ fun StatusDetailScreen(
                 }
             }
 
-            // Help block
             Row(
                 Modifier
                     .fillMaxWidth()
@@ -207,7 +203,6 @@ fun StatusDetailScreen(
     }
 }
 
-// ── Timeline (vertical stepper) ──────────────────────────────
 @Composable
 private fun TimelineVertical(report: Report) {
     val reached = report.status.timelineIndex()
@@ -218,7 +213,7 @@ private fun TimelineVertical(report: Report) {
             val done = i <= reached
             val current = i == reached
             Row(modifier = Modifier.padding(bottom = if (isLast) 0.dp else 18.dp)) {
-                // Dot + connector column
+
                 Box(Modifier.width(28.dp)) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Box(

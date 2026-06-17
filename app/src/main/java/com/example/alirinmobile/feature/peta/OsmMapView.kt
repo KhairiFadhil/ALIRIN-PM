@@ -18,10 +18,6 @@ import org.osmdroid.views.overlay.Marker
 
 private val BANDAR_LAMPUNG = GeoPoint(-5.3971, 105.2668)
 
-/**
- * Real OSM map (via osmdroid) wrapped in an AndroidView. Markers are drawn directly on the
- * map (not Compose-overlaid), so they pan/zoom with the tiles.
- */
 @Composable
 fun OsmMapView(
     hotspots: List<Hotspot>,
@@ -36,7 +32,7 @@ fun OsmMapView(
             MapView(ctx).apply {
                 setTileSource(TileSourceFactory.MAPNIK)
                 setMultiTouchControls(true)
-                // Hide osmdroid's built-in +/- zoom buttons — we have our own overlay.
+
                 zoomController.setVisibility(
                     org.osmdroid.views.CustomZoomButtonsController.Visibility.NEVER
                 )
@@ -49,7 +45,7 @@ fun OsmMapView(
             }
         },
         update = { map ->
-            // Clear previous markers and re-add for current state
+
             map.overlays.removeAll { it is Marker }
             hotspots.forEach { h ->
                 val m = Marker(map).apply {
@@ -70,10 +66,6 @@ fun OsmMapView(
     )
 }
 
-/**
- * Builds a circular badge drawable matching the design: white outer ring, colored ring,
- * solid colored fill, white number/text in center.
- */
 private fun pinDrawable(
     ctx: android.content.Context,
     risk: RiskLevel,
@@ -91,21 +83,19 @@ private fun pinDrawable(
 
     val ringColor = riskAndroidColor(risk)
 
-    // White outer fill
     val whitePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = AndroidColor.WHITE }
     canvas.drawCircle(cx, cy, outerR, whitePaint)
-    // Colored ring (stroke)
+
     val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         color = ringColor
         strokeWidth = ringW
     }
     canvas.drawCircle(cx, cy, outerR - ringW / 2f, ringPaint)
-    // Inner fill
+
     val innerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = ringColor }
     canvas.drawCircle(cx, cy, innerR, innerPaint)
 
-    // Label
     if (count > 0) {
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = AndroidColor.WHITE

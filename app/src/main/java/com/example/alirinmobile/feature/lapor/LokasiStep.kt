@@ -48,7 +48,6 @@ fun LokasiStep(
     var fetching by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    // Seed the report region from the user's currently-selected kelurahan once.
     LaunchedEffect(selectedKel) {
         if (form.kecamatan.isBlank() && selectedKel != null) {
             onUpdate(form.copy(kecamatan = selectedKel!!.kecamatan, kelurahan = selectedKel!!.kelurahan))
@@ -101,7 +100,7 @@ fun LokasiStep(
                 .verticalScroll(rememberScrollState())
                 .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
         ) {
-            // Map preview with pin
+
             Box(
                 Modifier
                     .fillMaxWidth()
@@ -110,11 +109,11 @@ fun LokasiStep(
                     .clip(Radius.lg)
             ) {
                 MapBackground(style = MapStyle.Light)
-                // Pin (centered)
+
                 Box(Modifier.align(Alignment.Center).offset(y = (-22).dp).size(40.dp)) {
                     PinShape(color = Primary)
                 }
-                // Top label
+
                 Row(
                     Modifier
                         .align(Alignment.TopStart)
@@ -212,7 +211,7 @@ private fun PinShape(color: Color) {
         val w = size.width
         val h = size.height
         val path = androidx.compose.ui.graphics.Path().apply {
-            // Approx teardrop pin
+
             moveTo(w * 0.5f, 0f)
             cubicTo(w * 0.22f, 0f, 0f, w * 0.2f, 0f, w * 0.5f)
             cubicTo(0f, h * 0.7f, w * 0.5f, h, w * 0.5f, h)

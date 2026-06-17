@@ -48,7 +48,7 @@ fun AlirinPlaceholder(
             val w = size.width; val h = size.height
             val step = 14.dp.toPx()
             val stroke = 6.dp.toPx()
-            // -45deg stripes
+
             var x = -h
             while (x < w + h) {
                 drawLine(

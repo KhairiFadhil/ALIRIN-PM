@@ -13,17 +13,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import java.util.concurrent.TimeUnit
 
-/**
- * Central HTTP client: shared OkHttp + JSON converter, plus per-API Retrofit instances.
- *
- * Each backend has its own base URL because they live on different hosts:
- *  - dummyjson.com → AuthService
- *  - api.bmkg.go.id → BmkgService
- *  - api.groq.com → GroqService
- *
- * Headers (Bearer token for dummyjson, Authorization for GROQ) are added per service so
- * unrelated calls (BMKG public) stay clean.
- */
 class ApiClient(private val authStore: AuthDataStore) {
 
     private val json = Json {
@@ -33,19 +22,16 @@ class ApiClient(private val authStore: AuthDataStore) {
     }
     private val converter = json.asConverterFactory("application/json".toMediaType())
 
-    // ── Shared OkHttp building blocks ─────────────────────────────
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BASIC
     }
 
-    /** Base OkHttp for endpoints that don't need any auth. */
     private val baseClient: OkHttpClient = OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    /** Auth-aware client: injects dummyjson Bearer + handles 401 refresh. */
     private val authedClient: OkHttpClient = OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
         .addInterceptor(AuthInterceptor(authStore))
@@ -54,7 +40,6 @@ class ApiClient(private val authStore: AuthDataStore) {
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    /** Standalone client for GROQ — adds static Bearer from BuildConfig. */
     private val groqClient: OkHttpClient = OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
         .addInterceptor { chain ->
@@ -65,7 +50,7 @@ class ApiClient(private val authStore: AuthDataStore) {
             chain.proceed(req)
         }
         .connectTimeout(20, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)   // LLM responses can be slow
+        .readTimeout(60, TimeUnit.SECONDS)
         .build()
 
     private fun retrofit(baseUrl: String, client: OkHttpClient): Retrofit = Retrofit.Builder()
@@ -74,8 +59,6 @@ class ApiClient(private val authStore: AuthDataStore) {
         .addConverterFactory(converter)
         .build()
 
-    // ── Service handles (lazy singletons) ─────────────────────────
-    /** Bare AuthService (no Bearer) — used by the Authenticator's refresh call. */
     private val bareAuthService: AuthService by lazy {
         retrofit("https://dummyjson.com/", baseClient).create(AuthService::class.java)
     }
@@ -90,6 +73,5 @@ class ApiClient(private val authStore: AuthDataStore) {
         retrofit("https://api.groq.com/", groqClient).create(GroqService::class.java)
     }
 
-    /** True only when local.properties supplies a GROQ_API_KEY. */
     val groqConfigured: Boolean get() = BuildConfig.GROQ_API_KEY.isNotBlank()
 }

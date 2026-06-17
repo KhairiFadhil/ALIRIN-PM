@@ -7,10 +7,6 @@ import com.example.alirinmobile.data.network.ApiClient
 import com.example.alirinmobile.data.network.dto.LoginRequest
 import kotlinx.coroutines.flow.Flow
 
-/**
- * Owns the auth session lifecycle. Login goes through the AuthService; the result is
- * persisted to DataStore so the OkHttp interceptor and the UI both see the same source.
- */
 class AuthRepository(
     private val api: ApiClient,
     private val authStore: AuthDataStore,

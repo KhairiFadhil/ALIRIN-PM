@@ -20,14 +20,6 @@ data class PredictionUiModel(
     enum class Source { Groq, Fallback, Loading }
 }
 
-/**
- * Turns the raw BMKG forecast into a 4-field forecast (udara, suhu, curah hujan, debit
- * air) using GROQ when GROQ_API_KEY is configured. Falls back to a rule-based estimate
- * when not — keeps the UI alive without a key during dev.
- *
- * Combines the WeatherRepository's selected kelurahan + forecast state, so any change
- * upstream re-triggers a new prediction.
- */
 class PredictionRepository(
     private val api: ApiClient,
     private val weather: WeatherRepository,
@@ -43,13 +35,12 @@ class PredictionRepository(
         if (kel == null || forecast == null) {
             emit(null); return@transformLatest
         }
-        // Emit a non-null loading placeholder while we wait on GROQ.
+
         emit(PredictionUiModel(PredictionUiModel.Source.Loading, fallback(forecast)))
         val result = predict(kel, forecast)
         emit(result)
     }
 
-    /** One-shot prediction (used outside the reactive flow, e.g. pull-to-refresh). */
     suspend fun predict(kelurahan: Kelurahan, forecast: BmkgForecastResponse): PredictionUiModel {
         if (!api.groqConfigured) return PredictionUiModel(PredictionUiModel.Source.Fallback, fallback(forecast))
         return runCatching { callGroq(kelurahan, forecast) }
@@ -57,7 +48,6 @@ class PredictionRepository(
             .getOrElse { PredictionUiModel(PredictionUiModel.Source.Fallback, fallback(forecast)) }
     }
 
-    // ── GROQ ─────────────────────────────────────────────────────
     private suspend fun callGroq(kelurahan: Kelurahan, forecast: BmkgForecastResponse): AiForecast {
         val hours = forecast.data.firstOrNull()?.cuaca?.flatten().orEmpty().take(3)
         val precipSum = hours.sumOf { it.tp ?: 0.0 }
@@ -100,13 +90,12 @@ class PredictionRepository(
         return json.decodeFromString(AiForecast.serializer(), raw)
     }
 
-    // ── Rule-based fallback ──────────────────────────────────────
     private fun fallback(forecast: BmkgForecastResponse): AiForecast {
         val hours = forecast.data.firstOrNull()?.cuaca?.flatten().orEmpty().take(3)
         val precip = hours.sumOf { it.tp ?: 0.0 }
         val temp = hours.firstOrNull()?.t?.toDouble() ?: 28.0
         val desc = hours.firstOrNull()?.weatherDesc?.takeIf { it.isNotBlank() } ?: "Berawan"
-        val debit = precip * 0.0015 * 1.2     // crude
+        val debit = precip * 0.0015 * 1.2
         val summary = when {
             precip >= 10 -> "Hujan deras 3 jam ke depan — risiko genangan tinggi di drainase mikro."
             precip >= 5  -> "Hujan sedang 3 jam ke depan — pantau titik rawan."

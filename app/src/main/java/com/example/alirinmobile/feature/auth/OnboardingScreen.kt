@@ -68,7 +68,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
     val isLast = pagerState.currentPage == pages.size - 1
 
     Column(Modifier.fillMaxSize().background(Bg)) {
-        // Top: skip
+
         Row(
             Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 6.dp),
             horizontalArrangement = Arrangement.End,
@@ -90,7 +90,6 @@ fun OnboardingScreen(onDone: () -> Unit) {
             OnboardingPageContent(page = pages[index])
         }
 
-        // Page indicators
         Row(
             Modifier.fillMaxWidth().padding(bottom = 20.dp),
             horizontalArrangement = Arrangement.Center,
@@ -108,7 +107,6 @@ fun OnboardingScreen(onDone: () -> Unit) {
             }
         }
 
-        // CTA
         Column(Modifier.padding(start = 24.dp, end = 24.dp, bottom = 28.dp)) {
             AlirinButton(
                 label = if (isLast) "Mulai pakai ALIRIN" else "Lanjut",
@@ -132,7 +130,7 @@ private fun OnboardingPageContent(page: OnboardingPage) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Big illustration: tinted circle + icon
+
         Box(
             Modifier
                 .size(180.dp)
