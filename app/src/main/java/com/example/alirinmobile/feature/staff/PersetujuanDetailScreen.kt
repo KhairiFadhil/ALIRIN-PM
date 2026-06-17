@@ -30,9 +30,8 @@ import com.example.alirinmobile.data.RiskLevel
 import com.example.alirinmobile.data.repository.HotspotSeed
 import com.example.alirinmobile.data.repository.ReportSeed
 import com.example.alirinmobile.feature.lapor.TextField
-import com.example.alirinmobile.feature.peta.MapBackground
 import com.example.alirinmobile.feature.peta.MapMarker
-import com.example.alirinmobile.feature.peta.MapStyle
+import com.example.alirinmobile.feature.peta.StaticMapPreview
 import com.example.alirinmobile.ui.components.*
 import com.example.alirinmobile.ui.theme.*
 
@@ -285,7 +284,7 @@ private fun MapSnippetCard(report: Report) {
     AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(0.dp)) {
         Column {
             Box(Modifier.fillMaxWidth().height(160.dp)) {
-                MapBackground(style = MapStyle.Light)
+                StaticMapPreview(lat = report.lat, lng = report.lng, modifier = Modifier.matchParentSize())
                 Box(Modifier.align(Alignment.Center).offset(y = (-22).dp)) {
                     MapMarker(risk = report.risk, count = 1)
                 }
@@ -301,7 +300,12 @@ private fun MapSnippetCard(report: Report) {
                         "${report.kelurahan}, ${report.kecamatan}",
                         fontWeight = FontWeight.W600, fontSize = 13.5.sp, color = Ink,
                     )
-                    Text("-5.39812, 105.26012", style = AlirinText.mono.copy(color = Muted))
+                    Text(
+                        if (report.lat != null && report.lng != null)
+                            "%.5f, %.5f".format(report.lat, report.lng)
+                        else "Lokasi belum tercatat",
+                        style = AlirinText.mono.copy(color = Muted),
+                    )
                 }
                 val navCtx = androidx.compose.ui.platform.LocalContext.current
                 Text(
@@ -310,9 +314,13 @@ private fun MapSnippetCard(report: Report) {
                     fontSize = 12.sp,
                     fontWeight = FontWeight.W600,
                     modifier = Modifier.clickable {
-
                         val label = android.net.Uri.encode("${report.kelurahan}, ${report.kecamatan}")
-                        val uri = android.net.Uri.parse("geo:-5.39812,105.26012?q=-5.39812,105.26012($label)")
+                        val uri = if (report.lat != null && report.lng != null) {
+                            val c = "%.6f,%.6f".format(report.lat, report.lng)
+                            android.net.Uri.parse("geo:$c?q=$c($label)")
+                        } else {
+                            android.net.Uri.parse("geo:0,0?q=$label")
+                        }
                         runCatching {
                             navCtx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, uri))
                         }.onFailure { navCtx.toast("Tidak ada aplikasi peta terpasang.") }

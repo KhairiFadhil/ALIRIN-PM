@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
 }
 
 // Read GROQ API key from local.properties so it isn't committed to git.
@@ -75,6 +76,9 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.play.services.location)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -49,11 +49,13 @@ fun BottomNav(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             items.forEach { item ->
+                val active = current == item.id
                 PillCell(
                     item = item,
-                    active = current == item.id,
+                    active = active,
                     onTap = { onSelect(item.id) },
-                    modifier = Modifier.weight(1f),
+                    // Tab aktif dapat ruang lebih (buat label); tab lain cukup icon.
+                    modifier = Modifier.weight(if (active) 1.8f else 1f),
                 )
             }
         }
@@ -75,11 +77,33 @@ private fun PillCell(
             .clickable(onClick = onTap),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            item.icon,
-            contentDescription = item.label,
-            tint = if (active) Color.White else Muted,
-            modifier = Modifier.size(24.dp),
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(horizontal = if (active) 12.dp else 0.dp),
+        ) {
+            Icon(
+                item.icon,
+                contentDescription = item.label,
+                tint = if (active) Color.White else Muted,
+                modifier = Modifier.size(if (active) 20.dp else 24.dp),
+            )
+            // Label hanya muncul saat tab aktif -> hemat ruang, gak kepotong.
+            AnimatedVisibility(
+                visible = active,
+                enter = expandHorizontally() + fadeIn(),
+                exit = shrinkHorizontally() + fadeOut(),
+            ) {
+                Text(
+                    item.label,
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.W700,
+                    maxLines = 1,
+                    softWrap = false,
+                    modifier = Modifier.padding(start = 6.dp),
+                )
+            }
+        }
     }
 }

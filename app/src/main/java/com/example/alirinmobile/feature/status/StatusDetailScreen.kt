@@ -23,9 +23,8 @@ import com.example.alirinmobile.data.Report
 import com.example.alirinmobile.data.ReportStatus
 import com.example.alirinmobile.data.StatusSteps
 import com.example.alirinmobile.data.timelineIndex
-import com.example.alirinmobile.feature.peta.MapBackground
 import com.example.alirinmobile.feature.peta.MapMarker
-import com.example.alirinmobile.feature.peta.MapStyle
+import com.example.alirinmobile.feature.peta.StaticMapPreview
 import com.example.alirinmobile.ui.components.*
 import com.example.alirinmobile.ui.theme.*
 
@@ -160,7 +159,7 @@ fun StatusDetailScreen(
             AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(0.dp)) {
                 Column {
                     Box(Modifier.fillMaxWidth().height(140.dp)) {
-                        MapBackground(style = MapStyle.Light)
+                        StaticMapPreview(lat = report.lat, lng = report.lng, modifier = Modifier.matchParentSize())
                         Box(Modifier.align(Alignment.Center).offset(y = (-22).dp)) {
                             MapMarker(risk = report.risk, count = 1)
                         }
@@ -176,7 +175,12 @@ fun StatusDetailScreen(
                                 "${report.kelurahan}, ${report.kecamatan}",
                                 fontWeight = FontWeight.W600, fontSize = 13.sp, color = Ink,
                             )
-                            Text("-5.39812, 105.26012", style = AlirinText.mono.copy(color = Muted))
+                            Text(
+                                if (report.lat != null && report.lng != null)
+                                    "%.5f, %.5f".format(report.lat, report.lng)
+                                else "Lokasi belum tercatat",
+                                style = AlirinText.mono.copy(color = Muted),
+                            )
                         }
                         Icon(AlirinIcons.chevronRight, null, tint = Muted, modifier = Modifier.size(18.dp))
                     }

@@ -2,6 +2,7 @@ package com.example.alirinmobile
 
 import android.app.Application
 import android.preference.PreferenceManager
+import com.example.alirinmobile.data.local.AlirinDatabase
 import com.example.alirinmobile.data.local.AuthDataStore
 import com.example.alirinmobile.data.network.ApiClient
 import com.example.alirinmobile.data.repository.AuthRepository
@@ -10,6 +11,9 @@ import com.example.alirinmobile.data.repository.LocationRepository
 import com.example.alirinmobile.data.repository.PredictionRepository
 import com.example.alirinmobile.data.repository.ReportRepository
 import com.example.alirinmobile.data.repository.WeatherRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
 
 class AlirinApplication : Application() {
@@ -36,13 +40,16 @@ class AlirinApplication : Application() {
         val authStore = AuthDataStore(this)
         apiClient = ApiClient(authStore)
         authRepository = AuthRepository(apiClient, authStore)
-        reportRepository = ReportRepository()
+        val db = AlirinDatabase.get(this)
+        reportRepository = ReportRepository(db.reportDao())
         weatherRepository = WeatherRepository(apiClient)
         predictionRepository = PredictionRepository(apiClient, weatherRepository)
         kelurahanRepository = KelurahanRepository(this)
         locationRepository = LocationRepository(this)
 
         weatherRepository.setSelected(kelurahanRepository.default)
+
+        CoroutineScope(Dispatchers.IO).launch { reportRepository.seedIfEmpty() }
 
         @Suppress("DEPRECATION")
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)

@@ -44,14 +44,17 @@ import com.example.alirinmobile.ui.components.*
 import com.example.alirinmobile.ui.theme.*
 import kotlin.math.ceil
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BerandaScreen(
     reports: List<Report>,
+    session: com.example.alirinmobile.data.auth.AuthSession?,
     onLaporClick: () -> Unit,
     onPetaClick: () -> Unit,
     onStatusClick: () -> Unit,
     onStatusItemClick: (Report) -> Unit,
     onTentangClick: () -> Unit,
+    onLogout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
 
@@ -62,6 +65,15 @@ fun BerandaScreen(
     val kritisCount = reports.count { it.risk == RiskLevel.Kritis }
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val activeCount = reports.count { it.status != ReportStatus.Completed && it.status != ReportStatus.Rejected }
+
+    // Identity: logged-in user vs anonymous warga.
+    val loggedIn = session != null
+    val displayName = session?.displayName ?: "Warga"
+    val initials = session?.displayName?.trim()?.split(" ")
+        ?.mapNotNull { it.firstOrNull() }?.take(2)?.joinToString("")?.uppercase()
+
+    var showAccount by remember { mutableStateOf(false) }
+
     Column(
         modifier
             .fillMaxSize()
@@ -69,13 +81,29 @@ fun BerandaScreen(
             .verticalScroll(rememberScrollState())
     ) {
         Greeting(
-            area = areaKecamatan,
+            loggedIn = loggedIn,
+            initials = initials,
+            title = if (loggedIn) "Halo, $displayName" else "Warga",
+            subtitle = if (loggedIn) "Akun aktif" else "Mode anonim - ketuk untuk akun",
+            hasNotif = activeCount > 0,
+            onProfile = { showAccount = true },
             onBell = {
                 ctx.toast(
                     if (activeCount > 0) "$activeCount laporan kamu sedang diproses." else "Belum ada notifikasi baru.",
                 )
             },
         )
+
+        if (showAccount) {
+            AccountSheet(
+                loggedIn = loggedIn,
+                displayName = displayName,
+                roleLabel = session?.role?.name ?: "Anonim",
+                onDismiss = { showAccount = false },
+                onTentang = { showAccount = false; onTentangClick() },
+                onLogout = { showAccount = false; onLogout() },
+            )
+        }
         Column(
             Modifier
                 .padding(start = Space.s5, end = Space.s5, bottom = Space.s6),
@@ -142,7 +170,15 @@ fun BerandaScreen(
 }
 
 @Composable
-private fun Greeting(area: String, onBell: () -> Unit = {}) {
+private fun Greeting(
+    loggedIn: Boolean,
+    initials: String?,
+    title: String,
+    subtitle: String,
+    hasNotif: Boolean,
+    onProfile: () -> Unit,
+    onBell: () -> Unit,
+) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -150,18 +186,28 @@ private fun Greeting(area: String, onBell: () -> Unit = {}) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Space.s3),
     ) {
-        Avatar(seed = 0, size = 42, label = "BL", badge = true)
-        Column(Modifier.weight(1f)) {
-            Text("Beranda", style = AlirinText.caption)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(area, fontSize = 18.sp, fontWeight = FontWeight.W700, color = Ink, letterSpacing = (-0.27).sp)
-                Text(
-                    text = " · Bandar Lampung",
-                    color = Muted,
-                    fontWeight = FontWeight.W500,
-                    fontSize = 13.5.sp,
-                )
+        // Profile avatar — pressable; anonymous shows a person icon (not fake initials).
+        Box(
+            Modifier
+                .size(42.dp)
+                .clip(CircleShape)
+                .clickable(onClick = onProfile),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (loggedIn && initials != null) {
+                Avatar(seed = 3, size = 42, label = initials)
+            } else {
+                Box(
+                    Modifier.matchParentSize().clip(CircleShape).background(Surface2),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(AlirinIcons.users, null, tint = Muted, modifier = Modifier.size(22.dp))
+                }
             }
+        }
+        Column(Modifier.weight(1f)) {
+            Text(title, fontSize = 16.sp, fontWeight = FontWeight.W700, color = Ink, letterSpacing = (-0.24).sp, maxLines = 1)
+            Text(subtitle, color = Muted, fontWeight = FontWeight.W500, fontSize = 12.5.sp, maxLines = 1)
         }
 
         Box(Modifier.size(40.dp)) {
@@ -175,14 +221,91 @@ private fun Greeting(area: String, onBell: () -> Unit = {}) {
             ) {
                 Icon(AlirinIcons.bell, null, tint = Ink, modifier = Modifier.size(20.dp))
             }
-            Box(
-                Modifier
-                    .size(10.dp)
-                    .align(Alignment.TopEnd)
-                    .offset(x = (-4).dp, y = 4.dp)
-                    .clip(CircleShape)
-                    .background(RiskKritisDot)
-                    .border(2.dp, Surface, CircleShape)
+            if (hasNotif) {
+                Box(
+                    Modifier
+                        .size(10.dp)
+                        .align(Alignment.TopEnd)
+                        .offset(x = (-4).dp, y = 4.dp)
+                        .clip(CircleShape)
+                        .background(RiskKritisDot)
+                        .border(2.dp, Surface, CircleShape)
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AccountSheet(
+    loggedIn: Boolean,
+    displayName: String,
+    roleLabel: String,
+    onDismiss: () -> Unit,
+    onTentang: () -> Unit,
+    onLogout: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        shape = Radius.sheet,
+        containerColor = Surface,
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                Box(
+                    Modifier.size(48.dp).clip(CircleShape).background(Surface2),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(AlirinIcons.users, null, tint = if (loggedIn) Primary else Muted, modifier = Modifier.size(26.dp))
+                }
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        if (loggedIn) displayName else "Warga Anonim",
+                        fontSize = 16.sp, fontWeight = FontWeight.W700, color = Ink,
+                    )
+                    Text(
+                        if (loggedIn) "Masuk sebagai $roleLabel" else "Belum masuk - lapor tanpa akun",
+                        style = AlirinText.caption,
+                    )
+                }
+            }
+
+            if (!loggedIn) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(Radius.md)
+                        .background(PrimarySofter)
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    Icon(AlirinIcons.info, null, tint = PrimaryInk, modifier = Modifier.size(18.dp))
+                    Text(
+                        "Kamu melapor sebagai warga anonim. Petugas bisa masuk lewat tombol di bawah.",
+                        color = PrimaryInk, fontSize = 12.5.sp, lineHeight = 18.sp,
+                    )
+                }
+            }
+
+            AlirinButton(
+                label = "Tentang ALIRIN",
+                onClick = onTentang,
+                variant = BtnVariant.Soft,
+                block = true,
+                leadingIcon = AlirinIcons.info,
+            )
+            AlirinButton(
+                label = if (loggedIn) "Keluar" else "Masuk sebagai Staff / Admin",
+                onClick = onLogout,
+                block = true,
+                leadingIcon = if (loggedIn) AlirinIcons.arrowLeft else AlirinIcons.shield,
             )
         }
     }

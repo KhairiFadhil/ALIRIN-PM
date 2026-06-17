@@ -10,26 +10,33 @@ import com.example.alirinmobile.data.Report
 import com.example.alirinmobile.data.ReportMode
 import com.example.alirinmobile.data.ReportStatus
 import com.example.alirinmobile.data.RiskLevel
+import com.example.alirinmobile.data.local.ReportDao
+import com.example.alirinmobile.data.local.toDomain
+import com.example.alirinmobile.data.local.toEntity
 import com.example.alirinmobile.feature.lapor.LaporForm
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
-class ReportRepository {
+class ReportRepository(private val dao: ReportDao) {
 
-    private val _reports = MutableStateFlow<List<Report>>(seed())
-    val reports: StateFlow<List<Report>> = _reports.asStateFlow()
+    private val scope = CoroutineScope(Dispatchers.IO)
 
-    fun observeReports() = reports
-    fun observeReport(id: String): kotlinx.coroutines.flow.Flow<Report?> =
-        reports.map { list -> list.find { it.id == id } }
-    fun snapshot(id: String): Report? = _reports.value.find { it.id == id }
+    fun observeReports(): Flow<List<Report>> =
+        dao.observeAll().map { list -> list.map { it.toDomain() } }
+
+    fun observeReport(id: String): Flow<Report?> =
+        observeReports().map { list -> list.find { it.id == id } }
 
     private val _draft = MutableStateFlow<LaporForm?>(null)
     val draft: StateFlow<LaporForm?> = _draft.asStateFlow()
@@ -72,8 +79,10 @@ class ReportRepository {
             description = form.deskripsi,
             photos = form.photos.size,
             history = listOf(HistoryEntry(ReportStatus.Pending, now, "Laporan masuk dari aplikasi.")),
+            lat = form.lat,
+            lng = form.lng,
         )
-        _reports.value = listOf(report) + _reports.value
+        scope.launch { dao.upsert(report.toEntity(System.currentTimeMillis())) }
         clearDraft()
         return SubmitResult(id, code)
     }
@@ -84,26 +93,32 @@ class ReportRepository {
         note: String? = null,
         actorLabel: String? = null,
     ) {
-        val current = _reports.value
-        val report = current.find { it.id == reportId } ?: return
         val now = nowLabel()
         val combinedNote = listOfNotNull(actorLabel?.let { "[$it]" }, note?.takeIf { it.isNotBlank() })
             .joinToString(" ").takeIf { it.isNotBlank() }
-        val updated = report.copy(
-            status = newStatus,
-            updatedAt = now,
-            history = report.history + HistoryEntry(newStatus, now, combinedNote),
-        )
-        _reports.value = current.map { if (it.id == reportId) updated else it }
+
+        scope.launch {
+            val report = dao.get(reportId)?.toDomain() ?: return@launch
+            val updated = report.copy(
+                status = newStatus, updatedAt = now,
+                history = report.history + HistoryEntry(newStatus, now, combinedNote),
+            )
+            dao.upsert(updated.toEntity(System.currentTimeMillis()))
+        }
     }
 
     fun hotspots(): List<Hotspot> = HotspotSeed
     fun nearbyTeasers(): List<NearbyTeaser> = NearbyTeaserSeed
 
-    private fun nowLabel(): String =
-        SimpleDateFormat("d MMM · HH:mm", Locale("id")).format(Date())
+    // Isi DB dengan data contoh saat pertama kali (DB masih kosong) supaya layar tidak kosong.
+    suspend fun seedIfEmpty() {
+        if (dao.count() > 0) return
+        val base = System.currentTimeMillis()
+        dao.upsertAll(ReportSeed.mapIndexed { i, r -> r.toEntity(base - i) })
+    }
 
-    private fun seed(): List<Report> = ReportSeed
+    private fun nowLabel(): String =
+        SimpleDateFormat("d MMM - HH:mm", Locale("id")).format(Date())
 }
 
 internal val ReportSeed: List<Report> = listOf(
@@ -116,6 +131,7 @@ internal val ReportSeed: List<Report> = listOf(
         createdAt = "12 Mei · 14:30", updatedAt = "13 Mei · 09:15",
         description = "Sampah plastik & daun menyumbat got, air mulai menggenang ke jalan.",
         photos = 2,
+        lat = -5.3826, lng = 105.2589,
         history = listOf(
             HistoryEntry(ReportStatus.Pending,    "12 Mei · 14:30", "Laporan masuk dari aplikasi."),
             HistoryEntry(ReportStatus.Verified,   "12 Mei · 16:08", "Petugas verifikasi via foto & 3 laporan terdekat."),
@@ -129,6 +145,7 @@ internal val ReportSeed: List<Report> = listOf(
         category = "Aliran lambat",
         kelurahan = "Way Halim Permai", kecamatan = "Way Halim",
         createdAt = "11 Mei · 18:42",
+        lat = -5.3864, lng = 105.3072,
         history = listOf(
             HistoryEntry(ReportStatus.Pending,  "11 Mei · 18:42", "Lapor Cepat masuk."),
             HistoryEntry(ReportStatus.Verified, "12 Mei · 10:15", "Diverifikasi gotong-royong (3 warga)."),
@@ -140,6 +157,7 @@ internal val ReportSeed: List<Report> = listOf(
         category = "Drainase rusak",
         kelurahan = "Kemiling Permai", kecamatan = "Kemiling",
         createdAt = "5 Mei · 09:14",
+        lat = -5.3750, lng = 105.2780,
         description = "Tutup got pecah, anak2 hampir jatuh.",
         photos = 3,
         history = listOf(
