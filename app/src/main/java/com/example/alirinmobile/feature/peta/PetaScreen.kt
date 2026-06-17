@@ -15,6 +15,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.alirinmobile.data.Hotspot
 import com.example.alirinmobile.data.HotspotSource
+import com.example.alirinmobile.data.Report
 import com.example.alirinmobile.data.RiskLevel
 import com.example.alirinmobile.data.repository.HotspotSeed
 import com.example.alirinmobile.ui.components.*
@@ -45,7 +49,16 @@ fun PetaScreen(
     var filter by remember { mutableStateOf<HotspotSource?>(null) }
     var selected by remember { mutableStateOf<Hotspot?>(null) }
     var query by remember { mutableStateOf("") }
-    val filtered = HotspotSeed
+
+    // Laporan warga (dari database lokal) yang punya koordinat ikut tampil sebagai titik di peta.
+    val reportsVm: com.example.alirinmobile.feature.ReportsViewModel =
+        androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.alirinmobile.feature.AlirinViewModelFactory.Factory)
+    val reports by reportsVm.reports.collectAsStateWithLifecycle()
+    val allHotspots = remember(reports) {
+        HotspotSeed + reports.mapIndexedNotNull { i, r -> r.toMapHotspot(10_000 + i) }
+    }
+
+    val filtered = allHotspots
         .filter { filter == null || it.src == filter }
         .filter { h ->
             query.isBlank() ||
@@ -78,6 +91,26 @@ fun PetaScreen(
 
     var mapRef by remember { mutableStateOf<org.osmdroid.views.MapView?>(null) }
 
+    val locVm: com.example.alirinmobile.feature.LocationViewModel =
+        androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.alirinmobile.feature.AlirinViewModelFactory.Factory)
+    val userLoc by locVm.last.collectAsStateWithLifecycle()
+    val userGeo = userLoc?.let { org.osmdroid.util.GeoPoint(it.lat, it.lng) }
+
+    fun goToMyLocation() {
+        locVm.fetchOnce { loc ->
+            loc?.let {
+                mapRef?.controller?.setZoom(15.0)
+                mapRef?.controller?.animateTo(org.osmdroid.util.GeoPoint(it.lat, it.lng))
+            }
+        }
+    }
+
+    val locationPermLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted -> if (granted) goToMyLocation() }
+
+    LaunchedEffect(Unit) { if (locVm.hasPermission()) locVm.fetchOnce {} }
+
     Box(modifier.fillMaxSize()) {
 
         OsmMapView(
@@ -85,6 +118,7 @@ fun PetaScreen(
             selectedId = selected?.id,
             onHotspotTap = { selected = it },
             modifier = Modifier.fillMaxSize(),
+            userLocation = userGeo,
             onMapReady = { mapRef = it },
         )
 
@@ -154,8 +188,8 @@ fun PetaScreen(
             MapButton(icon = AlirinIcons.plus, onClick = { mapRef?.controller?.zoomIn() })
             MapButton(icon = AlirinIcons.layers, onClick = { mapRef?.controller?.zoomOut() })
             MapButton(icon = AlirinIcons.pin, primary = true, onClick = {
-                mapRef?.controller?.animateTo(org.osmdroid.util.GeoPoint(-5.3971, 105.2668))
-                mapRef?.controller?.setZoom(14.0)
+                if (locVm.hasPermission()) goToMyLocation()
+                else locationPermLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             })
         }
 
@@ -196,9 +230,26 @@ fun PetaScreen(
     }
 }
 
-@Composable
-private fun UserDot(modifier: Modifier = Modifier) {
-    Box(modifier.size(18.dp).clip(CircleShape).background(Primary))
+// Ubah Laporan (yang punya koordinat) jadi Hotspot supaya bisa digambar sebagai titik di peta.
+private fun Report.toMapHotspot(markerId: Int): Hotspot? {
+    val la = lat ?: return null
+    val ln = lng ?: return null
+    return Hotspot(
+        id = markerId,
+        risk = risk,
+        score = score,
+        count = 1,
+        xFrac = 0f, yFrac = 0f,
+        lat = la, lng = ln,
+        name = address ?: "Laporan $code",
+        kel = kelurahan,
+        kec = kecamatan,
+        cat = category,
+        status = status,
+        src = HotspotSource.Warga,
+        dist = "",
+        when_ = updatedAt ?: createdAt,
+    )
 }
 
 data class AreaSummary(val kecamatan: String, val activeCount: Int, val level: RiskLevel, val score: Int)

@@ -231,11 +231,13 @@ private fun MainShell(role: Role, onLogout: () -> Unit) {
                 composable(Routes.Beranda) {
                     BerandaScreen(
                         reports = reports,
+                        session = session,
                         onLaporClick = { showLaporSheet = true },
                         onPetaClick = { nav.navigate(Routes.Peta) },
                         onStatusClick = { nav.navigate(Routes.Status) },
                         onStatusItemClick = { nav.navigate(Routes.statusDetail(it.id)) },
                         onTentangClick = { nav.navigate(Routes.Tentang) },
+                        onLogout = onLogout,
                     )
                 }
                 composable(Routes.Peta) {

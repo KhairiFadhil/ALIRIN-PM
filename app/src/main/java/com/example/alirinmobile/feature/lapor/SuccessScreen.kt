@@ -20,9 +20,8 @@ import com.example.alirinmobile.data.Kategoris
 import com.example.alirinmobile.data.ReportMode
 import com.example.alirinmobile.data.RiskLevel
 import com.example.alirinmobile.data.Severities
-import com.example.alirinmobile.feature.peta.MapBackground
 import com.example.alirinmobile.feature.peta.MapMarker
-import com.example.alirinmobile.feature.peta.MapStyle
+import com.example.alirinmobile.feature.peta.StaticMapPreview
 import com.example.alirinmobile.ui.components.*
 import com.example.alirinmobile.ui.theme.*
 
@@ -103,7 +102,7 @@ fun SuccessScreen(
                     .clip(Radius.md)
                     .shadow(2.dp, Radius.md)
             ) {
-                MapBackground(style = MapStyle.Light)
+                StaticMapPreview(lat = form.lat, lng = form.lng, modifier = Modifier.matchParentSize())
                 Box(Modifier.align(Alignment.Center)) {
                     MapMarker(risk = risk, count = 1)
                 }

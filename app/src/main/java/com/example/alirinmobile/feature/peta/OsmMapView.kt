@@ -24,6 +24,7 @@ fun OsmMapView(
     selectedId: Int?,
     onHotspotTap: (Hotspot) -> Unit,
     modifier: Modifier = Modifier,
+    userLocation: GeoPoint? = null,
     onMapReady: (MapView) -> Unit = {},
 ) {
     AndroidView(
@@ -60,6 +61,16 @@ fun OsmMapView(
                     }
                 }
                 map.overlays.add(m)
+            }
+            if (userLocation != null) {
+                val me = Marker(map).apply {
+                    position = userLocation
+                    title = "Lokasi kamu"
+                    icon = userDotDrawable(map.context)
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                    setOnMarkerClickListener { _, _ -> true }
+                }
+                map.overlays.add(me)
             }
             map.invalidate()
         },
@@ -107,6 +118,26 @@ private fun pinDrawable(
         val baseline = cy - (metrics.ascent + metrics.descent) / 2f
         canvas.drawText(count.toString(), cx, baseline, textPaint)
     }
+    return android.graphics.drawable.BitmapDrawable(ctx.resources, bmp)
+}
+
+private fun userDotDrawable(ctx: android.content.Context): android.graphics.drawable.Drawable {
+    val d = ctx.resources.displayMetrics.density
+    val sizePx = (22 * d).toInt()
+    val bmp = android.graphics.Bitmap.createBitmap(sizePx, sizePx, android.graphics.Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bmp)
+    val cx = bmp.width / 2f
+    val cy = bmp.height / 2f
+    val blue = AndroidColor.parseColor("#1A73E8")
+
+    // halo lembut
+    canvas.drawCircle(cx, cy, cx, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = blue; alpha = 38
+    })
+    // ring putih
+    canvas.drawCircle(cx, cy, 7f * d, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = AndroidColor.WHITE })
+    // titik biru
+    canvas.drawCircle(cx, cy, 5f * d, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = blue })
     return android.graphics.drawable.BitmapDrawable(ctx.resources, bmp)
 }
 

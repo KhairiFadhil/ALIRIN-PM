@@ -28,8 +28,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.alirinmobile.feature.AlirinViewModelFactory
 import com.example.alirinmobile.feature.LocationViewModel
 import com.example.alirinmobile.feature.WeatherViewModel
-import com.example.alirinmobile.feature.peta.MapBackground
-import com.example.alirinmobile.feature.peta.MapStyle
+import androidx.compose.runtime.mutableIntStateOf
+import com.example.alirinmobile.feature.peta.LocationPickerMap
 import com.example.alirinmobile.ui.components.*
 import com.example.alirinmobile.ui.theme.*
 
@@ -47,6 +47,7 @@ fun LokasiStep(
     val selectedKel by weatherVm.selected.collectAsStateWithLifecycle()
     var fetching by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var recenterKey by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(selectedKel) {
         if (form.kecamatan.isBlank() && selectedKel != null) {
@@ -63,11 +64,12 @@ fun LokasiStep(
                 fetching = false
                 if (loc != null) {
                     onUpdate(form.copy(lat = loc.lat, lng = loc.lng, accuracyMeters = loc.accuracyMeters))
+                    recenterKey++
                     error = null
                 } else error = "Lokasi tidak tersedia. Coba di tempat terbuka."
             }
         } else {
-            error = "Akses lokasi ditolak. Kamu masih bisa pin manual."
+            error = "Akses lokasi ditolak. Kamu masih bisa geser peta manual."
         }
     }
 
@@ -78,6 +80,7 @@ fun LokasiStep(
                 fetching = false
                 if (loc != null) {
                     onUpdate(form.copy(lat = loc.lat, lng = loc.lng, accuracyMeters = loc.accuracyMeters))
+                    recenterKey++
                     error = null
                 } else error = "Lokasi tidak tersedia. Coba di tempat terbuka."
             }
@@ -108,7 +111,15 @@ fun LokasiStep(
                     .shadow(2.dp, Radius.lg)
                     .clip(Radius.lg)
             ) {
-                MapBackground(style = MapStyle.Light)
+                LocationPickerMap(
+                    lat = form.lat,
+                    lng = form.lng,
+                    recenterKey = recenterKey,
+                    onCenterChanged = { la, ln ->
+                        onUpdate(form.copy(lat = la, lng = ln, accuracyMeters = null))
+                    },
+                    modifier = Modifier.fillMaxSize(),
+                )
 
                 Box(Modifier.align(Alignment.Center).offset(y = (-22).dp).size(40.dp)) {
                     PinShape(color = Primary)
@@ -125,7 +136,7 @@ fun LokasiStep(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Icon(AlirinIcons.pin, null, tint = Ink, modifier = Modifier.size(12.dp))
-                    Text("Geser pin untuk akurasi", fontSize = 12.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.W600, color = Ink)
+                    Text("Geser peta untuk atur titik", fontSize = 12.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.W600, color = Ink)
                 }
             }
             Spacer(Modifier.height(14.dp))
@@ -147,7 +158,7 @@ fun LokasiStep(
                 val coordsLabel = if (form.lat != null && form.lng != null) {
                     val accuracy = form.accuracyMeters?.let { " · ±${it.toInt()} m" }.orEmpty()
                     "%.5f, %.5f%s".format(form.lat, form.lng, accuracy)
-                } else "-5.39812, 105.26012 · belum di-GPS"
+                } else "Belum dipilih · geser peta atau aktifkan GPS"
                 ReadOnlyFieldBordered(label = "Latitude · Longitude", value = coordsLabel, mono = true)
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     ReadOnlyFieldBordered(

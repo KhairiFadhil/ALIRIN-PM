@@ -77,6 +77,8 @@ data class Report(
     val description: String = "",
     val photos: Int = 0,
     val history: List<HistoryEntry> = emptyList(),
+    val lat: Double? = null,
+    val lng: Double? = null,
 )
 
 enum class HotspotSource(val label: String) {

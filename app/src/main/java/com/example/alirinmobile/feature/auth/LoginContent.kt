@@ -78,7 +78,7 @@ fun LoginContent(
                     label = "ID STAFF",
                     value = username,
                     onValueChange = onUsernameChange,
-                    placeholder = "contoh: emilys",
+                    placeholder = "Masukkan ID staff",
                     leadingIcon = AlirinIcons.users,
                     keyboardType = KeyboardType.Text,
                 )
@@ -112,11 +112,6 @@ fun LoginContent(
                 "ID staff diberikan oleh admin kelurahan. Belum punya? Hubungi pengawas wilayah kamu."
             )
 
-            Spacer(Modifier.height(16.dp))
-            Text(
-                "Uji: emilys / emilyspass (staff) — michaelw / michaelwpass (admin)",
-                style = AlirinText.caption.copy(fontSize = 11.sp),
-            )
             Spacer(Modifier.height(40.dp))
         }
 
