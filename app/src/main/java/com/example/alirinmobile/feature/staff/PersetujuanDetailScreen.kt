@@ -379,7 +379,7 @@ private fun ActionBar(
                 modifier = Modifier.weight(1f),
             )
             ActionBarButton(
-                label = "Jadwalkan",
+                label = "Jadwal",
                 bg = Surface2,
                 ink = Ink,
                 onClick = onSchedule,
@@ -413,12 +413,20 @@ private fun ActionBarButton(
             .clip(Radius.pill)
             .background(bg)
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp),
+            .padding(horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
     ) {
         if (leadingIcon != null) Icon(leadingIcon, null, tint = ink, modifier = Modifier.size(18.dp))
-        Text(label, color = ink, fontWeight = FontWeight.W600, fontSize = 14.sp)
+        Text(
+            label,
+            color = ink,
+            fontWeight = FontWeight.W600,
+            fontSize = 14.sp,
+            maxLines = 1,
+            softWrap = false,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+        )
     }
 }
 

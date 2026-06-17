@@ -11,11 +11,6 @@ import org.osmdroid.views.MapView
 
 private val BANDAR_LAMPUNG = GeoPoint(-5.3971, 105.2668)
 
-/**
- * Peta mini (tile asli OSM) untuk thumbnail/preview di detail laporan & layar sukses.
- * Tidak interaktif — sentuhan dikonsumsi supaya parent (Column scroll) tetap bisa di-scroll.
- * Pin penanda digambar oleh pemanggil sebagai overlay Compose di tengah Box.
- */
 @Composable
 fun StaticMapPreview(
     lat: Double?,
@@ -38,7 +33,7 @@ fun StaticMapPreview(
                 controller.setZoom(zoom)
                 controller.setCenter(point)
                 @Suppress("ClickableViewAccessibility")
-                setOnTouchListener { _, _ -> true } // konsumsi sentuhan -> peta diam, parent bisa scroll
+                setOnTouchListener { _, _ -> true }
             }
         },
         update = { map ->

@@ -54,7 +54,7 @@ fun BottomNav(
                     item = item,
                     active = active,
                     onTap = { onSelect(item.id) },
-                    // Tab aktif dapat ruang lebih (buat label); tab lain cukup icon.
+
                     modifier = Modifier.weight(if (active) 1.8f else 1f),
                 )
             }
@@ -88,7 +88,7 @@ private fun PillCell(
                 tint = if (active) Color.White else Muted,
                 modifier = Modifier.size(if (active) 20.dp else 24.dp),
             )
-            // Label hanya muncul saat tab aktif -> hemat ruang, gak kepotong.
+
             AnimatedVisibility(
                 visible = active,
                 enter = expandHorizontally() + fadeIn(),

@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import android.view.MotionEvent
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -18,11 +19,6 @@ import org.osmdroid.views.MapView
 
 private val BANDAR_LAMPUNG = GeoPoint(-5.3971, 105.2668)
 
-/**
- * Peta interaktif untuk memilih titik laporan. Titik yang dipilih = tengah layar
- * (pin diletakkan di tengah oleh pemanggil). Geser peta -> [onCenterChanged] terpanggil.
- * Naikkan [recenterKey] untuk memaksa peta loncat ke (lat,lng) — dipakai saat tombol GPS.
- */
 @Composable
 fun LocationPickerMap(
     lat: Double?,
@@ -46,6 +42,17 @@ fun LocationPickerMap(
                 controller.setCenter(start)
                 isHorizontalMapRepetitionEnabled = false
                 isVerticalMapRepetitionEnabled = false
+
+                @Suppress("ClickableViewAccessibility")
+                setOnTouchListener { v, event ->
+                    when (event.actionMasked) {
+                        MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE ->
+                            v.parent?.requestDisallowInterceptTouchEvent(true)
+                        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL ->
+                            v.parent?.requestDisallowInterceptTouchEvent(false)
+                    }
+                    false
+                }
                 addMapListener(object : MapListener {
                     override fun onScroll(event: ScrollEvent?): Boolean {
                         val c = mapCenter

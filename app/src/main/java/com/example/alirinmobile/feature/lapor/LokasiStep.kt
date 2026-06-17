@@ -1,6 +1,8 @@
 package com.example.alirinmobile.feature.lapor
 
 import android.Manifest
+import android.content.Context
+import android.location.Geocoder
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -23,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.alirinmobile.feature.AlirinViewModelFactory
@@ -32,6 +36,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import com.example.alirinmobile.feature.peta.LocationPickerMap
 import com.example.alirinmobile.ui.components.*
 import com.example.alirinmobile.ui.theme.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import java.util.Locale
 
 @Composable
 fun LokasiStep(
@@ -45,6 +53,7 @@ fun LokasiStep(
     val locVm: LocationViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
     val weatherVm: WeatherViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
     val selectedKel by weatherVm.selected.collectAsStateWithLifecycle()
+    val ctx = LocalContext.current
     var fetching by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var recenterKey by remember { mutableIntStateOf(0) }
@@ -52,6 +61,25 @@ fun LokasiStep(
     LaunchedEffect(selectedKel) {
         if (form.kecamatan.isBlank() && selectedKel != null) {
             onUpdate(form.copy(kecamatan = selectedKel!!.kecamatan, kelurahan = selectedKel!!.kelurahan))
+        }
+    }
+
+    val currentForm by rememberUpdatedState(form)
+    val currentOnUpdate by rememberUpdatedState(onUpdate)
+    LaunchedEffect(form.lat, form.lng) {
+        val la = form.lat
+        val ln = form.lng
+        if (la != null && ln != null) {
+            delay(500)
+            val place = withContext(Dispatchers.IO) { reverseGeocode(ctx, la, ln) }
+            if (place != null && (place.first != null || place.second != null)) {
+                currentOnUpdate(
+                    currentForm.copy(
+                        kecamatan = place.first ?: currentForm.kecamatan,
+                        kelurahan = place.second ?: currentForm.kelurahan,
+                    )
+                )
+            }
         }
     }
 
@@ -197,6 +225,16 @@ fun LokasiStep(
         )
     }
 }
+
+private fun reverseGeocode(ctx: Context, lat: Double, lng: Double): Pair<String?, String?>? =
+    runCatching {
+        @Suppress("DEPRECATION")
+        val res = Geocoder(ctx, Locale("id")).getFromLocation(lat, lng, 1)
+        val a = res?.firstOrNull() ?: return null
+        val kecamatan = a.locality ?: a.subAdminArea
+        val kelurahan = a.subLocality ?: a.thoroughfare ?: a.featureName
+        kecamatan to kelurahan
+    }.getOrNull()
 
 @Composable
 private fun ReadOnlyFieldBordered(label: String, value: String, mono: Boolean = false, modifier: Modifier = Modifier) {

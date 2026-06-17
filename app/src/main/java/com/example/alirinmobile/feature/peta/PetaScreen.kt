@@ -50,7 +50,6 @@ fun PetaScreen(
     var selected by remember { mutableStateOf<Hotspot?>(null) }
     var query by remember { mutableStateOf("") }
 
-    // Laporan warga (dari database lokal) yang punya koordinat ikut tampil sebagai titik di peta.
     val reportsVm: com.example.alirinmobile.feature.ReportsViewModel =
         androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.alirinmobile.feature.AlirinViewModelFactory.Factory)
     val reports by reportsVm.reports.collectAsStateWithLifecycle()
@@ -230,7 +229,6 @@ fun PetaScreen(
     }
 }
 
-// Ubah Laporan (yang punya koordinat) jadi Hotspot supaya bisa digambar sebagai titik di peta.
 private fun Report.toMapHotspot(markerId: Int): Hotspot? {
     val la = lat ?: return null
     val ln = lng ?: return null

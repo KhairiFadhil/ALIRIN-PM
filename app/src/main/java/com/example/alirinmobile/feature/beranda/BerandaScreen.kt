@@ -66,7 +66,6 @@ fun BerandaScreen(
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val activeCount = reports.count { it.status != ReportStatus.Completed && it.status != ReportStatus.Rejected }
 
-    // Identity: logged-in user vs anonymous warga.
     val loggedIn = session != null
     val displayName = session?.displayName ?: "Warga"
     val initials = session?.displayName?.trim()?.split(" ")
@@ -186,7 +185,7 @@ private fun Greeting(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Space.s3),
     ) {
-        // Profile avatar — pressable; anonymous shows a person icon (not fake initials).
+
         Box(
             Modifier
                 .size(42.dp)

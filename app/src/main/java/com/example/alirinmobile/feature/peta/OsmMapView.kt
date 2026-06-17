@@ -130,13 +130,12 @@ private fun userDotDrawable(ctx: android.content.Context): android.graphics.draw
     val cy = bmp.height / 2f
     val blue = AndroidColor.parseColor("#1A73E8")
 
-    // halo lembut
     canvas.drawCircle(cx, cy, cx, Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = blue; alpha = 38
     })
-    // ring putih
+
     canvas.drawCircle(cx, cy, 7f * d, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = AndroidColor.WHITE })
-    // titik biru
+
     canvas.drawCircle(cx, cy, 5f * d, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = blue })
     return android.graphics.drawable.BitmapDrawable(ctx.resources, bmp)
 }
