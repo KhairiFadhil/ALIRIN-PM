@@ -35,7 +35,7 @@ fun LocationPickerMap(
         modifier = modifier,
         factory = { ctx ->
             MapView(ctx).apply {
-                setTileSource(AlirinTileSource)
+                setTileSource(TileSourceFactory.MAPNIK)
                 setMultiTouchControls(true)
                 zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
                 controller.setZoom(16.0)

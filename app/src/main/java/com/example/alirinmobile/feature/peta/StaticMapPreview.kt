@@ -25,7 +25,7 @@ fun StaticMapPreview(
         modifier = modifier,
         factory = { ctx ->
             MapView(ctx).apply {
-                setTileSource(AlirinTileSource)
+                setTileSource(TileSourceFactory.MAPNIK)
                 setMultiTouchControls(false)
                 zoomController.setVisibility(CustomZoomButtonsController.Visibility.NEVER)
                 isHorizontalMapRepetitionEnabled = false

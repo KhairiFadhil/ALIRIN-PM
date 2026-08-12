@@ -31,7 +31,7 @@ fun OsmMapView(
         modifier = modifier,
         factory = { ctx ->
             MapView(ctx).apply {
-                setTileSource(AlirinTileSource)
+                setTileSource(TileSourceFactory.MAPNIK)
                 setMultiTouchControls(true)
 
                 zoomController.setVisibility(
