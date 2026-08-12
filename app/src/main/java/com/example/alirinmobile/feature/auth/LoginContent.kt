@@ -40,7 +40,6 @@ fun LoginContent(
     modifier: Modifier = Modifier,
 ) {
     val canSubmit = username.isNotBlank() && password.length >= 4 && ui !is AuthUiState.Submitting
-    val ctx = androidx.compose.ui.platform.LocalContext.current
 
     Column(modifier.fillMaxSize().background(Bg)) {
         Row(
@@ -68,7 +67,7 @@ fun LoginContent(
                 modifier = Modifier.padding(bottom = 8.dp),
             )
             Text(
-                "Masukkan ID staff & PIN untuk validasi laporan warga.",
+                "Masukkan ID staff & password untuk validasi laporan warga.",
                 style = AlirinText.bodyR,
                 modifier = Modifier.padding(bottom = 24.dp),
             )
@@ -83,29 +82,16 @@ fun LoginContent(
                     keyboardType = KeyboardType.Text,
                 )
                 LabeledField(
-                    label = "PIN",
+                    label = "PASSWORD",
                     value = password,
                     onValueChange = onPasswordChange,
-                    placeholder = "6 digit angka",
+                    placeholder = "Masukkan password",
                     leadingIcon = AlirinIcons.shield,
                     keyboardType = KeyboardType.Password,
                     password = true,
-                    suffix = if (password.isNotEmpty()) "${password.length}/6" else null,
                 )
                 if (ui is AuthUiState.Failed) ErrorBanner(message = ui.message)
             }
-
-            Spacer(Modifier.height(14.dp))
-            Text(
-                "Lupa PIN?",
-                color = Primary,
-                fontSize = 12.5.sp,
-                fontWeight = FontWeight.W600,
-                style = TextStyle(textDecoration = TextDecoration.Underline),
-                modifier = Modifier.clickable {
-                    ctx.toast("Hubungi admin kelurahan untuk reset PIN staff.")
-                },
-            )
 
             Spacer(Modifier.height(24.dp))
             InfoBox(

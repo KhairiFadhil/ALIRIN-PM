@@ -9,7 +9,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
-// History disimpan sebagai kolom JSON tunggal di Room (lebih simpel daripada tabel relasi).
 @Serializable
 private data class HistoryDto(
     val status: String,

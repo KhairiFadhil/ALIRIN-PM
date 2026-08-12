@@ -110,7 +110,6 @@ class ReportRepository(private val dao: ReportDao) {
     fun hotspots(): List<Hotspot> = HotspotSeed
     fun nearbyTeasers(): List<NearbyTeaser> = NearbyTeaserSeed
 
-    // Isi DB dengan data contoh saat pertama kali (DB masih kosong) supaya layar tidak kosong.
     suspend fun seedIfEmpty() {
         if (dao.count() > 0) return
         val base = System.currentTimeMillis()

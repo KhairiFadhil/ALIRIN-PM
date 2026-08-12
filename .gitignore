@@ -21,3 +21,7 @@ _design
 _design2
 # Native log dumps
 *.log
+# Dokumen presentasi & generator-nya (lokal saja, jangan masuk repo)
+*.pdf
+_make_pdf.py
+_make_docs_pdf.py
