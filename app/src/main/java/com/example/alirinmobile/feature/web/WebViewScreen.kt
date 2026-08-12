@@ -26,7 +26,7 @@ import com.example.alirinmobile.ui.components.AlirinTopBar
 import com.example.alirinmobile.ui.theme.Bg
 import com.example.alirinmobile.ui.theme.Primary
 
-const val ALIRIN_WEB_URL = "https://github.com/odlaver/alirin"
+const val ALIRIN_WEB_URL = "https://alirin.vercel.app/"
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable

@@ -25,3 +25,5 @@ _design2
 *.pdf
 _make_pdf.py
 _make_docs_pdf.py
+# Dokumen deliverable (lokal saja)
+*.docx

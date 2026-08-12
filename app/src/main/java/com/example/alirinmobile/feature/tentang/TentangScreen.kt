@@ -21,6 +21,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import android.net.Uri
+import android.widget.MediaController
+import android.widget.VideoView
+import com.example.alirinmobile.R
 import com.example.alirinmobile.ui.components.*
 import com.example.alirinmobile.ui.theme.*
 
@@ -87,6 +92,8 @@ fun TentangScreen(onBack: () -> Unit, onOpenWeb: () -> Unit = {}) {
                     )
                 }
             }
+
+            VideoEduCard()
 
             Column {
                 SectionHeader(eyebrow = "Cara kerja", title = "Empat sumber, satu peta.")
@@ -177,6 +184,31 @@ fun TentangScreen(onBack: () -> Unit, onOpenWeb: () -> Unit = {}) {
                 TentangLink(icon = AlirinIcons.bell,     label = "Versi 1.0 · build 2026.05.25", muted = true)
             }
         }
+    }
+}
+
+@Composable
+private fun VideoEduCard() {
+    Column {
+        SectionHeader(eyebrow = "Video", title = "Cara kerja drainase.")
+        AndroidView(
+            factory = { ctx ->
+                VideoView(ctx).apply {
+                    setVideoURI(Uri.parse("android.resource://${ctx.packageName}/${R.raw.edukasi_drainase}"))
+                    val mc = MediaController(ctx)
+                    mc.setAnchorView(this)
+                    setMediaController(mc)
+                    setOnPreparedListener { mp ->
+                        mp.isLooping = true
+                        start()
+                    }
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .clip(Radius.lg),
+        )
     }
 }
 

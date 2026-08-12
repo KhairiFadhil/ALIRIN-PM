@@ -26,6 +26,19 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.io.IOException
+
+private fun loginErrorMessage(t: Throwable): String = when (t) {
+    is HttpException -> when (t.code()) {
+        400, 401 -> "Username atau password salah."
+        403 -> "Akun tidak punya akses."
+        in 500..599 -> "Server sedang bermasalah. Coba lagi nanti."
+        else -> "Login gagal. Coba lagi."
+    }
+    is IOException -> "Tidak ada koneksi internet. Periksa jaringan kamu."
+    else -> "Login gagal. Coba lagi."
+}
 
 private fun repo(): ReportRepository = AlirinApplication.get().reportRepository
 private fun authRepo(): AuthRepository = AlirinApplication.get().authRepository
@@ -64,7 +77,7 @@ class AuthViewModel(private val repository: AuthRepository = authRepo()) : ViewM
         viewModelScope.launch {
             runCatching { repository.login(username, password) }
                 .onSuccess { ui.value = AuthUiState.Ok(it) }
-                .onFailure { ui.value = AuthUiState.Failed(it.message ?: "Login gagal.") }
+                .onFailure { ui.value = AuthUiState.Failed(loginErrorMessage(it)) }
         }
     }
 
