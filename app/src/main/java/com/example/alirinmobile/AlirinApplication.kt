@@ -54,7 +54,9 @@ class AlirinApplication : Application() {
         @Suppress("DEPRECATION")
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         Configuration.getInstance().load(this, prefs)
-        Configuration.getInstance().userAgentValue = packageName
+        // OSM tile policy: butuh User-Agent jelas + header Referer, kalau tidak diblokir 403.
+        Configuration.getInstance().userAgentValue = "ALIRIN-Mobile/1.0 ($packageName)"
+        Configuration.getInstance().additionalHttpRequestProperties["Referer"] = "https://alirin.app"
     }
 
     companion object {
