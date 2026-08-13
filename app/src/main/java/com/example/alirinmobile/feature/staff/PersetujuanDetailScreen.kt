@@ -80,7 +80,7 @@ fun PersetujuanDetailScreen(
             ) {
                 HeroCard(report)
                 if (report.description.isNotBlank()) ReporterDescription(report)
-                if (report.photos > 0) PhotoStripCard(report)
+                if (report.photos.isNotEmpty()) PhotoStripCard(report)
                 ValidationSignalsCard(report)
                 MapSnippetCard(report)
                 ReporterCard(report)
@@ -183,11 +183,11 @@ private fun PhotoStripCard(report: Report) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Bukti foto · ${report.photos}", style = AlirinText.eyebrow)
+                Text("Bukti foto · ${report.photos.size}", style = AlirinText.eyebrow)
                 Text("Watermarked", color = Primary, fontSize = 11.sp, fontWeight = FontWeight.W600)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                repeat(report.photos.coerceAtMost(3)) { i ->
+                repeat(report.photos.size.coerceAtMost(3)) { i ->
                     Box(Modifier.weight(1f)) {
                         AlirinPlaceholder(
                             label = "foto-${i + 1}",

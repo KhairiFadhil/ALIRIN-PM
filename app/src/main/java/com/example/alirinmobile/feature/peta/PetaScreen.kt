@@ -110,6 +110,16 @@ fun PetaScreen(
 
     LaunchedEffect(Unit) { if (locVm.hasPermission()) locVm.fetchOnce {} }
 
+    // Polling ringan ke Supabase selama PetaScreen on-screen. Anon tidak dapat
+    // Realtime event (RLS), jadi kita andalkan pull manual ini + sync
+    // periodik WorkManager 15 menit di background.
+    LaunchedEffect(Unit) {
+        while (true) {
+            reportsVm.refresh()
+            kotlinx.coroutines.delay(30_000L)
+        }
+    }
+
     Box(modifier.fillMaxSize()) {
 
         OsmMapView(

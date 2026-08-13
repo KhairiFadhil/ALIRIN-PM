@@ -61,24 +61,63 @@ data class HistoryEntry(
     val live: Boolean = false,
 )
 
+enum class SyncStatus { Pending, Syncing, Synced, Failed }
+
+data class PhotoRef(
+    val id: String,
+    val url: String?,
+    val localUri: String? = null,
+    val name: String,
+    val type: String = "image/jpeg",
+    val size: Int = 0,
+    val kind: String = "report",
+)
+
+data class RiskBreakdownItem(
+    val id: String,
+    val label: String,
+    val points: Int,
+    val weight: Int,
+    val detail: String? = null,
+)
+
+data class FieldNote(
+    val at: String,
+    val actor: String,
+    val note: String,
+)
+
 data class Report(
     val id: String,
     val code: String,
+    val publicTrackingToken: String = "",
     val mode: ReportMode,
     val status: ReportStatus,
     val risk: RiskLevel,
     val score: Int,
+    val categoryId: String,
     val category: String,
+    val severity: String = "",
     val kelurahan: String,
     val kecamatan: String,
     val address: String? = null,
     val createdAt: String,
     val updatedAt: String? = null,
     val description: String = "",
-    val photos: Int = 0,
+    val reporterName: String? = null,
+    val reporterContact: String? = null,
+    val assignedOfficerId: String? = null,
+    val assignedOfficerName: String? = null,
+    val blockedReason: String? = null,
+    val archivedAt: String? = null,
+    val photos: List<PhotoRef> = emptyList(),
+    val completionPhotos: List<PhotoRef> = emptyList(),
+    val riskBreakdown: List<RiskBreakdownItem> = emptyList(),
+    val fieldNotes: List<FieldNote> = emptyList(),
     val history: List<HistoryEntry> = emptyList(),
     val lat: Double? = null,
     val lng: Double? = null,
+    val syncStatus: SyncStatus = SyncStatus.Synced,
 )
 
 enum class HotspotSource(val label: String) {

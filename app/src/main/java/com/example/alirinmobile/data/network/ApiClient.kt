@@ -1,8 +1,6 @@
 package com.example.alirinmobile.data.network
 
 import com.example.alirinmobile.BuildConfig
-import com.example.alirinmobile.data.local.AuthDataStore
-import com.example.alirinmobile.data.network.service.AuthService
 import com.example.alirinmobile.data.network.service.BmkgService
 import com.example.alirinmobile.data.network.service.GroqService
 import kotlinx.serialization.json.Json
@@ -13,7 +11,10 @@ import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import java.util.concurrent.TimeUnit
 
-class ApiClient(private val authStore: AuthDataStore) {
+// Retrofit client hanya untuk service pihak-ketiga (BMKG cuaca + Groq LLM).
+// Auth Supabase & CRUD reports pindah ke io.github.jan.supabase.SupabaseClient
+// (lihat AlirinSupabase di file lain).
+class ApiClient {
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -28,14 +29,6 @@ class ApiClient(private val authStore: AuthDataStore) {
 
     private val baseClient: OkHttpClient = OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .build()
-
-    private val authedClient: OkHttpClient = OkHttpClient.Builder()
-        .addInterceptor(loggingInterceptor)
-        .addInterceptor(AuthInterceptor(authStore))
-        .authenticator(AuthAuthenticator(authStore) { bareAuthService })
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
@@ -59,13 +52,6 @@ class ApiClient(private val authStore: AuthDataStore) {
         .addConverterFactory(converter)
         .build()
 
-    private val bareAuthService: AuthService by lazy {
-        retrofit("https://dummyjson.com/", baseClient).create(AuthService::class.java)
-    }
-
-    val authService: AuthService by lazy {
-        retrofit("https://dummyjson.com/", authedClient).create(AuthService::class.java)
-    }
     val bmkgService: BmkgService by lazy {
         retrofit("https://api.bmkg.go.id/", baseClient).create(BmkgService::class.java)
     }

@@ -209,8 +209,8 @@ private fun ReportListItem(report: Report, onClick: () -> Unit) {
                     ink = if (report.mode == ReportMode.Cepat) PrimaryInk else AmberInk,
                     leadingIcon = if (report.mode == ReportMode.Cepat) AlirinIcons.bolt else AlirinIcons.camera,
                 )
-                if (report.photos > 0) {
-                    Pill(label = "${report.photos} foto", bg = Surface2, ink = Ink3, leadingIcon = AlirinIcons.image)
+                if (report.photos.isNotEmpty()) {
+                    Pill(label = "${report.photos.size} foto", bg = Surface2, ink = Ink3, leadingIcon = AlirinIcons.image)
                 }
                 RiskPill(level = report.risk)
                 Box(Modifier.weight(1f))

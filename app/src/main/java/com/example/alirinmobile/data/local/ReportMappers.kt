@@ -1,69 +1,178 @@
 package com.example.alirinmobile.data.local
 
+import com.example.alirinmobile.data.FieldNote
 import com.example.alirinmobile.data.HistoryEntry
+import com.example.alirinmobile.data.PhotoRef
 import com.example.alirinmobile.data.Report
-import com.example.alirinmobile.data.ReportMode
-import com.example.alirinmobile.data.ReportStatus
-import com.example.alirinmobile.data.RiskLevel
+import com.example.alirinmobile.data.RiskBreakdownItem
+import com.example.alirinmobile.data.SyncStatus
+import com.example.alirinmobile.data.categoryFromWire
+import com.example.alirinmobile.data.categoryLabelOf
+import com.example.alirinmobile.data.reportModeFromWire
+import com.example.alirinmobile.data.reportStatusFromWire
+import com.example.alirinmobile.data.riskLevelFromWire
+import com.example.alirinmobile.data.toWire
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
+// DTO internal untuk serialisasi JSON di kolom Room. Bentuknya sengaja identik
+// dengan payload yang dikirim ke Supabase table report_photos/risk_breakdowns/
+// report_status_history (snake_case bila perlu) supaya konversi mapper cepat.
+
 @Serializable
-private data class HistoryDto(
+data class PhotoRefJson(
+    val id: String,
+    val url: String? = null,
+    val localUri: String? = null,
+    val name: String = "foto.jpg",
+    val type: String = "image/jpeg",
+    val size: Int = 0,
+    val kind: String = "report",
+)
+
+@Serializable
+data class RiskBreakdownJson(
+    val id: String,
+    val label: String,
+    val points: Int = 0,
+    val weight: Int = 0,
+    val detail: String? = null,
+)
+
+@Serializable
+data class FieldNoteJson(
+    val at: String,
+    val actor: String,
+    val note: String,
+)
+
+@Serializable
+data class StatusHistoryJson(
     val status: String,
-    val whenLabel: String,
+    val actor: String = "Sistem",
     val note: String? = null,
-    val live: Boolean = false,
+    val at: String,
 )
 
-private val json = Json { ignoreUnknownKeys = true }
-private val historySerializer = ListSerializer(HistoryDto.serializer())
+val jsonCodec: Json = Json {
+    ignoreUnknownKeys = true
+    encodeDefaults = true
+    explicitNulls = false
+}
 
-fun Report.toEntity(updatedAtMs: Long): ReportEntity = ReportEntity(
-    id = id,
-    code = code,
-    mode = mode.name,
-    status = status.name,
-    risk = risk.name,
-    score = score,
-    category = category,
-    kelurahan = kelurahan,
-    kecamatan = kecamatan,
-    address = address,
-    createdAt = createdAt,
-    updatedAt = updatedAt,
-    description = description,
-    photos = photos,
-    lat = lat,
-    lng = lng,
-    updatedAtMs = updatedAtMs,
-    historyJson = json.encodeToString(
-        historySerializer,
-        history.map { HistoryDto(it.status.name, it.when_, it.note, it.live) },
-    ),
-)
+private val photoSerializer = ListSerializer(PhotoRefJson.serializer())
+private val breakdownSerializer = ListSerializer(RiskBreakdownJson.serializer())
+private val fieldNoteSerializer = ListSerializer(FieldNoteJson.serializer())
+private val historySerializer = ListSerializer(StatusHistoryJson.serializer())
 
-fun ReportEntity.toDomain(): Report = Report(
-    id = id,
-    code = code,
-    mode = ReportMode.valueOf(mode),
-    status = ReportStatus.valueOf(status),
-    risk = RiskLevel.valueOf(risk),
-    score = score,
-    category = category,
-    kelurahan = kelurahan,
-    kecamatan = kecamatan,
-    address = address,
-    createdAt = createdAt,
-    updatedAt = updatedAt,
-    description = description,
-    photos = photos,
-    lat = lat,
-    lng = lng,
-    history = runCatching {
-        json.decodeFromString(historySerializer, historyJson).map {
-            HistoryEntry(ReportStatus.valueOf(it.status), it.whenLabel, it.note, it.live)
-        }
-    }.getOrDefault(emptyList()),
-)
+fun encodePhotos(photos: List<PhotoRef>): String =
+    jsonCodec.encodeToString(photoSerializer, photos.map {
+        PhotoRefJson(it.id, it.url, it.localUri, it.name, it.type, it.size, it.kind)
+    })
+
+fun decodePhotos(raw: String?): List<PhotoRef> = runCatching {
+    if (raw.isNullOrBlank()) return emptyList()
+    jsonCodec.decodeFromString(photoSerializer, raw).map {
+        PhotoRef(it.id, it.url, it.localUri, it.name, it.type, it.size, it.kind)
+    }
+}.getOrDefault(emptyList())
+
+fun encodeRiskBreakdown(items: List<RiskBreakdownItem>): String =
+    jsonCodec.encodeToString(breakdownSerializer, items.map {
+        RiskBreakdownJson(it.id, it.label, it.points, it.weight, it.detail)
+    })
+
+fun decodeRiskBreakdown(raw: String?): List<RiskBreakdownItem> = runCatching {
+    if (raw.isNullOrBlank()) return emptyList()
+    jsonCodec.decodeFromString(breakdownSerializer, raw).map {
+        RiskBreakdownItem(it.id, it.label, it.points, it.weight, it.detail)
+    }
+}.getOrDefault(emptyList())
+
+fun encodeFieldNotes(items: List<FieldNote>): String =
+    jsonCodec.encodeToString(fieldNoteSerializer, items.map {
+        FieldNoteJson(it.at, it.actor, it.note)
+    })
+
+fun decodeFieldNotes(raw: String?): List<FieldNote> = runCatching {
+    if (raw.isNullOrBlank()) return emptyList()
+    jsonCodec.decodeFromString(fieldNoteSerializer, raw).map {
+        FieldNote(it.at, it.actor, it.note)
+    }
+}.getOrDefault(emptyList())
+
+fun encodeStatusHistory(items: List<HistoryEntry>): String {
+    val mapped = items.map {
+        StatusHistoryJson(
+            status = it.status.toWire(),
+            actor = "Sistem",
+            note = it.note,
+            at = it.when_,
+        )
+    }
+    return jsonCodec.encodeToString(historySerializer, mapped)
+}
+
+fun encodeStatusHistoryRaw(items: List<StatusHistoryJson>): String =
+    jsonCodec.encodeToString(historySerializer, items)
+
+fun decodeStatusHistory(raw: String?): List<HistoryEntry> = runCatching {
+    if (raw.isNullOrBlank()) return emptyList()
+    jsonCodec.decodeFromString(historySerializer, raw).map {
+        HistoryEntry(
+            status = reportStatusFromWire(it.status),
+            when_ = it.at,
+            note = it.note,
+            live = false,
+        )
+    }
+}.getOrDefault(emptyList())
+
+fun decodeStatusHistoryRaw(raw: String?): List<StatusHistoryJson> = runCatching {
+    if (raw.isNullOrBlank()) return emptyList()
+    jsonCodec.decodeFromString(historySerializer, raw)
+}.getOrDefault(emptyList())
+
+// ---- Entity ↔ Domain ----
+
+fun ReportEntity.toDomain(): Report {
+    val mobileCategoryId = categoryFromWire(category)
+    return Report(
+        id = id,
+        code = code,
+        publicTrackingToken = publicTrackingToken.orEmpty(),
+        mode = reportModeFromWire(submissionMode),
+        status = reportStatusFromWire(status),
+        risk = riskLevelFromWire(riskLevel),
+        score = riskScore,
+        categoryId = mobileCategoryId,
+        category = categoryLabelOf(mobileCategoryId),
+        severity = severity,
+        kelurahan = kelurahan,
+        kecamatan = kecamatan,
+        address = address,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+        description = description,
+        reporterName = reporterName,
+        reporterContact = reporterContact,
+        assignedOfficerId = assignedOfficerId,
+        assignedOfficerName = assignedOfficerName,
+        blockedReason = blockedReason,
+        archivedAt = archivedAt,
+        photos = decodePhotos(photosJson),
+        completionPhotos = decodePhotos(completionPhotosJson),
+        riskBreakdown = decodeRiskBreakdown(riskBreakdownJson),
+        fieldNotes = decodeFieldNotes(fieldNotesJson),
+        history = decodeStatusHistory(statusHistoryJson),
+        lat = lat,
+        lng = lng,
+        syncStatus = when (syncStatus) {
+            "pending" -> SyncStatus.Pending
+            "syncing" -> SyncStatus.Syncing
+            "failed" -> SyncStatus.Failed
+            else -> SyncStatus.Synced
+        },
+    )
+}

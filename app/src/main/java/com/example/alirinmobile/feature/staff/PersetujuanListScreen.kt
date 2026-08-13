@@ -272,9 +272,9 @@ private fun InboxItem(report: Report, onTap: () -> Unit) {
                     ink = if (report.mode == ReportMode.Cepat) PrimaryInk else AmberInk,
                     leadingIcon = if (report.mode == ReportMode.Cepat) AlirinIcons.bolt else AlirinIcons.camera,
                 )
-                if (report.photos > 0) {
+                if (report.photos.isNotEmpty()) {
                     Pill(
-                        label = report.photos.toString(),
+                        label = report.photos.size.toString(),
                         bg = Surface2,
                         ink = Ink3,
                         leadingIcon = AlirinIcons.image,

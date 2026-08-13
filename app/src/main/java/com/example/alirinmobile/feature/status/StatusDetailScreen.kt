@@ -92,10 +92,10 @@ fun StatusDetailScreen(
                         Spacer(Modifier.height(12.dp))
                     }
 
-                    if (report.photos > 0) {
-                        Text("Bukti foto (${report.photos})", style = AlirinText.caption, modifier = Modifier.padding(bottom = 8.dp))
+                    if (report.photos.isNotEmpty()) {
+                        Text("Bukti foto (${report.photos.size})", style = AlirinText.caption, modifier = Modifier.padding(bottom = 8.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                            repeat(report.photos.coerceAtMost(3)) { i ->
+                            repeat(report.photos.size.coerceAtMost(3)) { i ->
                                 AlirinPlaceholder(
                                     label = "foto-${i + 1}",
                                     height = 80,

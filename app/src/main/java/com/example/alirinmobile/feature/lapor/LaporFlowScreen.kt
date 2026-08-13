@@ -1,11 +1,13 @@
 package com.example.alirinmobile.feature.lapor
 
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.alirinmobile.data.ReportMode
 import com.example.alirinmobile.feature.LaporViewModel
@@ -20,11 +22,17 @@ fun LaporFlowScreen(
     val form by viewModel.form.collectAsStateWithLifecycle()
     val mode by viewModel.mode.collectAsStateWithLifecycle()
     val submitted by viewModel.submitted.collectAsStateWithLifecycle()
+    val submitError by viewModel.submitError.collectAsStateWithLifecycle()
+    val ctx = LocalContext.current
 
     val totalSteps = if (mode == ReportMode.Lengkap) 3 else 2
 
     LaunchedEffect(submitted) {
         if (submitted != null && step != LaporStep.Success) step = LaporStep.Success
+    }
+
+    LaunchedEffect(submitError) {
+        submitError?.let { Toast.makeText(ctx, it, Toast.LENGTH_LONG).show() }
     }
 
     fun back() {

@@ -26,19 +26,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import java.io.IOException
-
-private fun loginErrorMessage(t: Throwable): String = when (t) {
-    is HttpException -> when (t.code()) {
-        400, 401 -> "Username atau password salah."
-        403 -> "Akun tidak punya akses."
-        in 500..599 -> "Server sedang bermasalah. Coba lagi nanti."
-        else -> "Login gagal. Coba lagi."
-    }
-    is IOException -> "Tidak ada koneksi internet. Periksa jaringan kamu."
-    else -> "Login gagal. Coba lagi."
-}
 
 private fun repo(): ReportRepository = AlirinApplication.get().reportRepository
 private fun authRepo(): AuthRepository = AlirinApplication.get().authRepository
@@ -68,16 +55,18 @@ class AuthViewModel(private val repository: AuthRepository = authRepo()) : ViewM
         viewModelScope.launch { repository.markOnboardingDone() }
     }
 
+    // Nama parameter tetap "username" untuk backward-compat dengan LoginScreen,
+    // tapi sekarang Supabase menerima email address. Passthrough saja.
     fun login(username: String, password: String) {
         if (username.isBlank() || password.isBlank()) {
-            ui.value = AuthUiState.Failed("Isi username dan password.")
+            ui.value = AuthUiState.Failed("Isi email dan password.")
             return
         }
         ui.value = AuthUiState.Submitting
         viewModelScope.launch {
             runCatching { repository.login(username, password) }
                 .onSuccess { ui.value = AuthUiState.Ok(it) }
-                .onFailure { ui.value = AuthUiState.Failed(loginErrorMessage(it)) }
+                .onFailure { ui.value = AuthUiState.Failed(it.message ?: "Login gagal. Coba lagi.") }
         }
     }
 
@@ -97,15 +86,33 @@ class ReportsViewModel(private val repository: ReportRepository = repo()) : View
     val reports: StateFlow<List<Report>> = repository.observeReports()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    init {
+        // Fire a sync when this VM is first observed. Best-effort; failures are logged only.
+        viewModelScope.launch { runCatching { repository.syncNow() } }
+    }
+
     fun report(id: String): StateFlow<Report?> =
         repository.observeReport(id)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    fun refresh() {
+        viewModelScope.launch { runCatching { repository.syncNow() } }
+    }
+
+    suspend fun trackByToken(token: String): Report? = repository.trackByToken(token)
 }
 
 class LaporViewModel(private val repository: ReportRepository = repo()) : ViewModel() {
     val form = MutableStateFlow(LaporForm())
     val mode = MutableStateFlow<ReportMode?>(null)
+
+    // "submitted" masih memegang code laporan (untuk backward-compat dengan
+    // LaporFlowScreen yang trigger navigate ke SuccessScreen bila non-null).
     val submitted = MutableStateFlow<String?>(null)
+    val submittedToken = MutableStateFlow<String?>(null)
+    val submittedId = MutableStateFlow<String?>(null)
+    val submitError = MutableStateFlow<String?>(null)
+    val submitting = MutableStateFlow(false)
 
     fun update(newForm: LaporForm) {
         form.value = newForm
@@ -118,15 +125,33 @@ class LaporViewModel(private val repository: ReportRepository = repo()) : ViewMo
     }
 
     fun submit() {
+        if (submitting.value) return
         val m = mode.value ?: ReportMode.Cepat
-        val result = repository.submitReport(form.value, m)
-        submitted.value = result.code
+        submitting.value = true
+        submitError.value = null
+        viewModelScope.launch {
+            val result = repository.submit(form.value, m)
+            submitting.value = false
+            result
+                .onSuccess {
+                    submitted.value = it.code
+                    submittedToken.value = it.trackingToken
+                    submittedId.value = it.id
+                }
+                .onFailure {
+                    submitError.value = it.message ?: "Gagal menyimpan laporan. Coba lagi."
+                }
+        }
     }
 
     fun reset() {
         form.value = LaporForm()
         mode.value = null
         submitted.value = null
+        submittedToken.value = null
+        submittedId.value = null
+        submitError.value = null
+        submitting.value = false
         repository.clearDraft()
     }
 }
@@ -145,6 +170,7 @@ class StaffViewModel(
         viewModelScope.launch {
             authRepository.session.collect { _actor.value = it?.displayName }
         }
+        viewModelScope.launch { runCatching { repository.syncNow() } }
     }
 
     fun transition(reportId: String, newStatus: ReportStatus, note: String?) {
