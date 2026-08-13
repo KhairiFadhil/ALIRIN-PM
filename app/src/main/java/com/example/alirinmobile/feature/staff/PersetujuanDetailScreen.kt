@@ -23,12 +23,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.alirinmobile.data.Report
 import com.example.alirinmobile.data.ReportMode
 import com.example.alirinmobile.data.ReportStatus
 import com.example.alirinmobile.data.RiskLevel
-import com.example.alirinmobile.data.repository.HotspotSeed
-import com.example.alirinmobile.data.repository.ReportSeed
+import com.example.alirinmobile.feature.AlirinViewModelFactory
+import com.example.alirinmobile.feature.ReportsViewModel
 import com.example.alirinmobile.feature.lapor.TextField
 import com.example.alirinmobile.feature.peta.MapMarker
 import com.example.alirinmobile.feature.peta.StaticMapPreview
@@ -47,6 +49,9 @@ fun PersetujuanDetailScreen(
     var sheet by remember { mutableStateOf<SheetKind?>(null) }
     var actioned by remember { mutableStateOf<SheetKind?>(null) }
     val ctx = androidx.compose.ui.platform.LocalContext.current
+
+    val reportsVm: ReportsViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
+    val allReports by reportsVm.reports.collectAsStateWithLifecycle()
 
     if (actioned != null) {
         StaffActionSuccess(action = actioned!!, report = report, onDone = onBack)
@@ -81,7 +86,7 @@ fun PersetujuanDetailScreen(
                 HeroCard(report)
                 if (report.description.isNotBlank()) ReporterDescription(report)
                 if (report.photos.isNotEmpty()) PhotoStripCard(report)
-                ValidationSignalsCard(report)
+                ValidationSignalsCard(report, allReports)
                 MapSnippetCard(report)
                 ReporterCard(report)
             }
@@ -215,11 +220,14 @@ private fun PhotoStripCard(report: Report) {
 }
 
 @Composable
-private fun ValidationSignalsCard(report: Report) {
-
-    val reporterCount = ReportSeed.count { it.kelurahan == report.kelurahan }.coerceAtLeast(1)
-    val nearbyHistoric = HotspotSeed.count {
-        it.kel == report.kelurahan || it.kec == report.kecamatan
+private fun ValidationSignalsCard(report: Report, allReports: List<Report>) {
+    // Semua sinyal dihitung dari data nyata (ReportsViewModel), bukan seed hardcoded.
+    // - reporterCount: jumlah laporan lain di kelurahan yang sama + laporan ini sendiri
+    // - nearbyHistoric: laporan selesai/ditolak (riwayat area) di kelurahan atau kecamatan yang sama
+    val reporterCount = allReports.count { it.kelurahan == report.kelurahan && it.id != report.id } + 1
+    val nearbyHistoric = allReports.count {
+        (it.kelurahan == report.kelurahan || it.kecamatan == report.kecamatan) &&
+            (it.status == ReportStatus.Completed || it.status == ReportStatus.Rejected)
     }
 
     AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(16.dp)) {
@@ -234,9 +242,9 @@ private fun ValidationSignalsCard(report: Report) {
             )
             SignalRow(
                 icon = AlirinIcons.map,
-                label = "Hotspot historis sekitar",
-                value = "$nearbyHistoric titik",
-                note = if (nearbyHistoric > 0) "Area langganan rawan" else "Bukan area langganan",
+                label = "Riwayat kasus di area ini",
+                value = "$nearbyHistoric laporan",
+                note = if (nearbyHistoric > 0) "Sudah pernah ditangani sebelumnya" else "Area baru",
             )
             SignalRow(
                 icon = AlirinIcons.droplet,
@@ -333,18 +341,27 @@ private fun MapSnippetCard(report: Report) {
 
 @Composable
 private fun ReporterCard(report: Report) {
+    // Trust score & jumlah laporan valid dihapus — web tidak punya konsep itu dan
+    // tidak ada rumusnya di mana pun. Kalau nanti mau dihidupkan, definisikan
+    // dulu bersama domain/scoring.js di web (di luar cakupan).
+    val displayName = report.reporterName?.takeIf { it.isNotBlank() } ?: "Anonim"
+    val contact = report.reporterContact?.takeIf { it.isNotBlank() }
     AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(16.dp)) {
         Column {
             Text("Pelapor", style = AlirinText.eyebrow, modifier = Modifier.padding(bottom = 10.dp))
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Avatar(seed = (report.id.hashCode() % 6 + 6) % 6, size = 36, label = "An")
+                Avatar(
+                    seed = (report.id.hashCode() % 6 + 6) % 6,
+                    size = 36,
+                    label = displayName.take(2).uppercase(),
+                )
                 Column(Modifier.weight(1f)) {
                     Text(
-                        "Anonim · device #${report.id.takeLast(4)}",
+                        "$displayName · device #${report.id.takeLast(4)}",
                         fontWeight = FontWeight.W600, fontSize = 14.sp, color = Ink,
                     )
                     Text(
-                        "Sudah ${ReportSeed.size} laporan valid · trust score 87/100",
+                        contact ?: "Kontak tidak tersedia",
                         style = AlirinText.caption,
                     )
                 }

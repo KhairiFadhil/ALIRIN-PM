@@ -59,6 +59,7 @@ class AlirinApplication : Application() {
 
         apiClient = ApiClient()
         authRepository = AuthRepository(supabase, authStore)
+        kelurahanRepository = KelurahanRepository(this)
         val db = AlirinDatabase.get(this)
         reportRepository = ReportRepository(
             dao = db.reportDao(),
@@ -66,10 +67,10 @@ class AlirinApplication : Application() {
             uploader = uploader,
             applicationScope = applicationScope,
             authRepo = authRepository,
+            kelurahanRepo = kelurahanRepository,
         )
         weatherRepository = WeatherRepository(apiClient)
         predictionRepository = PredictionRepository(apiClient, weatherRepository)
-        kelurahanRepository = KelurahanRepository(this)
         locationRepository = LocationRepository(this)
 
         weatherRepository.setSelected(kelurahanRepository.default)

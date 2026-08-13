@@ -34,8 +34,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.alirinmobile.data.Hotspot
 import com.example.alirinmobile.data.HotspotSource
 import com.example.alirinmobile.data.Report
+import com.example.alirinmobile.data.ReportStatus
 import com.example.alirinmobile.data.RiskLevel
-import com.example.alirinmobile.data.repository.HotspotSeed
 import com.example.alirinmobile.ui.components.*
 import com.example.alirinmobile.ui.theme.*
 
@@ -46,19 +46,24 @@ fun PetaScreen(
     onLaporInPlace: (Hotspot?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var filter by remember { mutableStateOf<HotspotSource?>(null) }
+    var riskFilter by remember { mutableStateOf<RiskLevel?>(null) }
     var selected by remember { mutableStateOf<Hotspot?>(null) }
     var query by remember { mutableStateOf("") }
 
     val reportsVm: com.example.alirinmobile.feature.ReportsViewModel =
         androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.alirinmobile.feature.AlirinViewModelFactory.Factory)
     val reports by reportsVm.reports.collectAsStateWithLifecycle()
+    // Cerminan web /peta: buang laporan final (selesai/ditolak) & yang di-arsip.
+    // Sama dengan filter reportsStore.js:isArchivedReport() di web.
     val allHotspots = remember(reports) {
-        HotspotSeed + reports.mapIndexedNotNull { i, r -> r.toMapHotspot(10_000 + i) }
+        reports
+            .filter { it.status != ReportStatus.Completed && it.status != ReportStatus.Rejected }
+            .filter { it.archivedAt.isNullOrBlank() }
+            .mapIndexedNotNull { i, r -> r.toMapHotspot(10_000 + i) }
     }
 
     val filtered = allHotspots
-        .filter { filter == null || it.src == filter }
+        .filter { riskFilter == null || it.risk == riskFilter }
         .filter { h ->
             query.isBlank() ||
                 h.name.contains(query, ignoreCase = true) ||
@@ -72,7 +77,7 @@ fun PetaScreen(
         androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.alirinmobile.feature.AlirinViewModelFactory.Factory)
     val selectedKel by weatherVm.selected.collectAsStateWithLifecycle()
     val areaSummary = remember(filtered, selectedKel) {
-        val active = filtered.count { it.count > 0 }.coerceAtLeast(filtered.size.coerceAtMost(1))
+        val active = filtered.size
         val topScore = filtered.maxOfOrNull { it.score } ?: 0
         val level = when {
             topScore >= 80 -> RiskLevel.Kritis
@@ -185,7 +190,7 @@ fun PetaScreen(
 
             AreaKamuCard(summary = areaSummary)
 
-            FilterChips(value = filter, onChange = { filter = it })
+            RiskFilterChips(value = riskFilter, onChange = { riskFilter = it })
         }
 
         Column(
@@ -297,31 +302,34 @@ fun AreaKamuCard(summary: AreaSummary) {
     }
 }
 
+// Filter risk level (setara PetaPage.jsx di web yang memfilter level risiko).
+// Sumber (Warga/Historis/Cuaca/IoT) sudah tidak relevan karena data demo
+// sudah dihapus dan semua marker sekarang berasal dari laporan warga di Supabase.
 @Composable
-private fun FilterChips(value: HotspotSource?, onChange: (HotspotSource?) -> Unit) {
-    val items = listOf<Triple<HotspotSource?, String, ImageVector>>(
-        Triple(null,                       "Semua",    AlirinIcons.layers),
-        Triple(HotspotSource.Warga,        "Warga",    AlirinIcons.users),
-        Triple(HotspotSource.Historis,     "Historis", AlirinIcons.history),
-        Triple(HotspotSource.Cuaca,        "Cuaca",    AlirinIcons.cloud),
-        Triple(HotspotSource.Iot,          "Sensor",   AlirinIcons.sensor),
+private fun RiskFilterChips(value: RiskLevel?, onChange: (RiskLevel?) -> Unit) {
+    val items: List<Pair<RiskLevel?, String>> = listOf(
+        null to "Semua",
+        RiskLevel.Kritis to "Kritis",
+        RiskLevel.Tinggi to "Tinggi",
+        RiskLevel.Waspada to "Waspada",
+        RiskLevel.Normal to "Normal",
     )
     LazyRow(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        items(items) { (src, label, icon) ->
-            val active = value == src
+        items(items) { (lvl, label) ->
+            val active = value == lvl
             Row(
                 Modifier
                     .clip(Radius.pill)
                     .background(if (active) Ink else Color.White.copy(alpha = 0.85f))
-                    .clickable { onChange(src) }
+                    .clickable { onChange(lvl) }
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Icon(icon, null, tint = if (active) Color.White else Ink2, modifier = Modifier.size(14.dp))
+                if (lvl != null) Dot(color = lvl.dot)
                 Text(label, color = if (active) Color.White else Ink2, fontSize = 12.sp, fontWeight = FontWeight.W600)
             }
         }

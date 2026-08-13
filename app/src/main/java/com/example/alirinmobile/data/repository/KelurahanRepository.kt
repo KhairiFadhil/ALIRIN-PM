@@ -29,4 +29,14 @@ class KelurahanRepository(private val appContext: Context) {
 
     val default: Kelurahan
         get() = list.firstOrNull { it.adm4 == "18.71.13.1007" } ?: list.first()
+
+    // Validasi pasangan kecamatan+kelurahan mirror C:\ALIRIN\app\src\services\reportsStore.js:134
+    // ("Wilayah kecamatan dan kelurahan belum valid.") supaya nilai ngawur seperti
+    // ALR-2026-9804 (kecamatan="C") tidak pernah sampai ke Supabase.
+    fun isValidArea(kelurahan: String, kecamatan: String): Boolean {
+        val kel = kelurahan.trim()
+        val kec = kecamatan.trim()
+        if (kel.isBlank() || kec.isBlank()) return false
+        return list.any { it.kelurahan.equals(kel, ignoreCase = true) && it.kecamatan.equals(kec, ignoreCase = true) }
+    }
 }

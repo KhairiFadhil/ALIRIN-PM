@@ -34,12 +34,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.alirinmobile.data.*
 import com.example.alirinmobile.data.network.dto.AiForecast
 import com.example.alirinmobile.data.repository.Kelurahan
-import com.example.alirinmobile.data.repository.NearbyTeaserSeed
 import com.example.alirinmobile.data.repository.PredictionUiModel
 import com.example.alirinmobile.data.repository.WeatherState
 import com.example.alirinmobile.feature.AlirinViewModelFactory
+import com.example.alirinmobile.feature.LocationViewModel
 import com.example.alirinmobile.feature.PredictionViewModel
 import com.example.alirinmobile.feature.WeatherViewModel
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 import com.example.alirinmobile.ui.components.*
 import com.example.alirinmobile.ui.theme.*
 import kotlin.math.ceil
@@ -65,6 +69,33 @@ fun BerandaScreen(
     val kritisCount = reports.count { it.risk == RiskLevel.Kritis }
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val activeCount = reports.count { it.status != ReportStatus.Completed && it.status != ReportStatus.Rejected }
+
+    // Titik rawan terdekat = laporan aktif (bukan selesai/ditolak/arsip) yang punya
+    // koordinat, sortir berdasarkan skor risiko, ambil 3 teratas. Kalau posisi user
+    // sudah diketahui, tampilkan jarak sebenarnya (haversine). Jangan mengarang.
+    val locVm: LocationViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
+    val userLoc by locVm.last.collectAsStateWithLifecycle()
+    val nearby = remember(reports, userLoc) {
+        reports
+            .asSequence()
+            .filter { it.status != ReportStatus.Completed && it.status != ReportStatus.Rejected }
+            .filter { it.archivedAt.isNullOrBlank() }
+            .filter { it.lat != null && it.lng != null }
+            .sortedByDescending { it.score }
+            .take(3)
+            .map { r ->
+                NearbyTeaser(
+                    id = r.id.hashCode(),
+                    label = r.address?.takeIf { it.isNotBlank() } ?: "${r.kelurahan}, ${r.kecamatan}",
+                    risk = r.risk,
+                    score = r.score,
+                    dist = userLoc?.let { u -> haversineLabel(u.lat, u.lng, r.lat!!, r.lng!!) } ?: "",
+                    count = 1,
+                    kind = r.category,
+                )
+            }
+            .toList()
+    }
 
     val loggedIn = session != null
     val displayName = session?.displayName ?: "Warga"
@@ -161,7 +192,7 @@ fun BerandaScreen(
 
             WeatherStrip()
             PredictionCard(onOpenMap = onPetaClick)
-            NearbyStrip(items = NearbyTeaserSeed, onOpenMap = onPetaClick)
+            if (nearby.isNotEmpty()) NearbyStrip(items = nearby, onOpenMap = onPetaClick)
             MyReports(recent = reports, onSeeAll = onStatusClick, onItemClick = onStatusItemClick)
             Spacer(Modifier.height(16.dp))
         }
@@ -729,8 +760,14 @@ private fun NearbyCard(item: NearbyTeaser, primaryFeatured: Boolean, onClick: ()
             }
             Column {
                 Text(item.label, color = titleColor, fontWeight = FontWeight.W700, fontSize = 15.sp, letterSpacing = (-0.22).sp)
+                // dist kosong = posisi user belum diketahui → jangan tampilkan chip jarak (jangan mengarang).
+                val sub = buildString {
+                    append(item.kind)
+                    append(" · ").append(item.count).append(" laporan")
+                    if (item.dist.isNotBlank()) append(" · ").append(item.dist)
+                }
                 Text(
-                    "${item.kind} · ${item.count} laporan · ${item.dist}",
+                    sub,
                     color = subColor,
                     fontWeight = FontWeight.W500,
                     fontSize = 11.5.sp,
@@ -801,4 +838,18 @@ private fun MyReports(
             }
         }
     }
+}
+
+// Jarak km antara dua koordinat (haversine). Dibulatkan supaya cocok untuk UI:
+// <1 km → "xxx m", >=1 km → "x.x km".
+private fun haversineLabel(lat1: Double, lng1: Double, lat2: Double, lng2: Double): String {
+    val r = 6371.0
+    val dLat = Math.toRadians(lat2 - lat1)
+    val dLng = Math.toRadians(lng2 - lng1)
+    val a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
+        sin(dLng / 2) * sin(dLng / 2)
+    val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    val km = r * c
+    return if (km < 1.0) "${(km * 1000).toInt()} m" else "%.1f km".format(km)
 }

@@ -1,15 +1,10 @@
 package com.example.alirinmobile.data.repository
 
-import com.example.alirinmobile.data.Hotspot
-import com.example.alirinmobile.data.HotspotSource
-import com.example.alirinmobile.data.NearbyTeaser
 import com.example.alirinmobile.data.PhotoRef
 import com.example.alirinmobile.data.Report
 import com.example.alirinmobile.data.ReportMode
 import com.example.alirinmobile.data.ReportStatus
 import com.example.alirinmobile.data.RiskLevel
-import com.example.alirinmobile.data.categoryFromWire
-import com.example.alirinmobile.data.categoryLabelOf
 import com.example.alirinmobile.data.categoryToWire
 import com.example.alirinmobile.data.local.ReportDao
 import com.example.alirinmobile.data.local.ReportEntity
@@ -65,6 +60,7 @@ class ReportRepository(
     private val uploader: PhotoUploader,
     private val applicationScope: CoroutineScope,
     private val authRepo: AuthRepository,
+    private val kelurahanRepo: KelurahanRepository,
 ) {
 
     // ---- Draft state (in-memory only) ----
@@ -84,6 +80,15 @@ class ReportRepository(
 
     // ---- Submission (optimistic, offline-first) ----
     suspend fun submit(form: LaporForm, mode: ReportMode): Result<SubmitResult> = runCatching {
+        // Validasi wilayah sebelum apa-apa. Mirror reportsStore.js:134 di web supaya
+        // nilai ngawur (mis. ALR-2026-9804 kecamatan="C") tidak sampai ke Supabase.
+        require(kelurahanRepo.isValidArea(form.kelurahan, form.kecamatan)) {
+            "Wilayah kecamatan dan kelurahan belum valid. Pilih dari daftar."
+        }
+        require(form.kategori.isNotBlank()) { "Kategori laporan wajib dipilih." }
+        require(form.severity.isNotBlank()) { "Tingkat severity wajib dipilih." }
+        require(form.lat != null && form.lng != null) { "Lokasi laporan wajib ditandai di peta." }
+
         val nowIso = ReportCodegen.nowIsoUtc()
         val nowMs = System.currentTimeMillis()
         val prefix = ReportCodegen.yearPrefix()
@@ -91,7 +96,7 @@ class ReportRepository(
         val code = ReportCodegen.newCode(dao.latestCodeForYear(prefix))
         val token = ReportCodegen.newTrackingToken()
         val categoryWire = categoryToWire(form.kategori)
-        val severity = form.severity.ifBlank { "sedang" }
+        val severity = form.severity
         val (score, risk) = computeScore(severity, mode)
 
         val localPhotos = form.photos.mapNotNull { photo ->
@@ -128,10 +133,10 @@ class ReportRepository(
             riskScore = score,
             description = form.deskripsi,
             address = form.alamat.ifBlank { null },
-            lat = form.lat ?: 0.0,
-            lng = form.lng ?: 0.0,
-            kelurahan = form.kelurahan.ifBlank { "Tidak diketahui" },
-            kecamatan = form.kecamatan.ifBlank { "Bandar Lampung" },
+            lat = form.lat!!,
+            lng = form.lng!!,
+            kelurahan = form.kelurahan.trim(),
+            kecamatan = form.kecamatan.trim(),
             reporterName = form.nama.ifBlank { null },
             reporterContact = form.kontak.ifBlank { null },
             assignedOfficerId = null,
@@ -360,10 +365,6 @@ class ReportRepository(
         }
     }
 
-    // ---- Demo/preview data (in-memory, UI-only) ----
-    fun hotspots(): List<Hotspot> = HotspotSeed
-    fun nearbyTeasers(): List<NearbyTeaser> = NearbyTeaserSeed
-
     // ---- Helpers ----
     private fun computeScore(severity: String, mode: ReportMode): Pair<Int, RiskLevel> {
         val weight = when (severity) {
@@ -406,60 +407,3 @@ class ReportRepository(
         SimpleDateFormat("d MMM · HH:mm", Locale("id")).format(Date())
 }
 
-// ---- Demo data used by BerandaScreen, PersetujuanDetailScreen, PetaScreen ----
-// Kept as internal top-level vals so existing UI imports keep working.
-// These are in-memory fixtures unrelated to Supabase sync.
-
-internal val ReportSeed: List<Report> = listOf(
-    Report(
-        id = "r1", code = "ALR-2026-04217",
-        publicTrackingToken = "trk_demo_r1",
-        mode = ReportMode.Lengkap, status = ReportStatus.InProgress,
-        risk = RiskLevel.Tinggi, score = 72,
-        categoryId = "sumbatan", category = categoryLabelOf("sumbatan"),
-        severity = "parah",
-        kelurahan = "Pinang Jaya", kecamatan = "Kemiling",
-        address = "Jl. Imam Bonjol depan SD 2",
-        createdAt = "2026-05-12T14:30:00Z", updatedAt = "2026-05-13T09:15:00Z",
-        description = "Sampah plastik & daun menyumbat got, air mulai menggenang ke jalan.",
-        lat = -5.3826, lng = 105.2589,
-    ),
-    Report(
-        id = "r2", code = "ALR-2026-04201",
-        publicTrackingToken = "trk_demo_r2",
-        mode = ReportMode.Cepat, status = ReportStatus.Verified,
-        risk = RiskLevel.Waspada, score = 48,
-        categoryId = "lambat", category = categoryLabelOf("lambat"),
-        severity = "sedang",
-        kelurahan = "Way Halim Permai", kecamatan = "Way Halim",
-        createdAt = "2026-05-11T18:42:00Z",
-        lat = -5.3864, lng = 105.3072,
-    ),
-    Report(
-        id = "r3", code = "ALR-2026-04088",
-        publicTrackingToken = "trk_demo_r3",
-        mode = ReportMode.Lengkap, status = ReportStatus.Completed,
-        risk = RiskLevel.Normal, score = 22,
-        categoryId = "rusak", category = categoryLabelOf("rusak"),
-        severity = "ringan",
-        kelurahan = "Kemiling Permai", kecamatan = "Kemiling",
-        createdAt = "2026-05-05T09:14:00Z",
-        lat = -5.3750, lng = 105.2780,
-        description = "Tutup got pecah, anak2 hampir jatuh.",
-    ),
-)
-
-internal val HotspotSeed: List<Hotspot> = listOf(
-    Hotspot(1, RiskLevel.Kritis,  86, 7, 0.24f, 0.30f, -5.3700, 105.2900, "Sukabumi Indah RT 03",     "Sukabumi",          "Sukabumi",                "Genangan jalan",  ReportStatus.Verified,   HotspotSource.Warga,    "1.8 km", "2 jam lalu"),
-    Hotspot(2, RiskLevel.Tinggi,  72, 4, 0.40f, 0.52f, -5.3826, 105.2589, "Pinang Jaya, depan SD",   "Pinang Jaya",       "Kemiling",                "Sumbatan sampah", ReportStatus.InProgress, HotspotSource.Warga,    "0.6 km", "5 jam lalu"),
-    Hotspot(3, RiskLevel.Waspada, 51, 2, 0.68f, 0.40f, -5.3864, 105.3072, "Way Halim Permai blok B", "Way Halim",         "Way Halim",               "Aliran lambat",   ReportStatus.Pending,    HotspotSource.Warga,    "1.1 km", "1 hari lalu"),
-    Hotspot(4, RiskLevel.Tinggi,  65, 1, 0.30f, 0.70f, -5.4148, 105.2597, "Jalan Untung Suropati",   "Gunung Sari",       "Tanjung Karang Pusat",    "Drainase rusak",  ReportStatus.Verified,   HotspotSource.Historis, "2.3 km", "Historis"),
-    Hotspot(5, RiskLevel.Normal,  30, 0, 0.78f, 0.20f, -5.3650, 105.2950, "Sensor S-Rajabasa-04",    "Rajabasa Raya",     "Rajabasa",                "Pantau IoT",      ReportStatus.Verified,   HotspotSource.Iot,      "3.0 km", "Real-time"),
-    Hotspot(6, RiskLevel.Waspada, 48, 0, 0.55f, 0.15f, -5.3750, 105.2780, "Potensi hujan sore",      "Kemiling Permai",   "Kemiling",                "Alert BMKG",      ReportStatus.Pending,    HotspotSource.Cuaca,    "0.9 km", "Prediksi 16:00"),
-)
-
-internal val NearbyTeaserSeed: List<NearbyTeaser> = listOf(
-    NearbyTeaser(1, "Pinang Jaya, Kemiling", RiskLevel.Tinggi,  72, "0.6 km", 4, "Genangan"),
-    NearbyTeaser(2, "Way Halim Permai",      RiskLevel.Waspada, 51, "1.1 km", 2, "Sumbatan"),
-    NearbyTeaser(3, "Sukabumi Indah",        RiskLevel.Kritis,  86, "1.8 km", 7, "Genangan"),
-)
