@@ -1,5 +1,17 @@
 package com.example.alirinmobile.feature.staff
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import com.example.alirinmobile.data.PhotoStore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,6 +57,7 @@ fun PersetujuanDetailScreen(
     report: Report,
     onBack: () -> Unit,
     onTransition: (ReportStatus, String?) -> Unit,
+    onVerifyPhoto: (photoPath: String, note: String?) -> Unit,
 ) {
     var sheet by remember { mutableStateOf<SheetKind?>(null) }
     var actioned by remember { mutableStateOf<SheetKind?>(null) }
@@ -112,9 +125,11 @@ fun PersetujuanDetailScreen(
         ) {
             when (sheet) {
                 SheetKind.Verify -> VerifySheet(
+                    reportLat = report.lat,
+                    reportLng = report.lng,
                     onClose = { sheet = null },
-                    onConfirm = { note ->
-                        onTransition(ReportStatus.Verified, note)
+                    onConfirm = { photoPath, note ->
+                        onVerifyPhoto(photoPath, note)
                         sheet = null
                         actioned = SheetKind.Verify
                     },
@@ -493,16 +508,64 @@ private fun SheetFooter(
 }
 
 @Composable
-private fun VerifySheet(onClose: () -> Unit, onConfirm: (String?) -> Unit) {
+private fun VerifySheet(
+    reportLat: Double?,
+    reportLng: Double?,
+    onClose: () -> Unit,
+    onConfirm: (photoPath: String, note: String?) -> Unit,
+) {
     var note by rememberSaveable { mutableStateOf("") }
+    var photoPath by rememberSaveable { mutableStateOf<String?>(null) }
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bmp ->
+        bmp ?: return@rememberLauncherForActivityResult
+        scope.launch {
+            photoPath = withContext(Dispatchers.IO) { PhotoStore.saveCameraBitmap(ctx, bmp, reportLat, reportLng) }
+        }
+    }
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
+        uri ?: return@rememberLauncherForActivityResult
+        scope.launch {
+            photoPath = withContext(Dispatchers.IO) { runCatching { PhotoStore.saveGalleryUri(ctx, uri) }.getOrNull() }
+        }
+    }
+
     Column(Modifier.padding(horizontal = 20.dp)) {
         SheetHandle()
-        Text("Verifikasi laporan?", style = AlirinText.h2, modifier = Modifier.padding(bottom = 4.dp))
+        Text("Verifikasi di lokasi", style = AlirinText.h2, modifier = Modifier.padding(bottom = 4.dp))
         Text(
-            "Status laporan akan jadi \"Sudah Diverifikasi\" dan pelapor mendapat notifikasi.",
+            "Ambil foto bukti kondisi di titik laporan. Status jadi \"Sudah Diverifikasi\" dan pelapor mendapat notifikasi.",
             style = AlirinText.bodyR,
-            modifier = Modifier.padding(bottom = 18.dp),
+            modifier = Modifier.padding(bottom = 16.dp),
         )
+        val currentPhoto = photoPath
+        if (currentPhoto != null) {
+            Box(Modifier.fillMaxWidth().height(180.dp).clip(Radius.md).background(Surface2)) {
+                AsyncImage(
+                    model = File(currentPhoto),
+                    contentDescription = null,
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop,
+                )
+                Box(
+                    Modifier.align(Alignment.TopEnd).padding(6.dp).size(24.dp).clip(CircleShape)
+                        .background(Color(0xD90E1130)).clickable { photoPath = null },
+                    contentAlignment = Alignment.Center,
+                ) { Icon(AlirinIcons.close, null, tint = Color.White, modifier = Modifier.size(12.dp)) }
+            }
+            Spacer(Modifier.height(12.dp))
+        } else {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                AlirinButton(label = "Kamera", onClick = { cameraLauncher.launch(null) },
+                    leadingIcon = AlirinIcons.camera, modifier = Modifier.weight(1f))
+                AlirinButton(label = "Galeri",
+                    onClick = { galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                    leadingIcon = AlirinIcons.image, variant = BtnVariant.Soft, modifier = Modifier.weight(1f))
+            }
+            Spacer(Modifier.height(14.dp))
+        }
         Text("Catatan internal (opsional)", style = AlirinText.eyebrow, modifier = Modifier.padding(bottom = 8.dp))
         TextField(
             value = note,
@@ -514,10 +577,10 @@ private fun VerifySheet(onClose: () -> Unit, onConfirm: (String?) -> Unit) {
     }
     Spacer(Modifier.height(16.dp))
     SheetFooter(
-        confirmLabel = "Verifikasi sekarang",
-        confirmTone = Primary,
+        confirmLabel = if (photoPath == null) "Ambil foto dulu" else "Verifikasi sekarang",
+        confirmTone = if (photoPath == null) Muted else Primary,
         onClose = onClose,
-        onConfirm = { onConfirm(if (note.isBlank()) null else note) },
+        onConfirm = { photoPath?.let { onConfirm(it, if (note.isBlank()) null else note) } },
     )
 }
 

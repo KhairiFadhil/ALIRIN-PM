@@ -43,7 +43,6 @@ import com.example.alirinmobile.feature.AuthViewModel
 import com.example.alirinmobile.feature.LaporViewModel
 import com.example.alirinmobile.feature.ReportsViewModel
 import com.example.alirinmobile.feature.StaffViewModel
-import com.example.alirinmobile.feature.auth.AdminWallScreen
 import com.example.alirinmobile.feature.auth.LoginScreen
 import com.example.alirinmobile.feature.auth.OnboardingScreen
 import com.example.alirinmobile.feature.auth.SplashScreen
@@ -98,9 +97,13 @@ fun AlirinNavHost() {
     when {
         !splashDone -> SplashScreen(onDone = { splashDone = true })
         !onboardingDone -> OnboardingScreen(onDone = { authVm.finishOnboarding() })
-        session?.role == Role.Admin -> AdminWallScreen(onLogout = { authVm.logout(); showStaffLogin = false })
-        session != null || anonChosen -> MainShell(
-            role = session?.role ?: Role.Citizen,
+        // Admin hanya ada di web. Siapa pun yang login di mobile = Petugas.
+        session != null -> MainShell(
+            role = Role.Staff,
+            onLogout = { authVm.logout(); showStaffLogin = false },
+        )
+        anonChosen -> MainShell(
+            role = Role.Citizen,
             onLogout = { authVm.logout(); showStaffLogin = false },
         )
         showStaffLogin -> LoginScreen(viewModel = authVm, onBack = { showStaffLogin = false })
@@ -294,6 +297,9 @@ private fun MainShell(role: Role, onLogout: () -> Unit) {
                             onBack = { nav.popBackStack() },
                             onTransition = { newStatus, note ->
                                 staffVm.transition(report.id, newStatus, note)
+                            },
+                            onVerifyPhoto = { photoPath, note ->
+                                staffVm.verifyWithPhoto(report.id, photoPath, note)
                             },
                         )
                     }

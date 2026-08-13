@@ -365,6 +365,56 @@ class ReportRepository(
         }
     }
 
+    // ---- Petugas verifikasi on-site: upload foto bukti lalu status -> Verified ----
+    fun verifyWithPhoto(
+        reportId: String,
+        photoLocalPath: String,
+        note: String? = null,
+        actorLabel: String? = null,
+    ) {
+        val nowIso = ReportCodegen.nowIsoUtc()
+        val nowMs = System.currentTimeMillis()
+        applicationScope.launch {
+            val current = dao.get(reportId) ?: return@launch
+            runCatching {
+                val ref = uploader.upload(File(photoLocalPath)).copy(kind = "completion")
+                val noteFinal = note ?: "Diverifikasi di lokasi dengan foto bukti."
+                val newCompletion = decodePhotos(current.completionPhotosJson) + ref
+                val newHistory = decodeStatusHistoryRaw(current.statusHistoryJson) + StatusHistoryJson(
+                    status = ReportStatus.Verified.toWire(),
+                    actor = actorLabel ?: "Petugas",
+                    note = noteFinal,
+                    at = nowIso,
+                )
+                dao.upsert(
+                    current.copy(
+                        status = ReportStatus.Verified.toWire(),
+                        completionPhotosJson = encodePhotos(newCompletion),
+                        statusHistoryJson = encodeStatusHistoryRaw(newHistory),
+                        updatedAt = nowIso,
+                        updatedAtMs = nowMs,
+                    )
+                )
+                supabase.from("report_photos").insert(
+                    ReportPhotoInsertPayload(
+                        reportId = reportId, url = ref.url!!, name = ref.name,
+                        type = ref.type, size = ref.size, kind = "completion",
+                    )
+                )
+                supabase.from("reports").update({
+                    set("status", ReportStatus.Verified.toWire())
+                    set("updated_at", nowIso)
+                }) { filter { eq("id", reportId) } }
+                supabase.from("report_status_history").insert(
+                    StatusHistoryInsertPayload(
+                        reportId = reportId, status = ReportStatus.Verified.toWire(),
+                        actor = actorLabel ?: "Petugas", note = noteFinal, at = nowIso,
+                    )
+                )
+            }
+        }
+    }
+
     // ---- Helpers ----
     private fun computeScore(severity: String, mode: ReportMode): Pair<Int, RiskLevel> {
         val weight = when (severity) {

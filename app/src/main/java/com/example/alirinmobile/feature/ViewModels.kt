@@ -181,6 +181,10 @@ class StaffViewModel(
             actorLabel = _actor.value,
         )
     }
+
+    fun verifyWithPhoto(reportId: String, photoLocalPath: String, note: String?) {
+        repository.verifyWithPhoto(reportId, photoLocalPath, note, _actor.value)
+    }
 }
 
 class WeatherViewModel(
