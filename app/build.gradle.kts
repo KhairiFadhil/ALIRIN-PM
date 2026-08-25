@@ -24,6 +24,8 @@ val groqApiKey: String = localProps.getProperty("GROQ_API_KEY", "")
 // masih tersedia di tier standar; llama-3.1-8b-instant yang disebut proposal
 // dijadwalkan berhenti 16 Agustus 2026 dan kini hanya untuk akun Enterprise.
 val groqModel: String = localProps.getProperty("GROQ_MODEL", "openai/gpt-oss-20b")
+// Kosongkan bila modelnya menolak parameter reasoning_effort.
+val groqReasoningEffort: String = localProps.getProperty("GROQ_REASONING_EFFORT", "low")
 val supabaseUrl: String = localProps.getProperty("SUPABASE_URL", "")
 val supabaseKey: String = localProps.getProperty("SUPABASE_PUBLISHABLE_KEY", "")
 
@@ -44,6 +46,7 @@ android {
 
         buildConfigField("String", "GROQ_API_KEY", "\"$groqApiKey\"")
         buildConfigField("String", "GROQ_MODEL", "\"$groqModel\"")
+        buildConfigField("String", "GROQ_REASONING_EFFORT", "\"$groqReasoningEffort\"")
         buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"$supabaseKey\"")
     }

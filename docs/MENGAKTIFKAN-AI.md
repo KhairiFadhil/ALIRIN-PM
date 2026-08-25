@@ -1,15 +1,17 @@
 # Mengaktifkan AI-Assisted Analysis (Groq)
 
-Status per 26 Agustus 2026: **belum aktif**. Aplikasi berjalan dengan baseline
-berbasis aturan, dan kartu prakiraan menyebut sumbernya apa adanya
-("PRAKIRAAN BMKG · Aturan baseline"). Ini sejalan dengan Proposal §4.3.4:
-*"Jika AI gagal, sistem beralih ke rule-based baseline yang dapat diaudit."*
+Status per 26 Agustus 2026: **aktif dan terverifikasi ujung ke ujung**.
 
 | Komponen | Status | Bukti |
 |---|---|---|
 | BMKG prakiraan cuaca | **Berfungsi** | Endpoint dites langsung untuk 4 kelurahan, semuanya menjawab |
 | BMKG → risk score | **Berfungsi** | Kolom `rainfall_mm` terisi saat laporan dikirim, jadi faktor Cuaca 25% |
-| Groq AI | **Tidak aktif** | `GROQ_API_KEY` kosong; tidak ada kunci di APK |
+| Kunci Groq | **Valid** | Berhasil membaca daftar model akun (13 model) |
+| Model `openai/gpt-oss-20b` | **Tersedia** | Ada di daftar model akun; prompt ALIRIN menghasilkan JSON lengkap |
+| Model `llama-3.1-8b-instant` | **Tidak tersedia** | HTTP 404, dan tidak ada di daftar model akun |
+
+Bila panggilan AI gagal, sistem tetap beralih ke baseline berbasis aturan sesuai
+Proposal §4.3.4, dan alasannya kini tercetak di logcat.
 
 ## Langkah mengaktifkan
 
@@ -38,6 +40,7 @@ Harus menjawab `200` dengan isi JSON. Bila menjawab `model_not_found` atau
 ```properties
 GROQ_API_KEY=gsk_kunci_anda
 GROQ_MODEL=openai/gpt-oss-20b
+GROQ_REASONING_EFFORT=low
 ```
 
 Berkas ini sudah masuk `.gitignore`, jadi kuncinya tidak ikut ter-commit.
@@ -60,24 +63,49 @@ adb logcat -s AlirinPrediction
 
 ## Soal pilihan model
 
-Proposal menyebut **Llama 3.1 8B** (`llama-3.1-8b-instant`). Per 26 Agustus
-2026, halaman deprecations Groq mencantumkan model itu dengan tanggal shutdown
-**16 Agustus 2026** dan menyarankan `openai/gpt-oss-20b` sebagai pengganti;
-halaman models masih menampilkannya tetapi bertanda **Enterprise**.
+Proposal menyebut **Llama 3.1 8B** (`llama-3.1-8b-instant`). Model itu
+**terkonfirmasi tidak tersedia** untuk akun ini: permintaan dijawab HTTP 404,
+dan namanya tidak muncul di daftar model akun. Halaman deprecations Groq
+mencantumkan tanggal shutdown 16 Agustus 2026 dengan pengganti
+`openai/gpt-oss-20b`.
 
-Artinya, akun Groq biasa kemungkinan besar **tidak bisa lagi** memakai model
-yang tertulis di proposal. Default kode karena itu `openai/gpt-oss-20b`, yang
-paling cepat dan paling murah di tier standar.
+Model yang dipakai sekarang: **`openai/gpt-oss-20b`**, tercepat dan termurah di
+tier standar. Bisa diganti lewat `GROQ_MODEL` tanpa menyentuh kode.
 
-Konsekuensi untuk berkas lomba: bila AI diaktifkan, kalimat proposal yang
-menyebut "Llama 3.1 8B" perlu disesuaikan dengan model yang benar-benar
-dipakai. Nama model bisa diganti lewat `GROQ_MODEL` tanpa menyentuh kode.
+Konsekuensi untuk berkas lomba: kalimat proposal yang menyebut "Llama 3.1 8B"
+perlu disesuaikan dengan model yang benar-benar dipakai.
+
+## Soal reasoning_effort dan max_tokens
+
+Model gpt-oss memancarkan bidang `reasoning` yang ikut memakan anggaran token
+**sebelum** JSON-nya selesai ditulis. Hasil pengujian pada prompt ALIRIN yang
+sebenarnya:
+
+| reasoning_effort | max_tokens | Hasil | Token keluaran |
+|---|---|---|---|
+| bawaan | 512 | **Gagal** — `Failed to validate JSON` (terpotong) | — |
+| bawaan | 2048 | Berhasil | ~1051 |
+| `low` | 512 | Berhasil | ~239 |
+| `low` | 1024 | Berhasil | ~269 |
+
+Konfigurasi yang dipakai: `reasoning_effort=low` dengan `max_tokens=1024`.
+Empat kali lebih hemat token daripada effort bawaan, dan punya kelonggaran yang
+cukup. Nilai `512` yang dipakai versi sebelumnya gagal berulang pada skenario
+hujan — dan gagalnya tidak terlihat karena semua error ditelan diam-diam.
+
+Kosongkan `GROQ_REASONING_EFFORT=` bila mengganti ke model yang menolak
+parameter ini.
 
 ## Peringatan keamanan
 
 `buildConfigField` menaruh kunci sebagai string biasa di dalam DEX. Siapa pun
 yang mengunduh APK bisa mengekstraknya — metode yang sama dipakai untuk
-memverifikasi bahwa kunci saat ini memang belum ada.
+memverifikasi bahwa kunci sekarang benar-benar tertanam.
+
+**Rotasi kunci sebelum APK dibagikan ke luar tim.** Kunci yang pernah dikirim
+lewat kanal percakapan, ditempel di dokumen, atau ikut dalam APK yang beredar
+harus dianggap sudah bocor. Batasi juga kuotanya di dashboard Groq supaya
+penyalahgunaan tidak berujung tagihan.
 
 Ini dapat diterima selama masih prototipe dan kuncinya berkuota kecil. Untuk
 pemakaian sungguhan, panggilan Groq harus pindah ke Supabase Edge Function

@@ -11,7 +11,15 @@ data class ChatCompletionRequest(
     val model: String = com.example.alirinmobile.BuildConfig.GROQ_MODEL,
     val messages: List<ChatMessage>,
     val temperature: Double = 0.2,
-    @SerialName("max_tokens") val maxTokens: Int = 512,
+    // Model gpt-oss memancarkan bidang "reasoning" yang ikut memakan anggaran
+    // token sebelum JSON-nya selesai ditulis. Dengan effort "low", pemakaian
+    // turun dari sekitar 1050 ke 240 token dan jawabannya tetap lengkap.
+    // Diuji 26 Agustus 2026: pada effort bawaan, max_tokens 512 gagal dengan
+    // "Failed to validate JSON" karena keluarannya terpotong di tengah.
+    // Dikosongkan lewat GROQ_REASONING_EFFORT= bila modelnya menolak parameter ini.
+    @SerialName("reasoning_effort") val reasoningEffort: String? =
+        com.example.alirinmobile.BuildConfig.GROQ_REASONING_EFFORT.ifBlank { null },
+    @SerialName("max_tokens") val maxTokens: Int = 1024,
     @SerialName("response_format") val responseFormat: ResponseFormat? = ResponseFormat("json_object"),
 )
 
