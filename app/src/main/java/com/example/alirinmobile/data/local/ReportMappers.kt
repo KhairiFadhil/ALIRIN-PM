@@ -34,11 +34,18 @@ data class PhotoRefJson(
 @Serializable
 data class RiskBreakdownJson(
     val id: String,
+    // Kunci faktor ada di kolom factor. Kolom id bertipe uuid di project live,
+    // jadi tidak bisa dipakai mencocokkan 'severity', 'weather', dan seterusnya.
+    // View publik sudah memancarkan factor sebagai id; pembacaan tabel mentah
+    // oleh staff tidak, sehingga keduanya diseragamkan lewat factorKey().
+    val factor: String? = null,
     val label: String,
     val points: Int = 0,
     val weight: Int = 0,
     val detail: String? = null,
-)
+) {
+    fun factorKey(): String = factor?.takeIf { it.isNotBlank() } ?: id
+}
 
 @Serializable
 data class FieldNoteJson(
@@ -80,13 +87,13 @@ fun decodePhotos(raw: String?): List<PhotoRef> = runCatching {
 
 fun encodeRiskBreakdown(items: List<RiskBreakdownItem>): String =
     jsonCodec.encodeToString(breakdownSerializer, items.map {
-        RiskBreakdownJson(it.id, it.label, it.points, it.weight, it.detail)
+        RiskBreakdownJson(id = it.id, factor = it.id, label = it.label, points = it.points, weight = it.weight, detail = it.detail)
     })
 
 fun decodeRiskBreakdown(raw: String?): List<RiskBreakdownItem> = runCatching {
     if (raw.isNullOrBlank()) return emptyList()
     jsonCodec.decodeFromString(breakdownSerializer, raw).map {
-        RiskBreakdownItem(it.id, it.label, it.points, it.weight, it.detail)
+        RiskBreakdownItem(it.factorKey(), it.label, it.points, it.weight, it.detail)
     }
 }.getOrDefault(emptyList())
 
