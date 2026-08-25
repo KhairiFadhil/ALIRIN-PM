@@ -75,7 +75,10 @@ fun BerandaScreen(
     // koordinat, sortir berdasarkan skor risiko, ambil 3 teratas. Kalau posisi user
     // sudah diketahui, tampilkan jarak sebenarnya (haversine). Jangan mengarang.
     val locVm: LocationViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
-    val userLoc by locVm.last.collectAsStateWithLifecycle()
+    // Jarak "di sekitar kamu" mengikuti posisi terkini yang bergerak.
+    val liveLoc by locVm.live.collectAsStateWithLifecycle()
+    val lastLoc by locVm.last.collectAsStateWithLifecycle()
+    val userLoc = liveLoc ?: lastLoc
     val nearby = remember(reports, userLoc) {
         reports
             .asSequence()

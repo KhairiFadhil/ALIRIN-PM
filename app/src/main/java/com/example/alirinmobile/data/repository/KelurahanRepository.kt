@@ -38,7 +38,7 @@ class KelurahanRepository(private val appContext: Context) {
         get() = list.firstOrNull { it.adm4 == "18.71.13.1007" } ?: list.first()
 
     // Kelurahan persis -> kelurahan lain di kecamatan yang sama -> acuan kota.
-    // Baru 20 dari 122 kelurahan punya kode adm4 terverifikasi. Hujan 3 jam BMKG
+    // Baru 20 dari 126 kelurahan punya kode adm4 terverifikasi. Hujan 3 jam BMKG
     // bersifat regional sehingga pencadangan tingkat kecamatan tetap bermakna,
     // dan yang dihindari adalah mengarang kode wilayah.
     // Kembar dengan resolveAdm4 di C:\ALIRIN\app\src\data\bandarLampungAreas.js
@@ -52,17 +52,17 @@ class KelurahanRepository(private val appContext: Context) {
     }
 
     // Validasi pasangan kecamatan+kelurahan terhadap master lengkap 20 kecamatan
-    // / 122 kelurahan, sama dengan isKnownArea di reportsStore.js. Sebelumnya
+    // / 126 kelurahan, sama dengan isKnownArea di reportsStore.js. Sebelumnya
     // validasi memakai daftar adm4 yang hanya 20 kelurahan, sehingga warga di
-    // 102 kelurahan lain tidak bisa mengirim laporan sama sekali.
-    fun isValidArea(kelurahan: String, kecamatan: String): Boolean {
-        val kel = kelurahan.trim()
-        val kec = kecamatan.trim()
-        if (kel.isBlank() || kec.isBlank()) return false
-        val kelurahanList = areas.entries
-            .firstOrNull { it.key.equals(kec, ignoreCase = true) }
-            ?.value
-            ?: return false
-        return kelurahanList.any { it.equals(kel, ignoreCase = true) }
-    }
+    // 106 kelurahan lain tidak bisa mengirim laporan sama sekali.
+    fun isValidArea(kelurahan: String, kecamatan: String): Boolean =
+        AreaMatcher.isValidArea(areas, kecamatan, kelurahan)
+
+    val kecamatanList: List<String> get() = areas.keys.sorted()
+
+    fun kelurahanOf(kecamatan: String): List<String> =
+        areas.entries.firstOrNull { it.key.equals(kecamatan.trim(), ignoreCase = true) }?.value.orEmpty()
+
+    fun matchArea(kecamatanRaw: String?, kelurahanRaw: String?): Pair<String, String>? =
+        AreaMatcher.match(areas, kecamatanRaw, kelurahanRaw)
 }

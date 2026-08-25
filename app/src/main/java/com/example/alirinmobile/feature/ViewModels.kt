@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import com.example.alirinmobile.AlirinApplication
 import com.example.alirinmobile.data.Report
 import com.example.alirinmobile.data.ReportMode
@@ -23,6 +24,8 @@ import com.example.alirinmobile.data.repository.WeatherState
 import com.example.alirinmobile.feature.lapor.LaporForm
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -254,16 +257,28 @@ class PredictionViewModel(
         )
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class LocationViewModel(
     private val repository: LocationRepository = locationRepo(),
 ) : ViewModel() {
     val last: StateFlow<UserLocation?> = repository.last
+    val permissionGranted: StateFlow<Boolean> = repository.permissionGranted
 
     fun hasPermission(): Boolean = repository.hasFinePermission()
+
+    fun onPermissionResult() = repository.refreshPermissionState()
 
     fun fetchOnce(onResult: (UserLocation?) -> Unit = {}) {
         viewModelScope.launch { onResult(repository.currentLocation()) }
     }
+
+    // Pelacakan berkelanjutan. Dimulai saat izin ada dan dihentikan otomatis
+    // 5 detik setelah layar terakhir berhenti mengamati, lewat WhileSubscribed.
+    val live: StateFlow<UserLocation?> = repository.permissionGranted
+        .flatMapLatest { granted ->
+            if (granted) repository.locationUpdates() else flowOf(null)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 }
 
 object AlirinViewModelFactory {

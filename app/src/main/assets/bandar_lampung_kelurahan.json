@@ -1,5 +1,5 @@
 {
-  "_note": "Curated kelurahan list for Bandar Lampung. adm4 codes use Permendagri 137-2017 format (PP.KK.CC.DDDD). If BMKG returns empty for any entry, the kelurahan code may need to be corrected against https://kodewilayah.github.io/permendagri-72-2019/wilayah.html. Blok \"areas\" adalah master lengkap 20 kecamatan / 122 kelurahan Kota Bandar Lampung, dipakai untuk validasi wilayah laporan; harus sama dengan KECAMATAN_DATA di C:/ALIRIN/app/src/data/bandarLampungAreas.js. Blok \"items\" hanya memuat kelurahan yang kode adm4 BMKG-nya sudah terverifikasi, dipakai untuk prakiraan cuaca.",
+  "_note": "Blok \"areas\" adalah master lengkap 20 kecamatan / 126 kelurahan Kota Bandar Lampung, dipakai untuk validasi wilayah laporan; harus sama dengan KECAMATAN_DATA di C:/ALIRIN/app/src/data/bandarLampungAreas.js. Blok \"items\" hanya memuat kelurahan yang kode adm4 BMKG-nya sudah terverifikasi, dipakai untuk prakiraan cuaca. Kelurahan tanpa adm4 memakai pencadangan tingkat kecamatan lalu titik acuan kota.",
   "areas": {
     "Bumi Waras": [
       "Bumi Raya",
@@ -22,6 +22,7 @@
       "Kedamaian",
       "Tanjung Agung Raya",
       "Tanjung Baru",
+      "Tanjung Gading",
       "Tanjung Raya"
     ],
     "Kedaton": [
@@ -70,7 +71,8 @@
       "Way Lunik"
     ],
     "Rajabasa": [
-      "Nyunyai",
+      "Gedong Meneng",
+      "Gedong Meneng Baru",
       "Rajabasa",
       "Rajabasa Jaya",
       "Rajabasa Nunyai",
@@ -109,14 +111,15 @@
       "Kaliawi",
       "Kaliawi Persada",
       "Kelapa Tiga",
-      "Palapa"
+      "Palapa",
+      "Pasir Gintung"
     ],
     "Tanjung Karang Timur": [
+      "Kebon Jeruk",
       "Kota Baru",
       "Sawah Brebes",
       "Sawah Lama",
-      "Tanjung Agung",
-      "Kebon Jeruk"
+      "Tanjung Agung"
     ],
     "Tanjung Senang": [
       "Labuhan Dalam",
@@ -133,12 +136,12 @@
       "Sukarame II"
     ],
     "Teluk Betung Selatan": [
-      "Gedong Pakuon",
+      "Gedong Pakuan",
       "Gunung Mas",
       "Pesawahan",
       "Sumur Putri",
       "Talang",
-      "Tukik"
+      "Teluk Betung"
     ],
     "Teluk Betung Timur": [
       "Keteguhan",
@@ -149,6 +152,7 @@
       "Way Tataan"
     ],
     "Teluk Betung Utara": [
+      "Gulak Galik",
       "Kupang Kota",
       "Kupang Raya",
       "Kupang Teba",

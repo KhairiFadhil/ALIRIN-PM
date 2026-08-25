@@ -6,6 +6,11 @@ import android.location.Geocoder
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -30,8 +35,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.alirinmobile.feature.AlirinViewModelFactory
+import com.example.alirinmobile.AlirinApplication
 import com.example.alirinmobile.feature.LocationViewModel
-import com.example.alirinmobile.feature.WeatherViewModel
 import androidx.compose.runtime.mutableIntStateOf
 import com.example.alirinmobile.feature.peta.LocationPickerMap
 import com.example.alirinmobile.ui.components.*
@@ -51,18 +56,15 @@ fun LokasiStep(
     total: Int,
 ) {
     val locVm: LocationViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
-    val weatherVm: WeatherViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
-    val selectedKel by weatherVm.selected.collectAsStateWithLifecycle()
     val ctx = LocalContext.current
     var fetching by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var recenterKey by remember { mutableIntStateOf(0) }
+    var showKecamatanPicker by remember { mutableStateOf(false) }
+    var showKelurahanPicker by remember { mutableStateOf(false) }
 
-    LaunchedEffect(selectedKel) {
-        if (form.kecamatan.isBlank() && selectedKel != null) {
-            onUpdate(form.copy(kecamatan = selectedKel!!.kecamatan, kelurahan = selectedKel!!.kelurahan))
-        }
-    }
+    val kelurahanRepo = remember { AlirinApplication.get().kelurahanRepository }
+    val areaValid = kelurahanRepo.isValidArea(form.kelurahan, form.kecamatan)
 
     val currentForm by rememberUpdatedState(form)
     val currentOnUpdate by rememberUpdatedState(onUpdate)
@@ -72,12 +74,13 @@ fun LokasiStep(
         if (la != null && ln != null) {
             delay(500)
             val place = withContext(Dispatchers.IO) { reverseGeocode(ctx, la, ln) }
-            if (place != null && (place.first != null || place.second != null)) {
+            // Hanya dipakai bila cocok dengan master wilayah. Tebakan yang tidak
+            // cocok dibiarkan kosong agar pengguna memilih sendiri, bukan
+            // ditulis apa adanya lalu ditolak saat pengiriman.
+            val matched = kelurahanRepo.matchArea(place?.first, place?.second)
+            if (matched != null) {
                 currentOnUpdate(
-                    currentForm.copy(
-                        kecamatan = place.first ?: currentForm.kecamatan,
-                        kelurahan = place.second ?: currentForm.kelurahan,
-                    )
+                    currentForm.copy(kecamatan = matched.first, kelurahan = matched.second)
                 )
             }
         }
@@ -123,7 +126,7 @@ fun LokasiStep(
             total = total,
             onBack = onBack,
             title = "Di mana lokasinya?",
-            subtitle = "Aktifkan GPS atau pin manual di peta. Kecamatan & kelurahan akan terisi otomatis."
+            subtitle = "Aktifkan GPS atau geser pin di peta. Wilayah terisi otomatis bila terdeteksi, dan bisa dipilih sendiri."
         )
         Column(
             Modifier
@@ -188,16 +191,40 @@ fun LokasiStep(
                     "%.5f, %.5f%s".format(form.lat, form.lng, accuracy)
                 } else "Belum dipilih · geser peta atau aktifkan GPS"
                 ReadOnlyFieldBordered(label = "Latitude · Longitude", value = coordsLabel, mono = true)
+
+                // Wilayah kini bisa dipilih sendiri, tidak lagi hanya hasil
+                // tebakan Geocoder. Sebelumnya kolom ini read-only, sehingga
+                // ketika Geocoder mengembalikan nama jalan atau wilayah di luar
+                // master, laporan ditolak saat dikirim dan pengguna tidak punya
+                // cara memperbaikinya.
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    ReadOnlyFieldBordered(
+                    PickerFieldBordered(
                         label = "Kecamatan",
-                        value = form.kecamatan.ifBlank { selectedKel?.kecamatan ?: "—" },
+                        value = form.kecamatan.ifBlank { "Pilih kecamatan" },
+                        filled = form.kecamatan.isNotBlank(),
+                        onClick = { showKecamatanPicker = true },
                         modifier = Modifier.weight(1f),
                     )
-                    ReadOnlyFieldBordered(
+                    PickerFieldBordered(
                         label = "Kelurahan",
-                        value = form.kelurahan.ifBlank { selectedKel?.kelurahan ?: "—" },
+                        value = form.kelurahan.ifBlank {
+                            if (form.kecamatan.isBlank()) "Pilih kecamatan dulu" else "Pilih kelurahan"
+                        },
+                        filled = form.kelurahan.isNotBlank(),
+                        onClick = { if (form.kecamatan.isNotBlank()) showKelurahanPicker = true },
                         modifier = Modifier.weight(1f),
+                    )
+                }
+                if (!areaValid) {
+                    Text(
+                        if (form.kecamatan.isBlank() && form.kelurahan.isBlank()) {
+                            "Wilayah belum terisi otomatis. Ketuk untuk memilih kecamatan dan kelurahan."
+                        } else {
+                            "Wilayah belum cocok dengan daftar resmi. Ketuk untuk memilih yang benar."
+                        },
+                        color = RiskKritisDot,
+                        fontSize = 12.5.sp,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.W500,
                     )
                 }
                 TextField(
@@ -211,6 +238,7 @@ fun LokasiStep(
         }
         FlowFooter(
             primary = "Lanjut",
+            enabled = areaValid && form.lat != null && form.lng != null,
             onPrimary = onNext,
             info = {
                 Icon(AlirinIcons.pin, null, tint = Primary, modifier = Modifier.size(12.dp))
@@ -224,6 +252,116 @@ fun LokasiStep(
             },
         )
     }
+
+    if (showKecamatanPicker) {
+        AreaPickerSheet(
+            title = "Pilih kecamatan",
+            options = kelurahanRepo.kecamatanList,
+            selected = form.kecamatan,
+            onPick = { picked ->
+                // Mengganti kecamatan membuat kelurahan lama tidak lagi sah,
+                // jadi langsung dikosongkan dan pemilih kelurahan dibuka.
+                onUpdate(form.copy(kecamatan = picked, kelurahan = ""))
+                showKecamatanPicker = false
+                showKelurahanPicker = true
+            },
+            onDismiss = { showKecamatanPicker = false },
+        )
+    }
+
+    if (showKelurahanPicker && form.kecamatan.isNotBlank()) {
+        AreaPickerSheet(
+            title = "Pilih kelurahan di ${form.kecamatan}",
+            options = kelurahanRepo.kelurahanOf(form.kecamatan),
+            selected = form.kelurahan,
+            onPick = { picked ->
+                onUpdate(form.copy(kelurahan = picked))
+                showKelurahanPicker = false
+            },
+            onDismiss = { showKelurahanPicker = false },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AreaPickerSheet(
+    title: String,
+    options: List<String>,
+    selected: String,
+    onPick: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        shape = Radius.sheet,
+        containerColor = Surface,
+    ) {
+        Column(Modifier.fillMaxWidth().padding(bottom = 28.dp)) {
+            Text(
+                title,
+                style = AlirinText.h3,
+                modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
+            )
+            LazyColumn(Modifier.fillMaxWidth().heightIn(max = 420.dp)) {
+                items(options) { option ->
+                    val active = option.equals(selected, ignoreCase = true)
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable { onPick(option) }
+                            .padding(horizontal = 20.dp, vertical = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(
+                            option,
+                            style = AlirinText.body.copy(
+                                color = if (active) Primary else Ink,
+                                fontWeight = if (active) androidx.compose.ui.text.font.FontWeight.W700
+                                             else androidx.compose.ui.text.font.FontWeight.W500,
+                            ),
+                        )
+                        if (active) Icon(AlirinIcons.check, null, tint = Primary, modifier = Modifier.size(18.dp))
+                    }
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(Hairline))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PickerFieldBordered(
+    label: String,
+    value: String,
+    filled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier
+            .clip(Radius.md)
+            .background(Surface)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 10.dp)
+    ) {
+        Text(label, style = AlirinText.caption)
+        Row(
+            Modifier.fillMaxWidth().padding(top = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                value,
+                style = AlirinText.body.copy(
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.W600,
+                    color = if (filled) Ink else Muted,
+                ),
+            )
+            Icon(AlirinIcons.chevronDown, null, tint = Muted, modifier = Modifier.size(16.dp))
+        }
+    }
 }
 
 private fun reverseGeocode(ctx: Context, lat: Double, lng: Double): Pair<String?, String?>? =
@@ -231,8 +369,11 @@ private fun reverseGeocode(ctx: Context, lat: Double, lng: Double): Pair<String?
         @Suppress("DEPRECATION")
         val res = Geocoder(ctx, Locale("id")).getFromLocation(lat, lng, 1)
         val a = res?.firstOrNull() ?: return null
-        val kecamatan = a.locality ?: a.subAdminArea
-        val kelurahan = a.subLocality ?: a.thoroughfare ?: a.featureName
+        // subLocality saja untuk kelurahan. Versi lama mencadangkannya ke
+        // thoroughfare (nama jalan) dan featureName, yang praktis tidak pernah
+        // berupa nama kelurahan sehingga selalu gagal validasi.
+        val kecamatan = a.subAdminArea ?: a.locality
+        val kelurahan = a.subLocality ?: a.locality
         kecamatan to kelurahan
     }.getOrNull()
 

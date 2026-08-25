@@ -97,7 +97,11 @@ fun PetaScreen(
 
     val locVm: com.example.alirinmobile.feature.LocationViewModel =
         androidx.lifecycle.viewmodel.compose.viewModel(factory = com.example.alirinmobile.feature.AlirinViewModelFactory.Factory)
-    val userLoc by locVm.last.collectAsStateWithLifecycle()
+    // Mengamati aliran posisi, bukan snapshot terakhir, supaya penanda pengguna
+    // ikut bergerak saat ia berpindah tanpa perlu menekan tombol lokasi.
+    val liveLoc by locVm.live.collectAsStateWithLifecycle()
+    val lastLoc by locVm.last.collectAsStateWithLifecycle()
+    val userLoc = liveLoc ?: lastLoc
     val userGeo = userLoc?.let { org.osmdroid.util.GeoPoint(it.lat, it.lng) }
 
     fun goToMyLocation() {
@@ -111,7 +115,10 @@ fun PetaScreen(
 
     val locationPermLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted -> if (granted) goToMyLocation() }
+    ) { granted ->
+        locVm.onPermissionResult()
+        if (granted) goToMyLocation()
+    }
 
     LaunchedEffect(Unit) { if (locVm.hasPermission()) locVm.fetchOnce {} }
 

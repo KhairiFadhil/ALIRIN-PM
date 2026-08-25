@@ -16,7 +16,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +45,7 @@ import com.example.alirinmobile.data.auth.Role
 import com.example.alirinmobile.feature.AlirinViewModelFactory
 import com.example.alirinmobile.feature.AuthViewModel
 import com.example.alirinmobile.feature.LaporViewModel
+import com.example.alirinmobile.feature.LocationViewModel
 import com.example.alirinmobile.feature.ReportsViewModel
 import com.example.alirinmobile.feature.StaffViewModel
 import com.example.alirinmobile.feature.auth.AdminWallScreen
@@ -172,6 +177,31 @@ private fun MainShell(role: Role, onLogout: () -> Unit) {
     val reports by reportsVm.reports.collectAsStateWithLifecycle()
     val authVm: AuthViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
     val session by authVm.session.collectAsStateWithLifecycle()
+
+    // Izin lokasi diminta begitu shell utama tampil, bukan menunggu pengguna
+    // menekan tombol di layar Lapor. Tanpa ini, posisi pengguna baru terisi
+    // setelah ia kebetulan membuka alur pelaporan.
+    val locationVm: LocationViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { locationVm.onPermissionResult() }
+
+    LaunchedEffect(Unit) {
+        if (!locationVm.hasPermission()) {
+            locationPermissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                )
+            )
+        } else {
+            locationVm.onPermissionResult()
+        }
+    }
+
+    // Mengamati aliran posisi di level shell membuatnya tetap hidup selama
+    // aplikasi dibuka, sehingga titik pengguna ikut bergerak di semua layar.
+    val liveLocation by locationVm.live.collectAsStateWithLifecycle()
 
     val weatherVm: WeatherViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
     val lifecycleOwner = LocalLifecycleOwner.current

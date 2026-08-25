@@ -42,6 +42,8 @@ Konteks lomba: GEMASTIK Smart City — produk harus bertindak sebagai *smart cit
 4. Watermark foto otomatis (lat/long + timestamp) untuk anti-laporan palsu.
    Tanpa koordinat, watermark hanya memuat waktu.
 5. Peta risiko dengan fitur **"Area kamu"** — titik dalam 1 km dari lokasi pengguna.
+   Posisi pengguna **dilacak berkelanjutan** (tiap 5 detik atau 10 meter), bukan
+   sekali ambil, dan izin lokasi diminta saat aplikasi dibuka.
 6. Offline draft + queued submit (WorkManager + outbox Room).
 7. Status tracking dengan timeline (Menunggu → Diverifikasi → Dijadwalkan → Ditangani → Selesai / Ditolak),
    urutannya ditegakkan `StatusMachine` di klien dan trigger di Supabase.
@@ -102,16 +104,28 @@ bisa dibedakan dari satu orang yang mengirim tiga kali. Fitur ini menunggu
 anonymous auth (lihat "Belum terbangun" di §3), dan sampai saat itu peta tidak
 mengklaim verifikasi kolektif atas laporan tunggal.
 
-### 4.3 "Area Kamu"
+### 4.3 "Area Kamu" dan posisi berkelanjutan
+
+Izin lokasi diminta **saat aplikasi dibuka** (`MainShell`), bukan menunggu
+pengguna membuka alur pelaporan. Setelah diberikan, `LocationRepository.locationUpdates()`
+mengalirkan posisi tiap 5 detik atau setiap perpindahan 10 meter, mana yang
+lebih dulu tercapai. Aliran berhenti sendiri saat tidak ada layar yang
+mengamatinya, jadi GPS tidak terus menyala.
+
+Sebelumnya aplikasi hanya memanggil `getCurrentLocation()` sekali, sehingga
+titik pengguna membeku di posisi pertama dan tidak pernah menyusul.
 
 Saat user buka layar Peta:
 
-1. Minta permission lokasi sekali, dengan alasan jelas.
+1. Posisi terkini sudah tersedia dari aliran; tombol lokasi hanya untuk
+   memusatkan peta.
 2. Tampilkan ringkasan: nama kecamatan saat ini, level risiko area, jumlah titik kritis dalam radius 1 km.
 3. Peta auto-zoom & center ke lokasi user.
 4. Marker yang muncul berasal dari laporan warga (lihat 4.4).
 
-Kalau permission ditolak: fallback ke center Bandar Lampung (lat -5.3971, lng 105.2668), ringkasan diganti ke "Bandar Lampung umum".
+Kalau permission ditolak: peta tetap bisa digeser manual, ringkasan diganti ke
+"Bandar Lampung umum". Titik pengguna tidak ditampilkan sama sekali — tidak
+dipalsukan ke pusat kota.
 
 ### 4.4 Sumber Data Peta
 
@@ -127,6 +141,34 @@ Rencana pengisiannya:
 2. **Alert cuaca BMKG** — memakai `rainfall_mm` yang kini sudah tersimpan di
    setiap laporan, plus ambang alert (rekomendasi P-6).
 3. **Sensor IoT** — roadmap Tahap 4.
+
+### 4.4b Pemilihan Wilayah Laporan
+
+Master wilayah memuat **20 kecamatan / 126 kelurahan** Kota Bandar Lampung.
+
+Alur pengisian:
+
+1. Setelah pin digeser, `Geocoder` dijalankan untuk menebak wilayah.
+2. Tebakan itu **dicocokkan ke master** lewat `AreaMatcher`, yang membuang
+   awalan "Kelurahan "/"Kel. "/"Kec. ", menyeragamkan kapitalisasi dan spasi,
+   lalu mencari kecocokan. Bila kecamatan tidak dikenali, kelurahan dicari di
+   seluruh kota dan hanya diterima bila kecocokannya tunggal.
+3. Tebakan yang tidak cocok **tidak dipakai**. Kolom dibiarkan kosong dan
+   pengguna memilih sendiri lewat pemilih kecamatan lalu kelurahan.
+4. Tombol Lanjut tidak aktif sampai pasangan wilayahnya sah.
+
+Yang diperbaiki dari versi lama:
+
+- `reverseGeocode` mencadangkan kelurahan ke `thoroughfare` (nama jalan) dan
+  `featureName`, yang praktis tidak pernah berupa nama kelurahan. Nilai itu
+  ditulis apa adanya ke laporan, lalu ditolak validasi **saat pengiriman** —
+  dan karena kolomnya read-only, pengguna tidak punya cara memperbaikinya.
+- Master wilayah hanya memuat 122 kelurahan; lima kelurahan resmi hilang
+  (Tanjung Gading, Gedong Meneng, Gedong Meneng Baru, Pasir Gintung, Gulak
+  Galik), satu entri bukan kelurahan resmi ("Nyunyai"), dan dua salah eja
+  ("Gedong Pakuon", "Tukik").
+- Wilayah ikut terisi dari kelurahan default widget cuaca ketika masih kosong,
+  yang sama sekali tidak berhubungan dengan titik yang dipilih pengguna.
 
 ### 4.5 Watermark Foto Otomatis
 
