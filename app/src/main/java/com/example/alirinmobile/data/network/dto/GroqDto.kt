@@ -8,7 +8,7 @@ data class ChatMessage(val role: String, val content: String)
 
 @Serializable
 data class ChatCompletionRequest(
-    val model: String = "llama-3.1-8b-instant",
+    val model: String = com.example.alirinmobile.BuildConfig.GROQ_MODEL,
     val messages: List<ChatMessage>,
     val temperature: Double = 0.2,
     @SerialName("max_tokens") val maxTokens: Int = 512,

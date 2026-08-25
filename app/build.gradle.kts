@@ -20,6 +20,10 @@ val localProps = Properties().apply {
     if (f.exists()) f.inputStream().use { load(it) }
 }
 val groqApiKey: String = localProps.getProperty("GROQ_API_KEY", "")
+// Model Groq bisa diganti tanpa menyentuh kode. Default memakai model yang
+// masih tersedia di tier standar; llama-3.1-8b-instant yang disebut proposal
+// dijadwalkan berhenti 16 Agustus 2026 dan kini hanya untuk akun Enterprise.
+val groqModel: String = localProps.getProperty("GROQ_MODEL", "openai/gpt-oss-20b")
 val supabaseUrl: String = localProps.getProperty("SUPABASE_URL", "")
 val supabaseKey: String = localProps.getProperty("SUPABASE_PUBLISHABLE_KEY", "")
 
@@ -39,6 +43,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "GROQ_API_KEY", "\"$groqApiKey\"")
+        buildConfigField("String", "GROQ_MODEL", "\"$groqModel\"")
         buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"$supabaseKey\"")
     }

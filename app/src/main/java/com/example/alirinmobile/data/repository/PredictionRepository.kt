@@ -1,5 +1,7 @@
 package com.example.alirinmobile.data.repository
 
+import android.util.Log
+import com.example.alirinmobile.BuildConfig
 import com.example.alirinmobile.data.network.ApiClient
 import com.example.alirinmobile.data.network.dto.AiForecast
 import com.example.alirinmobile.data.network.dto.BmkgForecastResponse
@@ -42,10 +44,25 @@ class PredictionRepository(
     }
 
     suspend fun predict(kelurahan: Kelurahan, forecast: BmkgForecastResponse): PredictionUiModel {
-        if (!api.groqConfigured) return PredictionUiModel(PredictionUiModel.Source.Fallback, fallback(forecast))
+        if (!api.groqConfigured) {
+            // Bukan kegagalan: baseline berbasis aturan memang jalur resmi
+            // selama kunci belum dipasang (Proposal 4.3.4).
+            Log.i(TAG, "GROQ_API_KEY kosong, memakai baseline berbasis aturan.")
+            return PredictionUiModel(PredictionUiModel.Source.Fallback, fallback(forecast))
+        }
         return runCatching { callGroq(kelurahan, forecast) }
             .map { PredictionUiModel(PredictionUiModel.Source.Groq, it) }
-            .getOrElse { PredictionUiModel(PredictionUiModel.Source.Fallback, fallback(forecast)) }
+            .getOrElse { error ->
+                // Sebelumnya kegagalan ditelan tanpa jejak, sehingga kunci salah
+                // atau model yang sudah dimatikan tidak bisa dibedakan dari
+                // "memang belum dikonfigurasi".
+                Log.w(TAG, "Panggilan Groq gagal (model=${BuildConfig.GROQ_MODEL}): ${error.message}. Beralih ke baseline.")
+                PredictionUiModel(PredictionUiModel.Source.Fallback, fallback(forecast))
+            }
+    }
+
+    private companion object {
+        const val TAG = "AlirinPrediction"
     }
 
     private suspend fun callGroq(kelurahan: Kelurahan, forecast: BmkgForecastResponse): AiForecast {
