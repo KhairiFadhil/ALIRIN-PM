@@ -16,4 +16,7 @@ data class AuthSession(
     val displayName: String,
     val role: Role,
     val avatarUrl: String? = null,
+    // user_metadata.officerId di Supabase Auth, menghubungkan akun ini ke baris
+    // public.officers dan ke reports.assigned_officer_id.
+    val officerId: String? = null,
 )

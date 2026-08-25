@@ -22,6 +22,7 @@ fun LaporFlowScreen(
     val form by viewModel.form.collectAsStateWithLifecycle()
     val mode by viewModel.mode.collectAsStateWithLifecycle()
     val submitted by viewModel.submitted.collectAsStateWithLifecycle()
+    val submittedToken by viewModel.submittedToken.collectAsStateWithLifecycle()
     val submitError by viewModel.submitError.collectAsStateWithLifecycle()
     val ctx = LocalContext.current
 
@@ -75,6 +76,7 @@ fun LaporFlowScreen(
         )
         LaporStep.Success -> SuccessScreen(
             code = submitted.orEmpty(),
+            trackingToken = submittedToken.orEmpty(),
             mode = mode ?: ReportMode.Cepat,
             form = form,
             onClose = onClose,

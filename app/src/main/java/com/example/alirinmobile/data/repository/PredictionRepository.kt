@@ -49,7 +49,9 @@ class PredictionRepository(
     }
 
     private suspend fun callGroq(kelurahan: Kelurahan, forecast: BmkgForecastResponse): AiForecast {
-        val hours = forecast.data.firstOrNull()?.cuaca?.flatten().orEmpty().take(3)
+        // BMKG memberi slot berdurasi 3 jam, jadi "3 jam ke depan" = SATU slot.
+        // Versi lama menjumlahkan tiga slot dan menyebutnya 3 jam (nyatanya 9 jam).
+        val hours = forecast.data.firstOrNull()?.cuaca?.flatten().orEmpty().take(1)
         val precipSum = hours.sumOf { it.tp ?: 0.0 }
         val avgTemp = hours.mapNotNull { it.t }.average().takeIf { !it.isNaN() } ?: 28.0
         val avgHumidity = hours.mapNotNull { it.hu }.average().takeIf { !it.isNaN() } ?: 80.0
@@ -91,7 +93,7 @@ class PredictionRepository(
     }
 
     private fun fallback(forecast: BmkgForecastResponse): AiForecast {
-        val hours = forecast.data.firstOrNull()?.cuaca?.flatten().orEmpty().take(3)
+        val hours = forecast.data.firstOrNull()?.cuaca?.flatten().orEmpty().take(1)
         val precip = hours.sumOf { it.tp ?: 0.0 }
         val temp = hours.firstOrNull()?.t?.toDouble() ?: 28.0
         val desc = hours.firstOrNull()?.weatherDesc?.takeIf { it.isNotBlank() } ?: "Berawan"

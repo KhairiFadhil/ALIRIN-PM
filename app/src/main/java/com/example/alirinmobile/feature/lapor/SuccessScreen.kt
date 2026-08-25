@@ -1,6 +1,7 @@
 package com.example.alirinmobile.feature.lapor
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -31,6 +32,7 @@ import com.example.alirinmobile.ui.theme.*
 @Composable
 fun SuccessScreen(
     code: String,
+    trackingToken: String,
     mode: ReportMode,
     form: LaporForm,
     onClose: () -> Unit,
@@ -103,6 +105,38 @@ fun SuccessScreen(
                 KvCol(label = "Nomor", value = code, mono = true, modifier = Modifier.weight(1f))
                 KvCol(label = "Severity", value = sev.label, modifier = Modifier.weight(1f))
                 KvCol(label = "Lokasi", value = form.kelurahan.ifBlank { "—" }, align = Alignment.End, modifier = Modifier.weight(1f))
+            }
+
+            // Token pelacakan (Proposal 4.3.1). Sebelumnya token dibuat dan
+            // disimpan tetapi tidak pernah ditampilkan, sehingga warga tidak
+            // punya cara memantau laporannya dari perangkat lain.
+            if (trackingToken.isNotBlank()) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(Radius.md)
+                        .background(Surface2)
+                        .padding(12.dp)
+                        .clickable {
+                            val clip = ctx.getSystemService(android.content.ClipboardManager::class.java)
+                            clip?.setPrimaryClip(
+                                android.content.ClipData.newPlainText("Token ALIRIN", trackingToken)
+                            )
+                        },
+                ) {
+                    Text("Token pelacakan · ketuk untuk menyalin", style = AlirinText.caption)
+                    Text(
+                        trackingToken,
+                        style = AlirinText.mono.copy(fontSize = 13.sp, color = Ink),
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                    Text(
+                        "Simpan token ini untuk memantau laporan dari perangkat lain.",
+                        style = AlirinText.caption,
+                        modifier = Modifier.padding(top = 6.dp),
+                    )
+                }
+                Spacer(Modifier.height(14.dp))
             }
 
             Box(

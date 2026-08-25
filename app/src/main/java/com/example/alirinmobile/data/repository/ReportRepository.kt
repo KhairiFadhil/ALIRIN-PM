@@ -5,14 +5,19 @@ import com.example.alirinmobile.data.Report
 import com.example.alirinmobile.data.ReportMode
 import com.example.alirinmobile.data.ReportStatus
 import com.example.alirinmobile.data.RiskLevel
+import com.example.alirinmobile.data.StatusMachine
 import com.example.alirinmobile.data.categoryToWire
+import com.example.alirinmobile.data.reportStatusFromWire
+import com.example.alirinmobile.data.scoring.RiskEngine
 import com.example.alirinmobile.data.local.ReportDao
 import com.example.alirinmobile.data.local.ReportEntity
 import com.example.alirinmobile.data.local.StatusHistoryJson
 import com.example.alirinmobile.data.local.decodePhotos
 import com.example.alirinmobile.data.local.decodeStatusHistoryRaw
 import com.example.alirinmobile.data.local.encodePhotos
+import com.example.alirinmobile.data.local.encodeRiskBreakdown
 import com.example.alirinmobile.data.local.encodeStatusHistoryRaw
+import com.example.alirinmobile.data.local.jsonCodec
 import com.example.alirinmobile.data.local.toDomain
 import com.example.alirinmobile.data.network.PhotoUploader
 import com.example.alirinmobile.data.network.dto.ReportPhotoInsertPayload
@@ -61,7 +66,14 @@ class ReportRepository(
     private val applicationScope: CoroutineScope,
     private val authRepo: AuthRepository,
     private val kelurahanRepo: KelurahanRepository,
+    private val weatherRepo: WeatherRepository,
 ) {
+
+    // Batas Kota Bandar Lampung, sama dengan CITY_BOUNDS di web dan constraint
+    // reports_coordinate_bounds_check di Supabase.
+    private fun isInsideCity(lat: Double?, lng: Double?): Boolean =
+        lat != null && lng != null &&
+            lat >= -5.62 && lat <= -5.28 && lng >= 105.15 && lng <= 105.36
 
     // ---- Draft state (in-memory only) ----
     private val _draft = MutableStateFlow<LaporForm?>(null)
@@ -76,6 +88,11 @@ class ReportRepository(
     fun observeReport(id: String): Flow<Report?> =
         dao.observe(id).map { it?.toDomain() }
 
+    // Laporan milik perangkat ini: yang dibuat di sini, plus yang pernah dilacak
+    // lewat tracking token. Peta dan statistik tetap memakai observeReports().
+    fun observeMyReports(): Flow<List<Report>> =
+        dao.observeAll().map { list -> list.filter { it.createdLocally }.map { it.toDomain() } }
+
     data class SubmitResult(val id: String, val code: String, val trackingToken: String)
 
     // ---- Submission (optimistic, offline-first) ----
@@ -88,6 +105,18 @@ class ReportRepository(
         require(form.kategori.isNotBlank()) { "Kategori laporan wajib dipilih." }
         require(form.severity.isNotBlank()) { "Tingkat severity wajib dipilih." }
         require(form.lat != null && form.lng != null) { "Lokasi laporan wajib ditandai di peta." }
+        require(isInsideCity(form.lat, form.lng)) {
+            "Koordinat berada di luar wilayah Kota Bandar Lampung."
+        }
+        // Aturan per mode, identik dengan validateReportInput di web.
+        if (mode == ReportMode.Lengkap) {
+            require(form.deskripsi.trim().length >= 10) { "Deskripsi minimal 10 karakter." }
+            require(form.photos.isNotEmpty()) { "Minimal 1 foto bukti wajib pada Lapor Lengkap." }
+        } else {
+            require(form.deskripsi.isBlank() || form.deskripsi.trim().length >= 10) {
+                "Deskripsi minimal 10 karakter, atau kosongkan saja."
+            }
+        }
 
         val nowIso = ReportCodegen.nowIsoUtc()
         val nowMs = System.currentTimeMillis()
@@ -97,7 +126,23 @@ class ReportRepository(
         val token = ReportCodegen.newTrackingToken()
         val categoryWire = categoryToWire(form.kategori)
         val severity = form.severity
-        val (score, risk) = computeScore(severity, mode)
+
+        // Curah hujan 3 jam BMKG dibekukan di laporan sebagai masukan faktor
+        // Cuaca. Gagal ambil -> null, artinya "tidak diketahui", bukan "0 mm".
+        val rainfallMm = weatherRepo.rainfallMmFor(
+            kelurahanRepo.resolveAdm4(form.kecamatan, form.kelurahan)
+        )
+
+        val risk = computeRisk(
+            id = id,
+            severity = severity,
+            lat = form.lat,
+            lng = form.lng,
+            createdAtMs = nowMs,
+            rainfallMm = rainfallMm,
+            photoCount = form.photos.size,
+            description = form.deskripsi,
+        )
 
         val localPhotos = form.photos.mapNotNull { photo ->
             val uri = photo.uri ?: return@mapNotNull null
@@ -129,8 +174,8 @@ class ReportRepository(
             category = categoryWire,
             severity = severity,
             status = "masuk",
-            riskLevel = risk.toWire(),
-            riskScore = score,
+            riskLevel = risk.level.toWire(),
+            riskScore = risk.score,
             description = form.deskripsi,
             address = form.alamat.ifBlank { null },
             lat = form.lat!!,
@@ -144,18 +189,20 @@ class ReportRepository(
             blockedReason = null,
             archivedAt = null,
             submissionMode = mode.toWire(),
+            rainfallMm = rainfallMm,
             createdAt = nowIso,
             updatedAt = nowIso,
             updatedAtMs = nowMs,
             photosJson = encodePhotos(localPhotos),
             completionPhotosJson = "[]",
-            riskBreakdownJson = "[]",
+            riskBreakdownJson = encodeRiskBreakdown(risk.breakdown),
             statusHistoryJson = encodeStatusHistoryRaw(initialHistory),
             fieldNotesJson = "[]",
             syncStatus = "pending",
             syncAttempts = 0,
             syncLastError = null,
             localOnly = true,
+            createdLocally = true,
         )
         dao.upsert(entity)
         clearDraft()
@@ -170,25 +217,19 @@ class ReportRepository(
         dao.markSyncState(id, "syncing", null)
         val uploadedPaths = mutableListOf<String>()
         try {
-            // (a) Upload photos yang belum ada url
-            val currentPhotos = decodePhotos(initial.photosJson)
-            val uploaded = currentPhotos.map { p ->
-                if (!p.url.isNullOrBlank()) return@map p
-                val local = p.localUri?.let(::File)
-                if (local == null || !local.exists()) return@map p
-                val pushed = uploader.upload(local)
-                extractStoragePath(pushed.url!!)?.let { uploadedPaths += it }
-                pushed
-            }
-            val afterUpload = dao.get(id)!!.copy(photosJson = encodePhotos(uploaded))
-            dao.upsert(afterUpload)
-
-            // (b) Insert reports row with 5x retry on unique code collision.
+            // (a) Insert baris reports LEBIH DULU, baru unggah foto.
+            //
+            // Urutan lama membalik keduanya: foto diunggah dulu, dan bila insert
+            // gagal, rollback memanggil Storage delete sebagai anon. Policy hapus
+            // hanya untuk staff, kegagalannya ditelan runCatching, dan berkasnya
+            // tertinggal selamanya tanpa baris yang merujuknya. Dengan urutan ini
+            // kegagalan insert tidak pernah meninggalkan berkas yatim.
+            //
             // NOTE: supabase-kt default kirim "Prefer: return=representation" yang
             // memicu implicit SELECT dari row baru; RLS reports_staff_select memblok
             // anon → 42501. Kita paksa "return=minimal" via headers builder.
             var attempts = 0
-            var rowToInsert = afterUpload
+            var rowToInsert = initial
             while (true) {
                 val err = runCatching {
                     supabase.from("reports").insert(rowToInsert.toInsertPayload()) {
@@ -207,23 +248,9 @@ class ReportRepository(
                 throw err
             }
 
-            // (c) Insert child rows: photos + status_history (risk_breakdowns kosong dari mobile)
-            val photoRows = uploaded.filter { !it.url.isNullOrBlank() }.map { p ->
-                ReportPhotoInsertPayload(
-                    reportId = id,
-                    url = p.url!!,
-                    name = p.name,
-                    type = p.type,
-                    size = p.size,
-                    kind = "report",
-                )
-            }
-            if (photoRows.isNotEmpty()) {
-                supabase.from("report_photos").insert(photoRows) {
-                    headers.remove("Prefer")
-                    headers.append("Prefer", "return=minimal")
-                }
-            }
+            // (b) Riwayat status awal. Ditulis sebelum foto karena policy
+            // report_status_history_public_insert mensyaratkan laporan masih
+            // berstatus 'masuk'.
             supabase.from("report_status_history").insert(
                 StatusHistoryInsertPayload(
                     reportId = id,
@@ -237,9 +264,35 @@ class ReportRepository(
                 headers.append("Prefer", "return=minimal")
             }
 
+            // (c) Unggah foto lalu tautkan. Kalau tahap ini gagal, laporannya
+            // sudah aman tersimpan; outbox tinggal mengulang unggahannya.
+            val uploaded = decodePhotos(rowToInsert.photosJson).map { photo ->
+                if (!photo.url.isNullOrBlank()) return@map photo
+                val local = photo.localUri?.let(::File)
+                if (local == null || !local.exists()) return@map photo
+                uploader.upload(local)
+            }
+            dao.upsert(dao.get(id)!!.copy(photosJson = encodePhotos(uploaded)))
+
+            val photoRows = uploaded.filter { !it.url.isNullOrBlank() }.map { photo ->
+                ReportPhotoInsertPayload(
+                    reportId = id,
+                    url = photo.url!!,
+                    name = photo.name,
+                    type = photo.type,
+                    size = photo.size,
+                    kind = "report",
+                )
+            }
+            if (photoRows.isNotEmpty()) {
+                supabase.from("report_photos").insert(photoRows) {
+                    headers.remove("Prefer")
+                    headers.append("Prefer", "return=minimal")
+                }
+            }
+
             dao.markSynced(id, s = "synced", localOnly = false)
         } catch (t: Throwable) {
-            uploader.deleteMany(uploadedPaths)
             dao.markSyncState(id, "failed", t.message?.take(500))
         }
     }
@@ -271,6 +324,10 @@ class ReportRepository(
                     publicTrackingToken = fresh.publicTrackingToken ?: existing.publicTrackingToken,
                     reporterName = fresh.reporterName ?: existing.reporterName,
                     reporterContact = fresh.reporterContact ?: existing.reporterContact,
+                    // Penanda kepemilikan perangkat tidak ada di server; harus
+                    // dipertahankan agar layar Status tetap tahu laporan mana
+                    // yang dibuat dari sini.
+                    createdLocally = existing.createdLocally,
                     // Preserve outbox metadata (should be synced/localOnly=false since not in localOnly filter)
                     syncStatus = existing.syncStatus.takeIf { it != "pending" && it != "syncing" && it != "failed" } ?: "synced",
                     syncAttempts = existing.syncAttempts,
@@ -291,14 +348,19 @@ class ReportRepository(
 
     // ---- Track by tracking token (Room first, fallback RPC) ----
     suspend fun trackByToken(token: String): Report? {
-        dao.findByToken(token)?.let { return it.toDomain() }
+        dao.findByToken(token)?.let {
+            if (!it.createdLocally) dao.upsert(it.copy(createdLocally = true))
+            return it.toDomain()
+        }
         val dto = runCatching {
             supabase.postgrest.rpc(
                 "get_report_by_tracking_token",
                 buildJsonObject { put("p_token", token) },
             ).decodeAs<SupabaseReportDto>()
         }.getOrNull() ?: return null
-        val entity = dto.toEntity()
+        // Pemegang token adalah pelapornya, jadi laporan ini masuk daftar
+        // "laporan saya" di perangkat ini.
+        val entity = dto.toEntity().copy(createdLocally = true)
         dao.upsert(entity)
         return entity.toDomain()
     }
@@ -321,16 +383,33 @@ class ReportRepository(
     }
 
     // ---- Staff status transitions ----
+    // Mengembalikan pesan kesalahan bila transisi ditolak, null bila diterima.
+    // Pemeriksaan di sini mencegah aksi yang pasti ditolak trigger Supabase
+    // sampai ke jaringan, sekaligus menjaga cache Room tetap konsisten.
     fun updateReportStatus(
         reportId: String,
         newStatus: ReportStatus,
         note: String? = null,
         actorLabel: String? = null,
+        onError: (String) -> Unit = {},
     ) {
         val nowIso = ReportCodegen.nowIsoUtc()
         val nowMs = System.currentTimeMillis()
         applicationScope.launch {
             val current = dao.get(reportId) ?: return@launch
+            val from = reportStatusFromWire(current.status)
+
+            if (!StatusMachine.canTransition(from, newStatus)) {
+                onError(StatusMachine.rejectionReason(from, newStatus))
+                return@launch
+            }
+            if (StatusMachine.requiresCompletionPhoto(newStatus) &&
+                decodePhotos(current.completionPhotosJson).isEmpty()
+            ) {
+                onError("Unggah foto bukti penyelesaian sebelum menutup laporan.")
+                return@launch
+            }
+
             val newEntry = StatusHistoryJson(
                 status = newStatus.toWire(),
                 actor = actorLabel ?: "Petugas",
@@ -342,6 +421,10 @@ class ReportRepository(
                 status = newStatus.toWire(),
                 updatedAt = nowIso,
                 updatedAtMs = nowMs,
+                // Arsip mengikuti status, sama seperti web dan trigger Supabase.
+                archivedAt = if (StatusMachine.isFinal(newStatus)) {
+                    current.archivedAt ?: nowIso
+                } else null,
                 statusHistoryJson = encodeStatusHistoryRaw(newHistory),
             )
             dao.upsert(updated)
@@ -349,6 +432,7 @@ class ReportRepository(
                 supabase.from("reports").update({
                     set("status", newStatus.toWire())
                     set("updated_at", nowIso)
+                    if (StatusMachine.isFinal(newStatus)) set("archived_at", updated.archivedAt)
                 }) {
                     filter { eq("id", reportId) }
                 }
@@ -376,6 +460,8 @@ class ReportRepository(
         val nowMs = System.currentTimeMillis()
         applicationScope.launch {
             val current = dao.get(reportId) ?: return@launch
+            val from = reportStatusFromWire(current.status)
+            if (!StatusMachine.canTransition(from, ReportStatus.Verified)) return@launch
             runCatching {
                 val ref = uploader.upload(File(photoLocalPath)).copy(kind = "completion")
                 val noteFinal = note ?: "Diverifikasi di lokasi dengan foto bukti."
@@ -401,9 +487,14 @@ class ReportRepository(
                         type = ref.type, size = ref.size, kind = "completion",
                     )
                 )
+                // Kolom completion_photos WAJIB ikut diperbarui. Web membaca
+                // bukti penyelesaian dari kolom jsonb ini, bukan dari tabel
+                // report_photos, sehingga sebelum perbaikan ini foto verifikasi
+                // on-site tidak pernah muncul di dashboard admin.
                 supabase.from("reports").update({
                     set("status", ReportStatus.Verified.toWire())
                     set("updated_at", nowIso)
+                    set("completion_photos", jsonCodec.parseToJsonElement(encodePhotos(newCompletion)))
                 }) { filter { eq("id", reportId) } }
                 supabase.from("report_status_history").insert(
                     StatusHistoryInsertPayload(
@@ -416,20 +507,43 @@ class ReportRepository(
     }
 
     // ---- Helpers ----
-    private fun computeScore(severity: String, mode: ReportMode): Pair<Int, RiskLevel> {
-        val weight = when (severity) {
-            "ringan" -> 20; "sedang" -> 45; "parah" -> 65; "kritis" -> 85
-            else -> 30
-        }
-        val multiplier = if (mode == ReportMode.Lengkap) 1.0 else 0.7
-        val score = (weight * multiplier).toInt().coerceIn(0, 100)
-        val risk = when {
-            score >= 80 -> RiskLevel.Kritis
-            score >= 60 -> RiskLevel.Tinggi
-            score >= 40 -> RiskLevel.Waspada
-            else -> RiskLevel.Normal
-        }
-        return score to risk
+    // Skor memakai RiskEngine bersama (bobot Proposal 4.4). Rumus lama di sini
+    // hanya membaca severity lalu mengalikannya 0,7 untuk mode Cepat, sehingga
+    // laporan banjir kritis yang dikirim cepat justru turun ke kelas Waspada.
+    // Mode laporan sekarang tidak memengaruhi skor sama sekali.
+    private suspend fun computeRisk(
+        id: String,
+        severity: String,
+        lat: Double,
+        lng: Double,
+        createdAtMs: Long,
+        rainfallMm: Double?,
+        photoCount: Int,
+        description: String,
+    ): RiskEngine.Result {
+        val neighbours = runCatching {
+            dao.neighbourRows().map {
+                RiskEngine.NeighbourReport(
+                    id = it.id,
+                    lat = it.lat,
+                    lng = it.lng,
+                    createdAtMs = ReportCodegen.parseIsoMillis(it.createdAt) ?: it.updatedAtMs,
+                    status = it.status,
+                )
+            }
+        }.getOrDefault(emptyList())
+
+        return RiskEngine.evaluate(
+            id = id,
+            severity = severity,
+            lat = lat,
+            lng = lng,
+            createdAtMs = createdAtMs,
+            rainfallMm = rainfallMm,
+            photoCount = photoCount,
+            description = description,
+            neighbours = neighbours,
+        )
     }
 
     private fun isCodeConflict(t: Throwable): Boolean {

@@ -51,6 +51,7 @@ private fun UserInfo.toSession(role: Role): AuthSession {
         displayName = displayName,
         role = role,
         avatarUrl = pickString(null, meta, "avatar_url"),
+        officerId = pickString(null, meta, "officerId") ?: pickString(null, meta, "officer_id"),
     )
 }
 

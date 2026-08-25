@@ -45,6 +45,8 @@ data class ReportEntity(
     @ColumnInfo(name = "blocked_reason") val blockedReason: String?,
     @ColumnInfo(name = "archived_at") val archivedAt: String?,
     @ColumnInfo(name = "submission_mode") val submissionMode: String?,
+    // Curah hujan 3 jam BMKG saat laporan dikirim; masukan faktor Cuaca.
+    @ColumnInfo(name = "rainfall_mm") val rainfallMm: Double? = null,
     @ColumnInfo(name = "created_at") val createdAt: String,
     @ColumnInfo(name = "updated_at") val updatedAt: String,
     @ColumnInfo(name = "updated_at_ms") val updatedAtMs: Long,
@@ -59,6 +61,19 @@ data class ReportEntity(
     @ColumnInfo(name = "sync_attempts") val syncAttempts: Int,
     @ColumnInfo(name = "sync_last_error") val syncLastError: String?,
     @ColumnInfo(name = "local_only") val localOnly: Boolean,
+    // Tetap true seumur hidup baris: menandai laporan yang dibuat dari perangkat
+    // ini. localOnly berubah false setelah tersinkron, jadi tidak bisa dipakai
+    // untuk memfilter "laporan saya" di layar Status.
+    @ColumnInfo(name = "created_locally") val createdLocally: Boolean = false,
+)
+
+data class NeighbourRow(
+    val id: String,
+    val lat: Double,
+    val lng: Double,
+    @ColumnInfo(name = "updated_at_ms") val updatedAtMs: Long,
+    val status: String,
+    @ColumnInfo(name = "created_at") val createdAt: String,
 )
 
 @Dao
@@ -83,6 +98,13 @@ interface ReportDao {
 
     @Query("SELECT id FROM reports WHERE local_only = 1")
     suspend fun localOnlyIds(): List<String>
+
+    @Query("SELECT id FROM reports WHERE created_locally = 1")
+    suspend fun locallyCreatedIds(): List<String>
+
+    // Tetangga untuk faktor Histori pada RiskEngine.
+    @Query("SELECT id, lat, lng, updated_at_ms, status, created_at FROM reports")
+    suspend fun neighbourRows(): List<NeighbourRow>
 
     @Query("SELECT COUNT(*) FROM reports")
     suspend fun count(): Int

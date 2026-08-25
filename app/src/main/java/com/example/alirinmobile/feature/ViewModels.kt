@@ -22,6 +22,7 @@ import com.example.alirinmobile.data.repository.WeatherRepository
 import com.example.alirinmobile.data.repository.WeatherState
 import com.example.alirinmobile.feature.lapor.LaporForm
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -84,6 +85,12 @@ class AuthViewModel(private val repository: AuthRepository = authRepo()) : ViewM
 
 class ReportsViewModel(private val repository: ReportRepository = repo()) : ViewModel() {
     val reports: StateFlow<List<Report>> = repository.observeReports()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    // Laporan yang dibuat dari perangkat ini, plus yang pernah dilacak lewat
+    // token. Layar Status dulu menampilkan seluruh laporan kota dengan judul
+    // "Status Laporan" dan blok bernama MyReports.
+    val myReports: StateFlow<List<Report>> = repository.observeMyReports()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     init {
@@ -160,15 +167,41 @@ class StaffViewModel(
     private val repository: ReportRepository = repo(),
     private val authRepository: AuthRepository = authRepo(),
 ) : ViewModel() {
-    val queue: StateFlow<List<Report>> = repository.observeReports()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    private val _officerId = MutableStateFlow<String?>(null)
+
+    // Inbox verifikasi: hanya laporan yang belum ditugaskan atau ditugaskan ke
+    // petugas ini. Sebelumnya seluruh laporan kota tampil, sehingga petugas mana
+    // pun bisa menutup laporan siapa pun (Proposal 6.4.2 mengandaikan inbox
+    // tugas sendiri).
+    val queue: StateFlow<List<Report>> = combine(
+        repository.observeReports(),
+        _officerId,
+    ) { reports, officerId ->
+        reports.filter { it.assignedOfficerId.isNullOrBlank() || it.assignedOfficerId == officerId }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    // Tugas saya: hanya yang benar-benar ditugaskan ke petugas ini.
+    val myTasks: StateFlow<List<Report>> = combine(
+        repository.observeReports(),
+        _officerId,
+    ) { reports, officerId ->
+        if (officerId.isNullOrBlank()) emptyList()
+        else reports.filter { it.assignedOfficerId == officerId }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     private val _actor = MutableStateFlow<String?>(null)
     val actorLabel: StateFlow<String?> = _actor
 
+    val error = MutableStateFlow<String?>(null)
+    fun clearError() { error.value = null }
+
     init {
         viewModelScope.launch {
-            authRepository.session.collect { _actor.value = it?.displayName }
+            authRepository.session.collect {
+                _actor.value = it?.displayName
+                _officerId.value = it?.officerId
+            }
         }
         viewModelScope.launch { runCatching { repository.syncNow() } }
     }
@@ -179,6 +212,7 @@ class StaffViewModel(
             newStatus = newStatus,
             note = note,
             actorLabel = _actor.value,
+            onError = { error.value = it },
         )
     }
 

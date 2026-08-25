@@ -19,8 +19,6 @@ import java.util.Locale
 import java.util.UUID
 
 object PhotoStore {
-    private const val FALLBACK_LAT = -5.39812
-    private const val FALLBACK_LNG = 105.26012
     private const val MAX_EDGE_PX = 1280
 
     private fun ensureDir(ctx: Context): File =
@@ -34,7 +32,9 @@ object PhotoStore {
     ): String {
         val resized = bitmap.resizeTo(MAX_EDGE_PX)
         val watermarked = resized.copy(Bitmap.Config.ARGB_8888, true)
-        drawWatermark(watermarked, lat ?: FALLBACK_LAT, lng ?: FALLBACK_LNG)
+        // Tanpa koordinat, watermark hanya memuat waktu. Versi lama mencetak
+        // titik cadangan yang dikarang, justru merusak tujuan anti-laporan palsu.
+        drawWatermark(watermarked, lat, lng)
         return write(ctx, watermarked)
     }
 
@@ -68,10 +68,14 @@ object PhotoStore {
         return file.absolutePath
     }
 
-    private fun drawWatermark(bmp: Bitmap, lat: Double, lng: Double) {
+    private fun drawWatermark(bmp: Bitmap, lat: Double?, lng: Double?) {
         val canvas = Canvas(bmp)
         val ts = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale("id")).format(Date())
-        val line1 = "%.5f, %.5f".format(lat, lng)
+        val line1 = if (lat != null && lng != null) {
+            "%.5f, %.5f".format(lat, lng)
+        } else {
+            "Lokasi tidak terekam"
+        }
         val line2 = "ALIRIN · $ts"
         val textSize = (bmp.width * 0.028f).coerceIn(18f, 42f)
         val pad = textSize * 0.4f

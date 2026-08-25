@@ -52,6 +52,7 @@ import kotlin.math.ceil
 @Composable
 fun BerandaScreen(
     reports: List<Report>,
+    myReports: List<Report>,
     session: com.example.alirinmobile.data.auth.AuthSession?,
     onLaporClick: () -> Unit,
     onPetaClick: () -> Unit,
@@ -193,7 +194,7 @@ fun BerandaScreen(
             WeatherStrip()
             PredictionCard(onOpenMap = onPetaClick)
             if (nearby.isNotEmpty()) NearbyStrip(items = nearby, onOpenMap = onPetaClick)
-            MyReports(recent = reports, onSeeAll = onStatusClick, onItemClick = onStatusItemClick)
+            MyReports(recent = myReports, onSeeAll = onStatusClick, onItemClick = onStatusItemClick)
             Spacer(Modifier.height(16.dp))
         }
     }
@@ -582,8 +583,8 @@ private fun PredictionCard(onOpenMap: () -> Unit) {
 private fun PredictionCardSkeleton() {
     AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(18.dp)) {
         Column {
-            Text("PREDIKSI AI 3 JAM KE DEPAN", style = AlirinText.eyebrow)
-            Text("Memuat prakiraan dari BMKG + GROQ...", style = AlirinText.bodyR, modifier = Modifier.padding(top = 6.dp))
+            Text("PRAKIRAAN 3 JAM KE DEPAN", style = AlirinText.eyebrow)
+            Text("Memuat prakiraan dari BMKG...", style = AlirinText.bodyR, modifier = Modifier.padding(top = 6.dp))
         }
     }
 }
@@ -597,10 +598,17 @@ private fun PredictionCardContent(model: PredictionUiModel, onOpenMap: () -> Uni
         ai.curahHujanMm >= 1.0  -> RiskWaspadaDot to RiskWaspadaBg
         else                    -> RiskNormalDot to RiskNormalBg
     }
+    // Judul dan label mengikuti sumber yang benar-benar dipakai. Sebelumnya
+    // kartu selalu berbunyi "PREDIKSI AI" meski kunci Groq kosong, sehingga
+    // yang tampil sebenarnya keluaran aturan baseline.
     val sourceLabel = when (model.source) {
-        PredictionUiModel.Source.Groq     -> "GROQ AI"
-        PredictionUiModel.Source.Fallback -> "Rule-based"
-        PredictionUiModel.Source.Loading  -> "Memuat AI..."
+        PredictionUiModel.Source.Groq     -> "Analisis AI"
+        PredictionUiModel.Source.Fallback -> "Aturan baseline"
+        PredictionUiModel.Source.Loading  -> "Memuat..."
+    }
+    val headline = when (model.source) {
+        PredictionUiModel.Source.Groq -> "ANALISIS AI · 3 JAM KE DEPAN"
+        else -> "PRAKIRAAN BMKG · 3 JAM KE DEPAN"
     }
     Box(
         Modifier
@@ -613,7 +621,7 @@ private fun PredictionCardContent(model: PredictionUiModel, onOpenMap: () -> Uni
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "PREDIKSI AI 3 JAM KE DEPAN",
+                    headline,
                     style = AlirinText.eyebrow.copy(color = Ink),
                     modifier = Modifier.weight(1f),
                 )
@@ -652,7 +660,7 @@ private fun PredictionCardContent(model: PredictionUiModel, onOpenMap: () -> Uni
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Icon(AlirinIcons.sparkles, null, tint = riskTint.first, modifier = Modifier.size(14.dp))
-                        Text("REKOMENDASI AI", style = AlirinText.eyebrow.copy(color = Ink2))
+                        Text(if (model.source == PredictionUiModel.Source.Groq) "REKOMENDASI AI" else "REKOMENDASI", style = AlirinText.eyebrow.copy(color = Ink2))
                     }
                     ai.rekomendasi.take(4).forEach { rec ->
                         Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

@@ -23,7 +23,10 @@ fun reportStatusFromWire(s: String?): ReportStatus = when (s?.lowercase()) {
     else -> ReportStatus.Pending
 }
 
-fun RiskLevel.toWire(): String = name.lowercase()
+// Kapital di awal. Web menulis 'Normal', mobile dulu menulis 'normal', sehingga
+// satu kolom berisi tiga gaya penulisan. Constraint reports_risk_level_check
+// sekarang hanya menerima Normal/Waspada/Tinggi/Kritis.
+fun RiskLevel.toWire(): String = name
 
 fun riskLevelFromWire(s: String?): RiskLevel =
     RiskLevel.entries.firstOrNull { it.name.equals(s, ignoreCase = true) } ?: RiskLevel.Normal

@@ -7,7 +7,14 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-// Read GROQ API key from local.properties so it isn't committed to git.
+// GROQ_API_KEY dibaca dari local.properties agar tidak ikut ter-commit.
+//
+// CATATAN KEAMANAN: buildConfigField menaruh nilainya sebagai string biasa di
+// dalam DEX, jadi siapa pun yang mengunduh APK bisa mengekstraknya. Ini bisa
+// diterima selama masih prototipe; untuk rilis nyata, panggilan Groq harus
+// pindah ke Supabase Edge Function agar kuncinya tidak pernah ada di perangkat.
+// Kunci kosong bukan kegagalan: aplikasi memakai baseline berbasis aturan yang
+// dapat diaudit, dan kartu prakiraan menyebut sumbernya apa adanya.
 val localProps = Properties().apply {
     val f = rootProject.file("local.properties")
     if (f.exists()) f.inputStream().use { load(it) }
@@ -38,7 +45,9 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // Aktif supaya string dan nama kelas tidak terbaca telanjang di APK.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

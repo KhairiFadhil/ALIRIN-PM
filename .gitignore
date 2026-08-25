@@ -21,6 +21,9 @@ _design
 _design2
 # Native log dumps
 *.log
+# Artefak build: jangan ikut repo, gampang basi dan membengkakkan riwayat
+*.apk
+output-metadata.json
 # Dokumen presentasi & generator-nya (lokal saja, jangan masuk repo)
 *.pdf
 _make_pdf.py

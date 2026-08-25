@@ -2,7 +2,12 @@
 
 Dokumen ini menjelaskan **cara kerja** ALIRIN Mobile (Android, sisi warga). Semua urusan UI/visual/layout/komponen tidak dibahas di sini — itu jatahnya tahap desain terpisah (Claude Design).
 
-Versi: v1 · Tanggal: 2026-05-19 · Platform: Android
+Versi: v2 · Tanggal: 2026-08-26 · Platform: Android
+
+> **Status dokumen.** v1 menjanjikan beberapa hal yang tidak pernah terbangun
+> (anonymous Supabase auth, verifikasi gotong-royong, sumber data peta gabungan,
+> tabel `historical_hotspots`). Bagian-bagian itu dipindahkan ke "Belum
+> terbangun" agar dokumen ini menggambarkan aplikasi yang benar-benar ada.
 
 ---
 
@@ -10,7 +15,7 @@ Versi: v1 · Tanggal: 2026-05-19 · Platform: Android
 
 ALIRIN = sistem kota cerdas Bandar Lampung untuk monitoring & prioritas preventif drainase mikro yang berpotensi menyebabkan genangan.
 
-Versi web (sudah ada di github.com/odlaver/alirin) punya 2 sisi: **warga** (lapor) + **admin** (validasi & tindak lanjut). App mobile ini **hanya sisi warga** — admin tetap di web, datanya nyambung lewat backend bersama.
+Versi web punya 3 sisi: **warga** (lapor), **petugas** (tugas lapangan), dan **admin** (validasi & penugasan). App mobile melayani **warga dan petugas**; admin tetap eksklusif di web, dan akun admin yang login di mobile diarahkan ke halaman penjelasan. Datanya menyatu lewat Supabase.
 
 Tujuan utama: warga bisa lapor drainase langsung dari HP dalam **< 2 menit**, plus monitor titik rawan di sekitar lokasinya.
 
@@ -21,7 +26,7 @@ Konteks lomba: GEMASTIK Smart City — produk harus bertindak sebagai *smart cit
 ## 2. Target User
 
 - **Warga umum** Bandar Lampung (mahasiswa, pekerja, pemilik usaha kecil, ibu rumah tangga, dll).
-- Akses tanpa daftar (anonymous); tiap device punya identitas server-side (Supabase anonymous auth).
+- Akses tanpa daftar. Belum ada identitas server-side per perangkat: kepemilikan laporan dilacak secara lokal (kolom `created_locally` di Room) plus tracking token untuk lintas perangkat.
 - Konteks penggunaan: di lokasi laporan, sering pas hujan atau setelah hujan, koneksi bisa jelek.
 
 ---
@@ -30,24 +35,35 @@ Konteks lomba: GEMASTIK Smart City — produk harus bertindak sebagai *smart cit
 
 ### ✅ In scope
 
-1. 5 area fungsional: Landing/home, Lapor, Peta Risiko, Status Laporan, Tentang.
-2. **Lapor Cepat** (tanpa foto) **vs Lapor Lengkap** (dengan foto, skor lebih tinggi).
-3. Watermark foto otomatis (lat/long + timestamp) untuk anti-laporan palsu.
-4. Peta risiko dengan fitur **"Area kamu"** — fokus titik dalam 1 km dari lokasi pengguna.
-5. Sumber data peta gabungan: laporan warga + data historis kelurahan + data cuaca BMKG + IoT placeholder.
-6. **Verifikasi gotong-royong**: 3+ laporan dalam radius 100 m / 24 jam → auto "Diverifikasi Warga".
-7. Offline draft + queued submit (WorkManager).
-8. Anonymous Supabase auth.
-9. Status tracking dengan timeline (Menunggu → Diverifikasi → Dijadwalkan → Ditangani → Selesai / Ditolak).
-10. History laporan tersimpan otomatis per device.
+1. 5 area fungsional warga: Beranda, Lapor, Peta Risiko, Status Laporan, Tentang.
+2. 5 area fungsional petugas: Inbox verifikasi, Tindak lanjut, Peta, Statistik, Profil.
+3. **Lapor Cepat** (foto & deskripsi opsional) **vs Lapor Lengkap** (foto & deskripsi wajib).
+   Mode **tidak** memengaruhi risk score — lihat catatan di §4.1.
+4. Watermark foto otomatis (lat/long + timestamp) untuk anti-laporan palsu.
+   Tanpa koordinat, watermark hanya memuat waktu.
+5. Peta risiko dengan fitur **"Area kamu"** — titik dalam 1 km dari lokasi pengguna.
+6. Offline draft + queued submit (WorkManager + outbox Room).
+7. Status tracking dengan timeline (Menunggu → Diverifikasi → Dijadwalkan → Ditangani → Selesai / Ditolak),
+   urutannya ditegakkan `StatusMachine` di klien dan trigger di Supabase.
+8. Tracking token ditampilkan setelah kirim dan bisa dimasukkan kembali untuk
+   melacak laporan dari perangkat lain.
+9. Risk score memakai `RiskEngine` bersama (bobot Proposal 4.4), dengan curah
+   hujan BMKG sebagai masukan faktor Cuaca.
 
-### ❌ Out of scope v1
+### ❌ Belum terbangun
 
-- Admin web (sudah ada terpisah).
-- Push notification status (v1.1).
-- ML auto-deteksi kategori dari foto (v2).
-- Sensor IoT fisik (cuma placeholder data).
-- Akun real (phone/email login) — sementara anonymous.
+- **Anonymous Supabase auth.** Warga memakai kunci anon biasa; tidak ada
+  `reporter_id` per perangkat. Konsekuensinya rate limiting per perangkat dan
+  verifikasi gotong-royong belum bisa dibuat dengan benar.
+- **Verifikasi gotong-royong** (3+ laporan dalam radius 100 m / 24 jam).
+  Pengelompokan titik belum ada; setiap marker peta mewakili satu laporan.
+- **Sumber data peta gabungan.** Hanya laporan warga. `HotspotSource.Historis`,
+  `Cuaca`, dan `Iot` masih enum tanpa pemasok data.
+- **Tabel `historical_hotspots`.** Tidak ada di basis data.
+- Push notification status.
+- ML auto-deteksi kategori dari foto.
+- Sensor IoT fisik (roadmap Tahap 4).
+- Akun warga dengan nomor telepon/email.
 - iOS, tablet-optimized.
 
 ---
@@ -64,20 +80,27 @@ Saat user mulai melapor, ada 2 jalur pilihan:
 | Foto | Tidak perlu | Wajib (1–3 foto) |
 | Field wajib | Lokasi + Kategori + Severity | + Deskripsi (min 10 char) |
 | Field opsional | Deskripsi singkat | Nama, kontak |
-| Bobot skor risiko | Komponen "bukti foto" = 0 | Komponen "bukti foto" = full |
-| Auto-tag | "Tanpa verifikasi visual" | "Dengan bukti foto" |
+| Pengaruh ke risk score | **Tidak ada** | **Tidak ada** |
+| Kelengkapan bukti | Tercatat, bobot 0 | Tercatat, bobot 0 |
 
-Alasan: warga sering mager foto. Daripada tidak lapor sama sekali, mending lapor cepat — kalau ada 3+ laporan cepat di area yang sama, sistem auto-verifikasi gotong-royong.
+Alasan: warga sering tidak sempat memotret. Daripada tidak melapor sama sekali,
+lebih baik melapor cepat.
 
-### 4.2 Verifikasi Gotong-Royong
+**Mode laporan tidak memengaruhi skor.** Versi lama mengalikan skor 0,7 untuk
+mode Cepat, sehingga laporan banjir kritis yang dikirim cepat justru turun dua
+kelas menjadi Waspada — kebalikan dari maksud Proposal 4.3.1 yang menempatkan
+Lapor Cepat justru untuk kondisi mendesak. Kelengkapan bukti tetap dicatat pada
+rincian skor dengan bobot 0, siap dinaikkan setelah evaluasi lapangan.
 
-Aturan: jika dalam **100 m** dan **24 jam** ada **≥ 3 laporan** (baik Cepat maupun Lengkap, dari user_id berbeda), sistem otomatis:
+### 4.2 Verifikasi Gotong-Royong — belum terbangun
 
-- Set status semua laporan tsb. → **"Diverifikasi Warga"**.
-- Bump skor risiko +15 (komponen "frekuensi laporan sekitar").
-- Cluster di peta diberi label "3 warga melaporkan".
+Rancangan: jika dalam **100 m** dan **24 jam** ada **≥ 3 laporan dari pelapor
+berbeda**, sistem menandai titik itu sebagai terverifikasi warga.
 
-Implementasi: trigger Postgres pada `INSERT reports` yang query laporan terdekat via PostGIS `ST_DWithin`.
+Prasyaratnya belum ada: tanpa identitas per perangkat, "pelapor berbeda" tidak
+bisa dibedakan dari satu orang yang mengirim tiga kali. Fitur ini menunggu
+anonymous auth (lihat "Belum terbangun" di §3), dan sampai saat itu peta tidak
+mengklaim verifikasi kolektif atas laporan tunggal.
 
 ### 4.3 "Area Kamu"
 
@@ -86,20 +109,24 @@ Saat user buka layar Peta:
 1. Minta permission lokasi sekali, dengan alasan jelas.
 2. Tampilkan ringkasan: nama kecamatan saat ini, level risiko area, jumlah titik kritis dalam radius 1 km.
 3. Peta auto-zoom & center ke lokasi user.
-4. Marker yang muncul = gabungan dari 3 sumber (lihat 4.4).
+4. Marker yang muncul berasal dari laporan warga (lihat 4.4).
 
 Kalau permission ditolak: fallback ke center Bandar Lampung (lat -5.3971, lng 105.2668), ringkasan diganti ke "Bandar Lampung umum".
 
-### 4.4 Sumber Data Peta (multi-source)
+### 4.4 Sumber Data Peta
 
-Marker di peta = union dari:
+Saat ini marker di peta **hanya** berasal dari laporan warga (`reports`, kecuali
+yang sudah diarsipkan). Enum `HotspotSource` sudah menyediakan `Historis`,
+`Cuaca`, dan `Iot`, tetapi ketiganya belum punya pemasok data, sehingga filter
+sumber belum bermakna.
 
-1. **Laporan warga** (`reports` table, status `verified`/`in_progress` atau hasil verifikasi gotong-royong).
-2. **Titik historis** — di-seed dari data tahun lalu per kelurahan (CSV import sekali, stored di `historical_hotspots`).
-3. **Alert cuaca BMKG** — fetch dari API BMKG/Open-Meteo per kecamatan; kalau curah hujan > threshold, tampilkan marker "Potensi Rawan Hari Ini".
-4. **IoT placeholder** — beberapa marker dummy bertanda IoT buat menunjukkan roadmap v2.
+Rencana pengisiannya:
 
-User bisa filter sumber: Laporan / Historis / Cuaca / Sensor.
+1. **Titik historis** — tabel titik berulang hasil pengelompokan laporan
+   (rekomendasi P-4 pada laporan audit).
+2. **Alert cuaca BMKG** — memakai `rainfall_mm` yang kini sudah tersimpan di
+   setiap laporan, plus ambang alert (rekomendasi P-6).
+3. **Sensor IoT** — roadmap Tahap 4.
 
 ### 4.5 Watermark Foto Otomatis
 
@@ -107,19 +134,32 @@ Saat user ambil foto via kamera dari Lapor Lengkap:
 
 1. Capture full-res image dari `ActivityResultContracts.TakePicture`.
 2. Resize ke max 1280px sisi terpanjang, JPEG quality 80.
-3. Overlay text di pojok kanan bawah: **lat/long (5 desimal) · timestamp ISO**.
-4. Auto-blur wajah orang lewat (face detection via ML Kit on-device).
-5. Hasil upload ke Supabase Storage path `report-photos/{user_id}/{report_id}/{n}.jpg`.
+3. Overlay text di pojok kanan bawah: **lat/long (5 desimal) · timestamp**.
+   Bila koordinat tidak tersedia, barisnya berbunyi "Lokasi tidak terekam" —
+   versi lama mencetak titik cadangan yang dikarang, justru merusak tujuan
+   anti-laporan palsu.
+4. *(Belum terbangun)* Auto-blur wajah orang lewat via ML Kit on-device.
+5. Hasil upload ke Supabase Storage path `report-photos/{timestamp}-{uuid}.jpg`.
+   Unggah dilakukan **setelah** baris laporan berhasil tersimpan, supaya insert
+   yang gagal tidak meninggalkan berkas yatim di Storage.
 
 Foto dari **galeri** (bukan kamera) dapat metadata flag "Foto dari galeri — tidak diverifikasi lokasi".
 
-### 4.6 Anonymous Auth
+### 4.6 Identitas Warga — anonymous auth belum terbangun
 
-- First launch: `supabase.auth.signInAnonymously()` → dapat `user_id` UUID.
-- Cache `user_id` di DataStore.
-- Semua laporan terikat `user_id` ini.
-- History laporan = `SELECT * FROM reports WHERE user_id = current_user_id`.
-- Tidak ada form login/register di v1.
+Kondisi sekarang:
+
+- Warga memakai kunci anon Supabase biasa; **tidak ada** `user_id` per perangkat.
+- Kepemilikan laporan dilacak lokal lewat kolom Room `created_locally`, yang
+  tetap bernilai true seumur baris (`local_only` berubah false setelah sync,
+  jadi tidak bisa dipakai).
+- Laporan dari perangkat lain diklaim lewat **tracking token**: token
+  ditampilkan di layar sukses dan bisa dimasukkan kembali di layar Status.
+- Login email/password hanya untuk petugas.
+
+Rancangan berikutnya: `supabase.auth.signInAnonymously()` agar tiap perangkat
+punya `reporter_id` server-side. Itu prasyarat rate limiting dan verifikasi
+gotong-royong.
 
 ### 4.7 Offline Draft + Queued Submit
 
@@ -198,26 +238,32 @@ Update status dari admin web → Supabase Realtime subscription → UI auto-refr
 
 | Field | Tipe | Catatan |
 |---|---|---|
-| id | UUID | PK |
-| report_code | text unique | `ALR-YYYY-NNNNN` |
-| user_id | UUID | FK auth.users (anonymous) |
-| category | enum | sumbatan / genangan / aliran-lambat / drainase-rusak / bau / lainnya |
-| severity | enum | ringan / sedang / parah / kritis |
-| description | text | nullable kalau Lapor Cepat |
-| latitude | double | |
-| longitude | double | |
-| kecamatan | text | |
-| kelurahan | text | |
-| alamat | text | nullable |
-| photo_urls | text[] | empty kalau Lapor Cepat |
-| report_type | enum | `cepat` / `lengkap` |
-| status | enum | pending / verified / scheduled / in_progress / completed / rejected |
-| risk_score | int | 0–100 |
-| risk_level | enum | normal / waspada / tinggi / kritis |
-| reporter_name | text | nullable |
-| reporter_contact | text | nullable |
-| created_at | timestamptz | |
-| updated_at | timestamptz | |
+Nama kolom di bawah ini adalah nama sebenarnya di Supabase.
+
+| Field | Tipe | Catatan |
+|---|---|---|
+| id | text | PK, UUID dibuat klien |
+| code | text unique | `ALR-YYYY-NNNN` |
+| public_tracking_token | text unique | `trk_` + 32 hex. Berfungsi sebagai kredensial akses laporan |
+| category | text check | sumbatan / genangan / aliran-lambat / drainase-rusak / bau / lainnya |
+| severity | text check | ringan / sedang / parah / kritis |
+| description | text | boleh kosong pada Lapor Cepat |
+| lat / lng | double | dibatasi ke kotak Kota Bandar Lampung |
+| kecamatan / kelurahan | text | wajib terisi, divalidasi terhadap master 20/122 |
+| address | text | nullable |
+| submission_mode | text check | `Cepat` / `Lengkap` |
+| rainfall_mm | double | curah hujan 3 jam BMKG saat kirim; masukan faktor Cuaca |
+| status | text check | masuk / diverifikasi / dijadwalkan / ditangani / selesai / ditolak |
+| risk_score | int | 0–100, **ditulis trigger**, bukan klien |
+| risk_level | text check | Normal / Waspada / Tinggi / Kritis (kapital di awal) |
+| completion_photos | jsonb | bukti penyelesaian; wajib terisi sebelum status `selesai` |
+| archived_at | timestamptz | diisi otomatis trigger saat status final |
+| assigned_officer_id | text FK | → `public.officers(id)` |
+| reporter_name / reporter_contact | text | nullable, tidak diekspos ke publik |
+| created_at / updated_at | timestamptz | |
+
+Foto laporan ada di tabel `report_photos`, rincian skor di `risk_breakdowns`
+(diisi trigger), riwayat di `report_status_history`.
 
 ### `report_status_history`
 

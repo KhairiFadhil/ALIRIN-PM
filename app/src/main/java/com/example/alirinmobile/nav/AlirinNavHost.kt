@@ -43,6 +43,7 @@ import com.example.alirinmobile.feature.AuthViewModel
 import com.example.alirinmobile.feature.LaporViewModel
 import com.example.alirinmobile.feature.ReportsViewModel
 import com.example.alirinmobile.feature.StaffViewModel
+import com.example.alirinmobile.feature.auth.AdminWallScreen
 import com.example.alirinmobile.feature.auth.LoginScreen
 import com.example.alirinmobile.feature.auth.OnboardingScreen
 import com.example.alirinmobile.feature.auth.SplashScreen
@@ -97,7 +98,12 @@ fun AlirinNavHost() {
     when {
         !splashDone -> SplashScreen(onDone = { splashDone = true })
         !onboardingDone -> OnboardingScreen(onDone = { authVm.finishOnboarding() })
-        // Admin hanya ada di web. Siapa pun yang login di mobile = Petugas.
+        // Admin hanya ada di web. Akun admin yang login di sini diarahkan ke
+        // halaman penjelasan, bukan diberi antarmuka petugas beserta kewenangan
+        // menutup pekerjaan lapangan.
+        session?.role == Role.Admin -> AdminWallScreen(
+            onLogout = { authVm.logout(); showStaffLogin = false },
+        )
         session != null -> MainShell(
             role = Role.Staff,
             onLogout = { authVm.logout(); showStaffLogin = false },
@@ -232,8 +238,10 @@ private fun MainShell(role: Role, onLogout: () -> Unit) {
             ) {
 
                 composable(Routes.Beranda) {
+                    val myReports by reportsVm.myReports.collectAsStateWithLifecycle()
                     BerandaScreen(
                         reports = reports,
+                        myReports = myReports,
                         session = session,
                         onLaporClick = { showLaporSheet = true },
                         onPetaClick = { nav.navigate(Routes.Peta) },
@@ -250,8 +258,10 @@ private fun MainShell(role: Role, onLogout: () -> Unit) {
                     )
                 }
                 composable(Routes.Status) {
+                    val myReports by reportsVm.myReports.collectAsStateWithLifecycle()
                     StatusListScreen(
-                        reports = reports,
+                        reports = myReports,
+                        onTrackToken = { token -> reportsVm.trackByToken(token) },
                         onBack = { nav.popBackStack() },
                         onReportClick = { nav.navigate(Routes.statusDetail(it.id)) },
                     )
@@ -306,8 +316,9 @@ private fun MainShell(role: Role, onLogout: () -> Unit) {
                 }
                 composable(Routes.StaffLanjut) {
                     val staffVm: StaffViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
+                    val myTasks by staffVm.myTasks.collectAsStateWithLifecycle()
                     StaffTindakLanjutScreen(
-                        reports = reports,
+                        reports = myTasks,
                         onClose = { report ->
                             staffVm.transition(report.id, com.example.alirinmobile.data.ReportStatus.Completed, "Pekerjaan ditutup oleh staff.")
                         },

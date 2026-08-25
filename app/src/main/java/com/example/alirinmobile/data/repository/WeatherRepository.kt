@@ -35,4 +35,13 @@ class WeatherRepository(private val api: ApiClient) {
             .onSuccess { _state.value = WeatherState.Loaded(it) }
             .onFailure { _state.value = WeatherState.Error(it.message ?: "Gagal memuat BMKG") }
     }
+
+    // Curah hujan untuk faktor Cuaca pada risk score (Proposal 4.4).
+    // BMKG mengembalikan slot berdurasi 3 jam, jadi "prakiraan 3 jam ke depan"
+    // berarti SATU slot pertama, bukan tiga slot (tiga slot = 9 jam).
+    // null berarti BMKG tidak terjangkau: bobot cuaca dialihkan, bukan dinolkan.
+    suspend fun rainfallMmFor(adm4: String): Double? = runCatching {
+        val forecast = api.bmkgService.forecast(adm4)
+        forecast.data.firstOrNull()?.cuaca?.flatten()?.firstOrNull()?.tp ?: 0.0
+    }.getOrNull()
 }

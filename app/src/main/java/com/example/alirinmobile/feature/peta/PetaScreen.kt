@@ -413,7 +413,7 @@ private fun HotspotSheetContent(
             ) {
                 Icon(AlirinIcons.users, null, tint = PrimaryInk, modifier = Modifier.size(18.dp))
                 Text(
-                    "${hotspot.count} warga melaporkan · diverifikasi gotong-royong",
+                    if (hotspot.count > 1) "${hotspot.count} laporan warga di titik ini" else "1 laporan warga, menunggu verifikasi petugas",
                     color = PrimaryInk,
                     fontWeight = FontWeight.W600,
                     fontSize = 13.sp,

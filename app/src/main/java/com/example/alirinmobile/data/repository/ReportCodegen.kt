@@ -30,6 +30,24 @@ object ReportCodegen {
         return "ALR-${cal.get(Calendar.YEAR)}-"
     }
 
+    // Kebalikan nowIsoUtc. Dipakai RiskEngine untuk jendela histori 180 hari.
+    fun parseIsoMillis(raw: String?): Long? {
+        if (raw.isNullOrBlank()) return null
+        val patterns = listOf(
+            "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+            "yyyy-MM-dd'T'HH:mm:ssXXX",
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss'Z'",
+        )
+        for (pattern in patterns) {
+            val fmt = SimpleDateFormat(pattern, Locale.US).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+            runCatching { fmt.parse(raw) }.getOrNull()?.let { return it.time }
+        }
+        return null
+    }
+
     // ISO8601 UTC ("Z" suffix), same shape as JS `new Date().toISOString()`
     fun nowIsoUtc(at: Date = Date()): String {
         val fmt = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {

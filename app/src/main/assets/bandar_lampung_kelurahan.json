@@ -1,25 +1,269 @@
 {
-  "_note": "Curated kelurahan list for Bandar Lampung. adm4 codes use Permendagri 137-2017 format (PP.KK.CC.DDDD). If BMKG returns empty for any entry, the kelurahan code may need to be corrected against https://kodewilayah.github.io/permendagri-72-2019/wilayah.html.",
+  "_note": "Curated kelurahan list for Bandar Lampung. adm4 codes use Permendagri 137-2017 format (PP.KK.CC.DDDD). If BMKG returns empty for any entry, the kelurahan code may need to be corrected against https://kodewilayah.github.io/permendagri-72-2019/wilayah.html. Blok \"areas\" adalah master lengkap 20 kecamatan / 122 kelurahan Kota Bandar Lampung, dipakai untuk validasi wilayah laporan; harus sama dengan KECAMATAN_DATA di C:/ALIRIN/app/src/data/bandarLampungAreas.js. Blok \"items\" hanya memuat kelurahan yang kode adm4 BMKG-nya sudah terverifikasi, dipakai untuk prakiraan cuaca.",
+  "areas": {
+    "Bumi Waras": [
+      "Bumi Raya",
+      "Bumi Waras",
+      "Garuntang",
+      "Kangkung",
+      "Sukaraja"
+    ],
+    "Enggal": [
+      "Enggal",
+      "Gunung Sari",
+      "Pahoman",
+      "Pelita",
+      "Rawa Laut",
+      "Tanjung Karang"
+    ],
+    "Kedamaian": [
+      "Bumi Kedamaian",
+      "Kalibalau Kencana",
+      "Kedamaian",
+      "Tanjung Agung Raya",
+      "Tanjung Baru",
+      "Tanjung Raya"
+    ],
+    "Kedaton": [
+      "Kedaton",
+      "Penengahan",
+      "Penengahan Raya",
+      "Sidodadi",
+      "Sukamenanti",
+      "Sukamenanti Baru",
+      "Surabaya"
+    ],
+    "Kemiling": [
+      "Beringin Jaya",
+      "Beringin Raya",
+      "Kedaung",
+      "Kemiling Permai",
+      "Kemiling Raya",
+      "Pinang Jaya",
+      "Sumber Agung",
+      "Sumber Rejo",
+      "Sumber Rejo Sejahtera"
+    ],
+    "Labuhan Ratu": [
+      "Kampung Baru",
+      "Kampung Baru Raya",
+      "Kota Sepang",
+      "Labuhan Ratu",
+      "Labuhan Ratu Raya",
+      "Sepang Jaya"
+    ],
+    "Langkapura": [
+      "Bilabong Jaya",
+      "Gunung Agung",
+      "Gunung Terang",
+      "Langkapura",
+      "Langkapura Baru"
+    ],
+    "Panjang": [
+      "Karang Maritim",
+      "Ketapang",
+      "Ketapang Kuala",
+      "Panjang Selatan",
+      "Panjang Utara",
+      "Pidada",
+      "Srengsem",
+      "Way Lunik"
+    ],
+    "Rajabasa": [
+      "Nyunyai",
+      "Rajabasa",
+      "Rajabasa Jaya",
+      "Rajabasa Nunyai",
+      "Rajabasa Pemuka",
+      "Rajabasa Raya"
+    ],
+    "Sukabumi": [
+      "Campang Jaya",
+      "Campang Raya",
+      "Nusantara Permai",
+      "Sukabumi",
+      "Sukabumi Indah",
+      "Way Gubak",
+      "Way Laga"
+    ],
+    "Sukarame": [
+      "Korpri Jaya",
+      "Korpri Raya",
+      "Sukarame",
+      "Sukarame Baru",
+      "Way Dadi",
+      "Way Dadi Baru"
+    ],
+    "Tanjung Karang Barat": [
+      "Gedong Air",
+      "Kelapa Tiga Permai",
+      "Segala Mider",
+      "Sukadanaham",
+      "Sukajawa",
+      "Sukajawa Baru",
+      "Susunan Baru"
+    ],
+    "Tanjung Karang Pusat": [
+      "Durian Payung",
+      "Gotong Royong",
+      "Kaliawi",
+      "Kaliawi Persada",
+      "Kelapa Tiga",
+      "Palapa"
+    ],
+    "Tanjung Karang Timur": [
+      "Kota Baru",
+      "Sawah Brebes",
+      "Sawah Lama",
+      "Tanjung Agung",
+      "Kebon Jeruk"
+    ],
+    "Tanjung Senang": [
+      "Labuhan Dalam",
+      "Pematang Wangi",
+      "Perumnas Way Kandis",
+      "Tanjung Senang",
+      "Way Kandis"
+    ],
+    "Teluk Betung Barat": [
+      "Bakung",
+      "Batu Putuk",
+      "Kuripan",
+      "Negeri Olok Gading",
+      "Sukarame II"
+    ],
+    "Teluk Betung Selatan": [
+      "Gedong Pakuon",
+      "Gunung Mas",
+      "Pesawahan",
+      "Sumur Putri",
+      "Talang",
+      "Tukik"
+    ],
+    "Teluk Betung Timur": [
+      "Keteguhan",
+      "Kota Karang",
+      "Kota Karang Raya",
+      "Perwata",
+      "Sukamaju",
+      "Way Tataan"
+    ],
+    "Teluk Betung Utara": [
+      "Kupang Kota",
+      "Kupang Raya",
+      "Kupang Teba",
+      "Pengajaran",
+      "Sumur Batu"
+    ],
+    "Way Halim": [
+      "Gunung Sulah",
+      "Jagabaya I",
+      "Jagabaya II",
+      "Jagabaya III",
+      "Perumnas Way Halim",
+      "Way Halim Permai"
+    ]
+  },
   "items": [
-    { "kecamatan": "Kemiling",                "kelurahan": "Beringin Jaya",     "adm4": "18.71.13.1001" },
-    { "kecamatan": "Kemiling",                "kelurahan": "Beringin Raya",     "adm4": "18.71.13.1002" },
-    { "kecamatan": "Kemiling",                "kelurahan": "Kedaung",           "adm4": "18.71.13.1003" },
-    { "kecamatan": "Kemiling",                "kelurahan": "Kemiling Permai",   "adm4": "18.71.13.1004" },
-    { "kecamatan": "Kemiling",                "kelurahan": "Kemiling Raya",     "adm4": "18.71.13.1005" },
-    { "kecamatan": "Kemiling",                "kelurahan": "Pinang Jaya",       "adm4": "18.71.13.1007" },
-    { "kecamatan": "Rajabasa",                "kelurahan": "Rajabasa",          "adm4": "18.71.10.1001" },
-    { "kecamatan": "Rajabasa",                "kelurahan": "Rajabasa Jaya",     "adm4": "18.71.10.1002" },
-    { "kecamatan": "Rajabasa",                "kelurahan": "Rajabasa Raya",     "adm4": "18.71.10.1006" },
-    { "kecamatan": "Sukarame",                "kelurahan": "Sukarame",          "adm4": "18.71.06.1001" },
-    { "kecamatan": "Sukarame",                "kelurahan": "Way Dadi",          "adm4": "18.71.06.1003" },
-    { "kecamatan": "Kedaton",                 "kelurahan": "Kedaton",           "adm4": "18.71.05.1001" },
-    { "kecamatan": "Kedaton",                 "kelurahan": "Sidodadi",          "adm4": "18.71.05.1004" },
-    { "kecamatan": "Way Halim",               "kelurahan": "Way Halim Permai",  "adm4": "18.71.15.1006" },
-    { "kecamatan": "Way Halim",               "kelurahan": "Perumnas Way Halim","adm4": "18.71.15.1005" },
-    { "kecamatan": "Sukabumi",                "kelurahan": "Sukabumi Indah",    "adm4": "18.71.12.1005" },
-    { "kecamatan": "Sukabumi",                "kelurahan": "Sukabumi",          "adm4": "18.71.12.1004" },
-    { "kecamatan": "Tanjung Karang Pusat",    "kelurahan": "Gotong Royong",     "adm4": "18.71.03.1002" },
-    { "kecamatan": "Tanjung Karang Pusat",    "kelurahan": "Palapa",            "adm4": "18.71.03.1006" },
-    { "kecamatan": "Labuhan Ratu",            "kelurahan": "Labuhan Ratu",      "adm4": "18.71.14.1004" }
+    {
+      "kecamatan": "Kemiling",
+      "kelurahan": "Beringin Jaya",
+      "adm4": "18.71.13.1001"
+    },
+    {
+      "kecamatan": "Kemiling",
+      "kelurahan": "Beringin Raya",
+      "adm4": "18.71.13.1002"
+    },
+    {
+      "kecamatan": "Kemiling",
+      "kelurahan": "Kedaung",
+      "adm4": "18.71.13.1003"
+    },
+    {
+      "kecamatan": "Kemiling",
+      "kelurahan": "Kemiling Permai",
+      "adm4": "18.71.13.1004"
+    },
+    {
+      "kecamatan": "Kemiling",
+      "kelurahan": "Kemiling Raya",
+      "adm4": "18.71.13.1005"
+    },
+    {
+      "kecamatan": "Kemiling",
+      "kelurahan": "Pinang Jaya",
+      "adm4": "18.71.13.1007"
+    },
+    {
+      "kecamatan": "Rajabasa",
+      "kelurahan": "Rajabasa",
+      "adm4": "18.71.10.1001"
+    },
+    {
+      "kecamatan": "Rajabasa",
+      "kelurahan": "Rajabasa Jaya",
+      "adm4": "18.71.10.1002"
+    },
+    {
+      "kecamatan": "Rajabasa",
+      "kelurahan": "Rajabasa Raya",
+      "adm4": "18.71.10.1006"
+    },
+    {
+      "kecamatan": "Sukarame",
+      "kelurahan": "Sukarame",
+      "adm4": "18.71.06.1001"
+    },
+    {
+      "kecamatan": "Sukarame",
+      "kelurahan": "Way Dadi",
+      "adm4": "18.71.06.1003"
+    },
+    {
+      "kecamatan": "Kedaton",
+      "kelurahan": "Kedaton",
+      "adm4": "18.71.05.1001"
+    },
+    {
+      "kecamatan": "Kedaton",
+      "kelurahan": "Sidodadi",
+      "adm4": "18.71.05.1004"
+    },
+    {
+      "kecamatan": "Way Halim",
+      "kelurahan": "Way Halim Permai",
+      "adm4": "18.71.15.1006"
+    },
+    {
+      "kecamatan": "Way Halim",
+      "kelurahan": "Perumnas Way Halim",
+      "adm4": "18.71.15.1005"
+    },
+    {
+      "kecamatan": "Sukabumi",
+      "kelurahan": "Sukabumi Indah",
+      "adm4": "18.71.12.1005"
+    },
+    {
+      "kecamatan": "Sukabumi",
+      "kelurahan": "Sukabumi",
+      "adm4": "18.71.12.1004"
+    },
+    {
+      "kecamatan": "Tanjung Karang Pusat",
+      "kelurahan": "Gotong Royong",
+      "adm4": "18.71.03.1002"
+    },
+    {
+      "kecamatan": "Tanjung Karang Pusat",
+      "kelurahan": "Palapa",
+      "adm4": "18.71.03.1006"
+    },
+    {
+      "kecamatan": "Labuhan Ratu",
+      "kelurahan": "Labuhan Ratu",
+      "adm4": "18.71.14.1004"
+    }
   ]
 }

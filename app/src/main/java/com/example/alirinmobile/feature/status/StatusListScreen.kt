@@ -15,6 +15,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,9 +40,14 @@ fun StatusListScreen(
     reports: List<Report>,
     onBack: () -> Unit,
     onReportClick: (Report) -> Unit,
+    onTrackToken: suspend (String) -> Report? = { null },
 ) {
     var query by remember { mutableStateOf("") }
     var filter by remember { mutableStateOf(StatusFilter.Semua) }
+    var trackInput by remember { mutableStateOf("") }
+    var trackError by remember { mutableStateOf<String?>(null) }
+    var tracking by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     val filtered = reports
         .filter { r ->
@@ -60,13 +67,83 @@ fun StatusListScreen(
     Column(Modifier.fillMaxSize().background(Bg)) {
         AlirinTopBar(
             title = "Status Laporan",
-            subtitle = "${filtered.size} dari ${reports.size} laporan",
+            subtitle = "${filtered.size} dari ${reports.size} laporan Anda",
             onBack = onBack,
         )
         LazyColumn(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            // Lacak laporan lewat token. Proposal 4.3.1 menjanjikan kode/token
+            // status untuk memantau progres; token sudah dibuat sejak awal tapi
+            // belum pernah ditampilkan maupun bisa dimasukkan kembali.
+            item {
+                AlirinCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    padding = PaddingValues(14.dp),
+                ) {
+                    Column {
+                        Text(
+                            "Lacak laporan dari perangkat lain",
+                            style = AlirinText.caption,
+                            modifier = Modifier.padding(bottom = 6.dp),
+                        )
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(44.dp)
+                                .clip(Radius.md)
+                                .background(Surface2)
+                                .padding(horizontal = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            BasicTextField(
+                                value = trackInput,
+                                onValueChange = { trackInput = it; trackError = null },
+                                singleLine = true,
+                                textStyle = AlirinText.mono.copy(fontSize = 14.sp, color = Ink),
+                                cursorBrush = SolidColor(Primary),
+                                modifier = Modifier.weight(1f),
+                                decorationBox = { inner ->
+                                    Box(contentAlignment = Alignment.CenterStart) {
+                                        if (trackInput.isEmpty()) Text(
+                                            "trk_...",
+                                            style = AlirinText.mono.copy(fontSize = 14.sp, color = Faint),
+                                        )
+                                        inner()
+                                    }
+                                },
+                            )
+                            Text(
+                                if (tracking) "Mencari..." else "Lacak",
+                                style = AlirinText.caption.copy(color = Primary, fontWeight = FontWeight.W700),
+                                modifier = Modifier.clickable(enabled = !tracking && trackInput.isNotBlank()) {
+                                    tracking = true
+                                    trackError = null
+                                    scope.launch {
+                                        val found = onTrackToken(trackInput.trim())
+                                        tracking = false
+                                        if (found == null) {
+                                            trackError = "Token tidak cocok dengan laporan mana pun."
+                                        } else {
+                                            trackInput = ""
+                                            onReportClick(found)
+                                        }
+                                    }
+                                },
+                            )
+                        }
+                        trackError?.let { message ->
+                            Text(
+                                message,
+                                style = AlirinText.caption,
+                                modifier = Modifier.padding(top = 6.dp),
+                            )
+                        }
+                    }
+                }
+            }
             item {
                 AlirinCard(
                     modifier = Modifier.fillMaxWidth(),
