@@ -36,6 +36,7 @@ import com.example.alirinmobile.data.network.dto.AiForecast
 import com.example.alirinmobile.data.repository.Kelurahan
 import com.example.alirinmobile.data.repository.PredictionUiModel
 import com.example.alirinmobile.data.repository.WeatherState
+import com.example.alirinmobile.feature.AlertsViewModel
 import com.example.alirinmobile.feature.AlirinViewModelFactory
 import com.example.alirinmobile.feature.LocationViewModel
 import com.example.alirinmobile.feature.PredictionViewModel
@@ -65,6 +66,8 @@ fun BerandaScreen(
 
     val weatherVm: WeatherViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
     val selected by weatherVm.selected.collectAsStateWithLifecycle()
+    val alertsVm: AlertsViewModel = viewModel(factory = AlirinViewModelFactory.Factory)
+    val alerts by alertsVm.alerts.collectAsStateWithLifecycle()
     val areaKecamatan = selected?.kecamatan ?: "Bandar Lampung"
 
     val kritisCount = reports.count { it.risk == RiskLevel.Kritis }
@@ -194,6 +197,7 @@ fun BerandaScreen(
                 }
             }
 
+            if (alerts.isNotEmpty()) AlertBannerColumn(alerts)
             WeatherStrip()
             PredictionCard(onOpenMap = onPetaClick)
             if (nearby.isNotEmpty()) NearbyStrip(items = nearby, onOpenMap = onPetaClick)
@@ -863,4 +867,42 @@ private fun haversineLabel(lat1: Double, lng1: Double, lat2: Double, lng2: Doubl
     val c = 2 * atan2(sqrt(a), sqrt(1 - a))
     val km = r * c
     return if (km < 1.0) "${(km * 1000).toInt()} m" else "%.1f km".format(km)
+}
+
+// P-6 - Spanduk alert di Beranda. Alert "hulu" (hujan di wilayah atas) dibedakan
+// warnanya karena itu peringatan paling khas ALIRIN: wilayah bawah diperingatkan
+// sebelum kiriman airnya tiba.
+@Composable
+private fun AlertBannerColumn(alerts: List<com.example.alirinmobile.data.repository.AlertRow>) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        alerts.forEach { alert ->
+            val hulu = alert.jenis == "hulu"
+            val bg = if (hulu) SkySoft else RiskKritisBg
+            val ink = if (hulu) SkyInk else RiskKritisInk
+            val dot = if (hulu) Sky2 else RiskKritisDot
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(Radius.lg)
+                    .background(bg)
+                    .padding(14.dp),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Icon(
+                    if (hulu) AlirinIcons.droplet else AlirinIcons.bell,
+                    contentDescription = null,
+                    tint = dot,
+                    modifier = Modifier.size(20.dp),
+                )
+                Text(
+                    text = alert.pesan,
+                    color = ink,
+                    fontSize = 13.sp,
+                    lineHeight = 18.sp,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
 }

@@ -21,6 +21,7 @@ import com.example.alirinmobile.data.repository.KelurahanRepository
 import com.example.alirinmobile.data.repository.LocationRepository
 import com.example.alirinmobile.data.repository.PredictionRepository
 import com.example.alirinmobile.data.repository.ReportRepository
+import com.example.alirinmobile.data.repository.AlertsRepository
 import com.example.alirinmobile.data.repository.UpstreamRepository
 import com.example.alirinmobile.data.repository.WeatherRepository
 import com.example.alirinmobile.data.sync.SyncWorker
@@ -49,6 +50,8 @@ class AlirinApplication : Application() {
         private set
     lateinit var upstreamRepository: UpstreamRepository
         private set
+    lateinit var alertsRepository: AlertsRepository
+        private set
 
     val applicationScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -66,6 +69,7 @@ class AlirinApplication : Application() {
         val db = AlirinDatabase.get(this)
         weatherRepository = WeatherRepository(apiClient)
         upstreamRepository = UpstreamRepository(supabase, weatherRepository, kelurahanRepository)
+        alertsRepository = AlertsRepository(supabase)
         reportRepository = ReportRepository(
             dao = db.reportDao(),
             supabase = supabase,

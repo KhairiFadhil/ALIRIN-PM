@@ -15,6 +15,8 @@ import com.example.alirinmobile.data.repository.AuthRepository
 import com.example.alirinmobile.data.repository.Kelurahan
 import com.example.alirinmobile.data.repository.KelurahanRepository
 import com.example.alirinmobile.data.repository.LocationRepository
+import com.example.alirinmobile.data.repository.AlertsRepository
+import com.example.alirinmobile.data.repository.AlertRow
 import com.example.alirinmobile.data.repository.PredictionRepository
 import com.example.alirinmobile.data.repository.PredictionUiModel
 import com.example.alirinmobile.data.repository.ReportRepository
@@ -23,6 +25,7 @@ import com.example.alirinmobile.data.repository.WeatherRepository
 import com.example.alirinmobile.data.repository.WeatherState
 import com.example.alirinmobile.feature.lapor.LaporForm
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -35,6 +38,7 @@ private fun repo(): ReportRepository = AlirinApplication.get().reportRepository
 private fun authRepo(): AuthRepository = AlirinApplication.get().authRepository
 private fun weatherRepo(): WeatherRepository = AlirinApplication.get().weatherRepository
 private fun predictionRepo(): PredictionRepository = AlirinApplication.get().predictionRepository
+private fun alertsRepo(): AlertsRepository = AlirinApplication.get().alertsRepository
 private fun locationRepo(): LocationRepository = AlirinApplication.get().locationRepository
 private fun kelurahanRepo(): KelurahanRepository = AlirinApplication.get().kelurahanRepository
 
@@ -293,5 +297,19 @@ object AlirinViewModelFactory {
         initializer { WeatherViewModel() }
         initializer { PredictionViewModel() }
         initializer { LocationViewModel() }
+        initializer { AlertsViewModel() }
+    }
+}
+
+class AlertsViewModel(private val repository: AlertsRepository = alertsRepo()) : ViewModel() {
+    private val _alerts = MutableStateFlow<List<AlertRow>>(emptyList())
+    val alerts: StateFlow<List<AlertRow>> = _alerts.asStateFlow()
+
+    init {
+        refresh()
+    }
+
+    fun refresh() {
+        viewModelScope.launch { _alerts.value = repository.active() }
     }
 }
