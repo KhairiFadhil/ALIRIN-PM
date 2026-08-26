@@ -30,3 +30,7 @@ _make_pdf.py
 _make_docs_pdf.py
 # Dokumen deliverable (lokal saja)
 *.docx
+
+# Berkas Android Studio per-mesin. Sebelumnya ikut terlacak, sehingga
+# git status selalu kotor dan perubahan sungguhan tersamarkan.
+/.idea/
