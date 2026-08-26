@@ -5,6 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import com.example.alirinmobile.data.PhotoStore
@@ -108,7 +109,10 @@ fun PersetujuanDetailScreen(
                     }
                 }
                 if (report.photos.isNotEmpty()) PhotoStripCard(report)
-                ValidationSignalsCard(report, allReports)
+                val serverSignal by produceState<CommunitySignal.Result?>(null, report.id) {
+                    value = runCatching { reportsVm.communitySignal(report) }.getOrNull()
+                }
+                ValidationSignalsCard(report, allReports, serverSignal)
                 MapSnippetCard(report)
                 ReporterCard(report)
             }
@@ -244,14 +248,18 @@ private fun PhotoStripCard(report: Report) {
 }
 
 @Composable
-private fun ValidationSignalsCard(report: Report, allReports: List<Report>) {
+private fun ValidationSignalsCard(
+    report: Report,
+    allReports: List<Report>,
+    serverSignal: CommunitySignal.Result?,
+) {
     // Semua sinyal dihitung dari data nyata (ReportsViewModel), bukan seed hardcoded.
     // - reporterCount: jumlah laporan lain di kelurahan yang sama + laporan ini sendiri
     // - nearbyHistoric: laporan selesai/ditolak (riwayat area) di kelurahan atau kecamatan yang sama
-    // Aturannya 3+ laporan dalam radius 100 m dan 24 jam, sama seperti yang
-    // dijanjikan layar Tentang. Versi sebelumnya menghitung seluruh laporan di
-    // kelurahan yang sama tanpa batas waktu, lalu menyebutnya "N orang".
-    val signal = CommunitySignal.evaluate(report, allReports)
+    // Server menghitung pelapor yang BERBEDA (reporter_id); itu yang paling
+    // benar untuk gotong-royong. Bila belum tersedia, jatuh ke hitungan lokal
+    // yang hanya bisa menghitung jumlah laporan di perangkat ini.
+    val signal = serverSignal ?: CommunitySignal.evaluate(report, allReports)
     val nearbyHistoric = allReports.count {
         (it.kelurahan == report.kelurahan || it.kecamatan == report.kecamatan) &&
             (it.status == ReportStatus.Completed || it.status == ReportStatus.Rejected)
@@ -260,15 +268,19 @@ private fun ValidationSignalsCard(report: Report, allReports: List<Report>) {
     AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(16.dp)) {
         Column {
             Text("Sinyal validasi", style = AlirinText.eyebrow, modifier = Modifier.padding(bottom = 10.dp))
+            val unik = signal.pelaporUnik
             SignalRow(
                 icon = AlirinIcons.users,
                 label = "Laporan dalam 100 m / 24 jam",
-                // Disebut "laporan", bukan "orang": identitas pelapor per
-                // perangkat belum ada, jadi satu warga yang mengirim tiga kali
-                // tidak bisa dibedakan dari tiga warga (rekomendasi P-8).
-                value = "${signal.reportCount} laporan",
+                // Bila pelapor unik diketahui (dari server), itu yang dipakai
+                // menilai ambang -- tiga PELAPOR berbeda, bukan tiga laporan.
+                // Bila belum, hanya jumlah laporan yang bisa ditampilkan.
+                value = if (unik != null) "$unik pelapor · ${signal.reportCount} laporan"
+                        else "${signal.reportCount} laporan",
                 note = if (signal.memenuhiAmbang) {
-                    "Memenuhi ambang gotong-royong (≥3 laporan)"
+                    "Memenuhi ambang gotong-royong (≥3 pelapor berbeda)"
+                } else if (unik != null) {
+                    "Belum memenuhi 3 pelapor berbeda"
                 } else {
                     "Belum memenuhi 3 laporan"
                 },

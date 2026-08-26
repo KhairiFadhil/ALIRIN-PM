@@ -105,6 +105,9 @@ class ReportsViewModel(private val repository: ReportRepository = repo()) : View
         repository.observeReport(id)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    // Sinyal gotong-royong dari server (pelapor unik). null bila belum ada.
+    suspend fun communitySignal(report: Report) = repository.communitySignal(report)
+
     fun refresh() {
         viewModelScope.launch { runCatching { repository.syncNow() } }
     }

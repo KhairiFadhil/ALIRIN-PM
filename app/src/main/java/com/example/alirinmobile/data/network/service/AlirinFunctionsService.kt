@@ -54,3 +54,10 @@ interface AlirinFunctionsService {
     @POST("functions/v1/assess-risk")
     suspend fun assessRisk(@Body body: AssessRiskRequest): AssessRiskResponse
 }
+
+@kotlinx.serialization.Serializable
+data class CommunitySignalRow(
+    @kotlinx.serialization.SerialName("report_count") val reportCount: Int = 1,
+    @kotlinx.serialization.SerialName("unique_reporters") val uniqueReporters: Int = 0,
+    @kotlinx.serialization.SerialName("meets_threshold") val meetsThreshold: Boolean = false,
+)

@@ -30,10 +30,14 @@ private fun pickString(app: JsonObject?, user: JsonObject?, key: String): String
 }
 
 private fun roleFrom(user: UserInfo): Role? {
+    // HANYA app_metadata. user_metadata bisa ditulis pengguna sendiri lewat
+    // updateUser, jadi tidak boleh menentukan peran -- sama seperti
+    // alirin_user_role() di basis data. Menaruh peran dari user_metadata hanya
+    // akan menampilkan layar staf ke orang yang setiap query-nya toh ditolak
+    // RLS; lebih jujur tidak menampilkannya sama sekali.
     val app = user.appMetadata
-    val meta = user.userMetadata
     val raw = listOf("role", "app_role")
-        .firstNotNullOfOrNull { pickString(app, meta, it) }
+        .firstNotNullOfOrNull { pickString(app, null, it) }
     val role = supabaseRoleFromString(raw)
     return if (role == Role.Citizen) null else role
 }
@@ -75,9 +79,25 @@ class AuthRepository(
     suspend fun markOnboardingDone() = store.markOnboardingDone()
 
     suspend fun chooseAnonymous() {
-        runCatching { supabase.auth.signOut() }
+        // Sesi anonim nyata, bukan sekadar penanda. Dari sinilah reporter_id
+        // laporan berasal (P-8). Bila gagal -- mis. anonymous sign-in belum
+        // diaktifkan di project -- warga tetap bisa memakai aplikasi tanpa
+        // sesi, hanya kehilangan "Laporan saya" dan rate limit per perangkat.
+        ensureCitizenSession()
         store.setAnonymous()
     }
+
+    // Memastikan ada sesi sebelum warga mengirim laporan. Tidak menyentuh sesi
+    // staf yang sudah ada. Mengembalikan true bila pada akhirnya ada sesi.
+    suspend fun ensureCitizenSession(): Boolean {
+        if (supabase.auth.currentUserOrNull() != null) return true
+        return runCatching {
+            supabase.auth.signInAnonymously()
+            supabase.auth.currentUserOrNull() != null
+        }.getOrDefault(false)
+    }
+
+    fun currentUserId(): String? = supabase.auth.currentUserOrNull()?.id
 
     suspend fun logout() {
         runCatching { supabase.auth.signOut() }

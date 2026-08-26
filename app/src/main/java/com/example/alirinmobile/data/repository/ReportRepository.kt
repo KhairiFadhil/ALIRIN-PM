@@ -16,8 +16,10 @@ import com.example.alirinmobile.data.local.decodePhotos
 import com.example.alirinmobile.data.local.decodeStatusHistoryRaw
 import com.example.alirinmobile.data.local.encodePhotos
 import android.util.Log
+import com.example.alirinmobile.data.CommunitySignal
 import com.example.alirinmobile.data.local.encodeRiskBreakdown
 import com.example.alirinmobile.data.network.service.AssessRiskRequest
+import com.example.alirinmobile.data.network.service.CommunitySignalRow
 import com.example.alirinmobile.data.local.encodeStatusHistoryRaw
 import com.example.alirinmobile.data.local.jsonCodec
 import com.example.alirinmobile.data.local.toDomain
@@ -96,6 +98,33 @@ class ReportRepository(
     // lewat tracking token. Peta dan statistik tetap memakai observeReports().
     fun observeMyReports(): Flow<List<Report>> =
         dao.observeAll().map { list -> list.filter { it.createdLocally }.map { it.toDomain() } }
+
+    // P-8 - Sinyal gotong-royong dari server, menghitung reporter_id yang
+    // BERBEDA. Perangkat tidak bisa menghitungnya sendiri karena hanya melihat
+    // laporannya sendiri. Mengembalikan null bila fungsinya belum terpasang;
+    // pemanggil lalu jatuh ke CommunitySignal lokal yang hanya bisa menghitung
+    // jumlah laporan.
+    suspend fun communitySignal(report: Report): CommunitySignal.Result? {
+        val lat = report.lat ?: return null
+        val lng = report.lng ?: return null
+        return runCatching {
+            supabase.postgrest.rpc(
+                "alirin_community_signal",
+                buildJsonObject {
+                    put("p_report_id", report.id)
+                    put("p_lat", lat)
+                    put("p_lng", lng)
+                    put("p_at", report.createdAt)
+                },
+            ).decodeList<CommunitySignalRow>().firstOrNull()
+        }.getOrNull()?.let {
+            CommunitySignal.Result(
+                reportCount = it.reportCount,
+                memenuhiAmbang = it.meetsThreshold,
+                pelaporUnik = it.uniqueReporters,
+            )
+        }
+    }
 
     data class SubmitResult(val id: String, val code: String, val trackingToken: String)
 
@@ -226,6 +255,10 @@ class ReportRepository(
     private suspend fun pushRemote(id: String) {
         val initial = dao.get(id) ?: return
         dao.markSyncState(id, "syncing", null)
+        // Pastikan ada sesi (anonim bila warga belum login) supaya trigger di
+        // server menandai laporan ini milik perangkat pengirim (P-8). Best
+        // effort: bila gagal, laporan tetap terkirim, hanya tanpa reporter_id.
+        authRepo.ensureCitizenSession()
         val uploadedPaths = mutableListOf<String>()
         try {
             // (a) Insert baris reports LEBIH DULU, baru unggah foto.
