@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.alirinmobile.data.CommunitySignal
 import com.example.alirinmobile.data.Report
 import com.example.alirinmobile.data.ReportMode
 import com.example.alirinmobile.data.ReportStatus
@@ -247,7 +248,10 @@ private fun ValidationSignalsCard(report: Report, allReports: List<Report>) {
     // Semua sinyal dihitung dari data nyata (ReportsViewModel), bukan seed hardcoded.
     // - reporterCount: jumlah laporan lain di kelurahan yang sama + laporan ini sendiri
     // - nearbyHistoric: laporan selesai/ditolak (riwayat area) di kelurahan atau kecamatan yang sama
-    val reporterCount = allReports.count { it.kelurahan == report.kelurahan && it.id != report.id } + 1
+    // Aturannya 3+ laporan dalam radius 100 m dan 24 jam, sama seperti yang
+    // dijanjikan layar Tentang. Versi sebelumnya menghitung seluruh laporan di
+    // kelurahan yang sama tanpa batas waktu, lalu menyebutnya "N orang".
+    val signal = CommunitySignal.evaluate(report, allReports)
     val nearbyHistoric = allReports.count {
         (it.kelurahan == report.kelurahan || it.kecamatan == report.kecamatan) &&
             (it.status == ReportStatus.Completed || it.status == ReportStatus.Rejected)
@@ -258,10 +262,16 @@ private fun ValidationSignalsCard(report: Report, allReports: List<Report>) {
             Text("Sinyal validasi", style = AlirinText.eyebrow, modifier = Modifier.padding(bottom = 10.dp))
             SignalRow(
                 icon = AlirinIcons.users,
-                label = "Laporan dari warga",
-                value = "$reporterCount orang",
-                note = if (reporterCount >= 3) "Memenuhi syarat gotong-royong (≥3)"
-                       else "Belum memenuhi 3 laporan",
+                label = "Laporan dalam 100 m / 24 jam",
+                // Disebut "laporan", bukan "orang": identitas pelapor per
+                // perangkat belum ada, jadi satu warga yang mengirim tiga kali
+                // tidak bisa dibedakan dari tiga warga (rekomendasi P-8).
+                value = "${signal.reportCount} laporan",
+                note = if (signal.memenuhiAmbang) {
+                    "Memenuhi ambang gotong-royong (≥3 laporan)"
+                } else {
+                    "Belum memenuhi 3 laporan"
+                },
             )
             SignalRow(
                 icon = AlirinIcons.map,

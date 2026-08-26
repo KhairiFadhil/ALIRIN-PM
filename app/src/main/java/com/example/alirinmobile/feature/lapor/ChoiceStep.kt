@@ -49,7 +49,7 @@ fun ChoiceStep(onPick: (ReportMode) -> Unit, onBack: () -> Unit) {
                 badge = "±10 detik",
                 title = "Lapor Cepat",
                 sub = "Tanpa foto",
-                body = "Lokasi, kategori, severity. Cukup itu. Jika 3+ warga lapor di area yang sama, sistem auto-verifikasi gotong-royong.",
+                body = "Lokasi, kategori, severity. Cukup itu. Laporan lain di radius 100 m dalam 24 jam ikut ditampilkan ke petugas sebagai sinyal validasi.",
                 highlights = listOf(
                     AlirinIcons.bolt to "Tanpa foto, sangat cepat",
                     AlirinIcons.users to "Gotong-royong: 3 lapor di radius 100 m → otomatis diverifikasi",

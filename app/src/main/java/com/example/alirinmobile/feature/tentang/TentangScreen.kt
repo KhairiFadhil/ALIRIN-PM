@@ -100,7 +100,7 @@ fun TentangScreen(onBack: () -> Unit, onOpenWeb: () -> Unit = {}) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     HowRow(icon = AlirinIcons.users, tone = HowTone.Indigo,
                         title = "Laporan Warga",
-                        body = "Kamu lapor, sistem skor risiko. 3+ laporan di radius 100 m / 24 jam → auto-verifikasi gotong-royong.")
+                        body = "Kamu lapor, sistem skor risiko. 3+ laporan di radius 100 m / 24 jam → sinyal gotong-royong untuk petugas.")
                     HowRow(icon = AlirinIcons.history, tone = HowTone.Default,
                         title = "Data Historis",
                         body = "Titik rawan per kelurahan dari data tahun lalu (kerja sama dengan kelurahan).")

@@ -119,38 +119,16 @@ fun StatusDetailScreen(
                 }
             }
 
-            if (report.status == ReportStatus.Verified &&
-                report.history.find { it.status == ReportStatus.Verified }?.note?.contains("gotong") == true) {
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .clip(Radius.lg)
-                        .background(PrimarySofter)
-                        .border(1.dp, PrimarySoft, Radius.lg)
-                        .padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Box(
-                        Modifier
-                            .size(44.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Primary),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(AlirinIcons.users, null, tint = Color.White, modifier = Modifier.size(22.dp))
-                    }
-                    Column(Modifier.weight(1f)) {
-                        Text("Diverifikasi Warga", fontWeight = FontWeight.W700, fontSize = 14.sp, color = PrimaryInk)
-                        Text(
-                            "3+ warga melaporkan masalah serupa di radius 100 m",
-                            fontSize = 12.sp, color = PrimaryInk.copy(alpha = 0.8f),
-                            modifier = Modifier.padding(top = 2.dp),
-                        )
-                    }
-                    AvatarStack(count = 3, size = 26)
-                }
-            }
+            // Blok "Diverifikasi Warga" dihapus di sini. Ia bergantung pada
+            // catatan riwayat yang mengandung kata "gotong", dan tidak ada satu
+            // pun kode di web, mobile, maupun basis data yang pernah menulis
+            // catatan itu -- jadi blok ini tidak akan pernah muncul. Isinya juga
+            // mengarang: teksnya menyebut "3+ warga" dan avatarnya dipatok tiga
+            // tanpa membaca data apa pun.
+            //
+            // Verifikasi gotong-royong yang benar butuh tiga PELAPOR berbeda,
+            // dan itu baru mungkin setelah tiap perangkat punya identitas
+            // (rekomendasi P-8).
 
             AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(18.dp)) {
                 Column {
