@@ -1,6 +1,6 @@
 # ALIRIN Mobile — Functional Spec (Citizen App)
 
-Dokumen ini menjelaskan **cara kerja** ALIRIN Mobile (Android, sisi warga). Semua urusan UI/visual/layout/komponen tidak dibahas di sini — itu jatahnya tahap desain terpisah (Claude Design).
+Dokumen ini menjelaskan **cara kerja** ALIRIN Mobile (Android, sisi warga). Semua urusan UI/visual/layout/komponen tidak dibahas di sini; desain UI dibahas terpisah.
 
 Versi: v2 · Tanggal: 2026-08-26 · Platform: Android
 
