@@ -2,7 +2,7 @@ package com.example.alirinmobile.data.network
 
 import com.example.alirinmobile.BuildConfig
 import com.example.alirinmobile.data.network.service.BmkgService
-import com.example.alirinmobile.data.network.service.GroqService
+import com.example.alirinmobile.data.network.service.AlirinFunctionsService
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -11,9 +11,12 @@ import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import java.util.concurrent.TimeUnit
 
-// Retrofit client hanya untuk service pihak-ketiga (BMKG cuaca + Groq LLM).
+// Retrofit client untuk BMKG dan untuk Edge Function ALIRIN.
 // Auth Supabase & CRUD reports pindah ke io.github.jan.supabase.SupabaseClient
 // (lihat AlirinSupabase di file lain).
+//
+// Panggilan Groq TIDAK lagi ada di sini: kuncinya pindah ke Edge Function
+// supaya tidak ikut tertanam di APK (temuan D-4 laporan audit).
 class ApiClient {
 
     private val json = Json {
@@ -33,11 +36,14 @@ class ApiClient {
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    private val groqClient: OkHttpClient = OkHttpClient.Builder()
+    // Kunci yang dikirim adalah publishable key Supabase, bukan kunci Groq.
+    // Kunci ini memang dirancang untuk ada di sisi klien.
+    private val functionsClient: OkHttpClient = OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
         .addInterceptor { chain ->
             val req = chain.request().newBuilder()
-                .header("Authorization", "Bearer ${BuildConfig.GROQ_API_KEY}")
+                .header("Authorization", "Bearer ${BuildConfig.SUPABASE_PUBLISHABLE_KEY}")
+                .header("apikey", BuildConfig.SUPABASE_PUBLISHABLE_KEY)
                 .header("Content-Type", "application/json")
                 .build()
             chain.proceed(req)
@@ -55,9 +61,11 @@ class ApiClient {
     val bmkgService: BmkgService by lazy {
         retrofit("https://api.bmkg.go.id/", baseClient).create(BmkgService::class.java)
     }
-    val groqService: GroqService by lazy {
-        retrofit("https://api.groq.com/", groqClient).create(GroqService::class.java)
+    val functionsService: AlirinFunctionsService by lazy {
+        retrofit(BuildConfig.SUPABASE_URL.trimEnd('/') + "/", functionsClient)
+            .create(AlirinFunctionsService::class.java)
     }
 
-    val groqConfigured: Boolean get() = BuildConfig.GROQ_API_KEY.isNotBlank()
+    val functionsConfigured: Boolean
+        get() = BuildConfig.SUPABASE_URL.isNotBlank() && BuildConfig.SUPABASE_PUBLISHABLE_KEY.isNotBlank()
 }

@@ -54,6 +54,11 @@ data class ReportEntity(
     @ColumnInfo(name = "photos_json") val photosJson: String,
     @ColumnInfo(name = "completion_photos_json") val completionPhotosJson: String,
     @ColumnInfo(name = "risk_breakdown_json") val riskBreakdownJson: String,
+    // Penilaian AI, pembanding baseline. Bukan pengganti risk_score.
+    @ColumnInfo(name = "ai_risk_score") val aiRiskScore: Int? = null,
+    @ColumnInfo(name = "ai_risk_reason") val aiRiskReason: String? = null,
+    @ColumnInfo(name = "ai_recommendations_json") val aiRecommendationsJson: String? = null,
+    @ColumnInfo(name = "ai_model") val aiModel: String? = null,
     @ColumnInfo(name = "status_history_json") val statusHistoryJson: String,
     @ColumnInfo(name = "field_notes_json") val fieldNotesJson: String,
 

@@ -14,6 +14,7 @@ import com.example.alirinmobile.data.riskLevelFromWire
 import com.example.alirinmobile.data.toWire
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 
 // DTO internal untuk serialisasi JSON di kolom Room. Bentuknya sengaja identik
@@ -89,6 +90,16 @@ fun encodeRiskBreakdown(items: List<RiskBreakdownItem>): String =
     jsonCodec.encodeToString(breakdownSerializer, items.map {
         RiskBreakdownJson(id = it.id, factor = it.id, label = it.label, points = it.points, weight = it.weight, detail = it.detail)
     })
+
+// Daftar rekomendasi AI disimpan sebagai JSON di Room, sama seperti foto dan
+// rincian skor.
+fun decodeStringList(raw: String?): List<String> = runCatching {
+    if (raw.isNullOrBlank()) return emptyList()
+    jsonCodec.decodeFromString(ListSerializer(String.serializer()), raw)
+}.getOrDefault(emptyList())
+
+fun encodeStringList(items: List<String>): String =
+    jsonCodec.encodeToString(ListSerializer(String.serializer()), items)
 
 fun decodeRiskBreakdown(raw: String?): List<RiskBreakdownItem> = runCatching {
     if (raw.isNullOrBlank()) return emptyList()
@@ -171,6 +182,10 @@ fun ReportEntity.toDomain(): Report {
         photos = decodePhotos(photosJson),
         completionPhotos = decodePhotos(completionPhotosJson),
         riskBreakdown = decodeRiskBreakdown(riskBreakdownJson),
+        aiRiskScore = aiRiskScore,
+        aiRiskReason = aiRiskReason,
+        aiRecommendations = decodeStringList(aiRecommendationsJson),
+        aiModel = aiModel,
         fieldNotes = decodeFieldNotes(fieldNotesJson),
         history = decodeStatusHistory(statusHistoryJson),
         lat = lat,

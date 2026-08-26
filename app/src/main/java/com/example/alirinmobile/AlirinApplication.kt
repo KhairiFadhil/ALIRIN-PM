@@ -75,6 +75,7 @@ class AlirinApplication : Application() {
             kelurahanRepo = kelurahanRepository,
             weatherRepo = weatherRepository,
             upstreamRepo = upstreamRepository,
+            api = apiClient,
         )
         predictionRepository = PredictionRepository(apiClient, weatherRepository)
         locationRepository = LocationRepository(this)

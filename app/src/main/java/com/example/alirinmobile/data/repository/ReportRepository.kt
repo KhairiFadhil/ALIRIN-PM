@@ -15,7 +15,9 @@ import com.example.alirinmobile.data.local.StatusHistoryJson
 import com.example.alirinmobile.data.local.decodePhotos
 import com.example.alirinmobile.data.local.decodeStatusHistoryRaw
 import com.example.alirinmobile.data.local.encodePhotos
+import android.util.Log
 import com.example.alirinmobile.data.local.encodeRiskBreakdown
+import com.example.alirinmobile.data.network.service.AssessRiskRequest
 import com.example.alirinmobile.data.local.encodeStatusHistoryRaw
 import com.example.alirinmobile.data.local.jsonCodec
 import com.example.alirinmobile.data.local.toDomain
@@ -68,6 +70,7 @@ class ReportRepository(
     private val kelurahanRepo: KelurahanRepository,
     private val weatherRepo: WeatherRepository,
     private val upstreamRepo: UpstreamRepository,
+    private val api: com.example.alirinmobile.data.network.ApiClient,
 ) {
 
     // Batas Kota Bandar Lampung, sama dengan CITY_BOUNDS di web dan constraint
@@ -300,6 +303,12 @@ class ReportRepository(
             }
 
             dao.markSynced(id, s = "synced", localOnly = false)
+
+            // (d) Penilaian AI. Berjalan setelah laporan aman tersimpan dan
+            // kegagalannya tidak dianggap kegagalan sinkronisasi: skor baseline
+            // sudah ditulis trigger dan itu yang dipakai mengurutkan penanganan.
+            runCatching { api.functionsService.assessRisk(AssessRiskRequest(id)) }
+                .onFailure { Log.i(TAG, "penilaian AI dilewati: ${it.message}") }
         } catch (t: Throwable) {
             dao.markSyncState(id, "failed", t.message?.take(500))
         }
@@ -584,5 +593,10 @@ class ReportRepository(
     // For UI display only — do NOT use for persistence.
     fun nowLabel(): String =
         SimpleDateFormat("d MMM · HH:mm", Locale("id")).format(Date())
+
+    private companion object {
+        const val TAG = "AlirinReports"
+    }
+
 }
 

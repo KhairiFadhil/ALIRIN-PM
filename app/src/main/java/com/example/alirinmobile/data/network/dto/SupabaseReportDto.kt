@@ -39,6 +39,12 @@ data class SupabaseReportDto(
     @SerialName("report_photos") val reportPhotos: JsonElement? = null,
     @SerialName("risk_breakdowns") val riskBreakdowns: JsonElement? = null,
     @SerialName("report_status_history") val reportStatusHistory: JsonElement? = null,
+    @SerialName("upstream_kecamatan") val upstreamKecamatan: String? = null,
+    @SerialName("upstream_rainfall_mm") val upstreamRainfallMm: Double? = null,
+    @SerialName("ai_risk_score") val aiRiskScore: Int? = null,
+    @SerialName("ai_risk_reason") val aiRiskReason: String? = null,
+    @SerialName("ai_recommendations") val aiRecommendations: JsonElement? = null,
+    @SerialName("ai_model") val aiModel: String? = null,
 )
 
 // Payload untuk insert ke tabel reports. Dipisah biar tidak bawa nested collections

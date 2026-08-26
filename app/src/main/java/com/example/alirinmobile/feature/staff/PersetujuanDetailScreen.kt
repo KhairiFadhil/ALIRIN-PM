@@ -101,6 +101,11 @@ fun PersetujuanDetailScreen(
                 AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(18.dp)) {
                     RiskBreakdownCard(items = report.riskBreakdown)
                 }
+                if (report.aiRiskScore != null) {
+                    AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(18.dp)) {
+                        AiAssessmentCard(report = report)
+                    }
+                }
                 if (report.photos.isNotEmpty()) PhotoStripCard(report)
                 ValidationSignalsCard(report, allReports)
                 MapSnippetCard(report)

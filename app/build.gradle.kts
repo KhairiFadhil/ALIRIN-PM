@@ -7,25 +7,17 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-// GROQ_API_KEY dibaca dari local.properties agar tidak ikut ter-commit.
+// GROQ_API_KEY sudah TIDAK dibaca di sini lagi.
 //
-// CATATAN KEAMANAN: buildConfigField menaruh nilainya sebagai string biasa di
-// dalam DEX, jadi siapa pun yang mengunduh APK bisa mengekstraknya. Ini bisa
-// diterima selama masih prototipe; untuk rilis nyata, panggilan Groq harus
-// pindah ke Supabase Edge Function agar kuncinya tidak pernah ada di perangkat.
-// Kunci kosong bukan kegagalan: aplikasi memakai baseline berbasis aturan yang
-// dapat diaudit, dan kartu prakiraan menyebut sumbernya apa adanya.
+// buildConfigField menaruh nilainya sebagai string biasa di dalam DEX, jadi
+// siapa pun yang mengunduh APK bisa mengekstraknya (temuan D-4 laporan audit).
+// Sejak P-1 seluruh panggilan Groq berjalan di Edge Function ALIRIN, dan
+// kuncinya hanya ada sebagai secret project. Yang tersisa di sini hanyalah
+// publishable key Supabase, yang memang dirancang untuk ada di sisi klien.
 val localProps = Properties().apply {
     val f = rootProject.file("local.properties")
     if (f.exists()) f.inputStream().use { load(it) }
 }
-val groqApiKey: String = localProps.getProperty("GROQ_API_KEY", "")
-// Model Groq bisa diganti tanpa menyentuh kode. Default memakai model yang
-// masih tersedia di tier standar; llama-3.1-8b-instant yang disebut proposal
-// dijadwalkan berhenti 16 Agustus 2026 dan kini hanya untuk akun Enterprise.
-val groqModel: String = localProps.getProperty("GROQ_MODEL", "openai/gpt-oss-20b")
-// Kosongkan bila modelnya menolak parameter reasoning_effort.
-val groqReasoningEffort: String = localProps.getProperty("GROQ_REASONING_EFFORT", "low")
 val supabaseUrl: String = localProps.getProperty("SUPABASE_URL", "")
 val supabaseKey: String = localProps.getProperty("SUPABASE_PUBLISHABLE_KEY", "")
 
@@ -44,9 +36,6 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "GROQ_API_KEY", "\"$groqApiKey\"")
-        buildConfigField("String", "GROQ_MODEL", "\"$groqModel\"")
-        buildConfigField("String", "GROQ_REASONING_EFFORT", "\"$groqReasoningEffort\"")
         buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"$supabaseKey\"")
     }

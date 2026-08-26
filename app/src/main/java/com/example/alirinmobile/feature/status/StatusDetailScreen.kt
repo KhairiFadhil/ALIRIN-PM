@@ -113,6 +113,12 @@ fun StatusDetailScreen(
                 RiskBreakdownCard(items = report.riskBreakdown)
             }
 
+            if (report.aiRiskScore != null) {
+                AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(18.dp)) {
+                    AiAssessmentCard(report = report)
+                }
+            }
+
             if (report.status == ReportStatus.Verified &&
                 report.history.find { it.status == ReportStatus.Verified }?.note?.contains("gotong") == true) {
                 Row(

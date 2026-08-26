@@ -675,7 +675,7 @@ private fun PredictionCardContent(model: PredictionUiModel, onOpenMap: () -> Uni
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "Sumber: BMKG + GROQ LLM · update tiap fetch",
+                    "Sumber: BMKG + Edge Function ALIRIN · update tiap fetch",
                     style = AlirinText.caption,
                     modifier = Modifier.weight(1f),
                 )

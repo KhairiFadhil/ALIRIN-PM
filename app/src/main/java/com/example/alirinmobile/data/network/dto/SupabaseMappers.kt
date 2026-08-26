@@ -8,6 +8,7 @@ import com.example.alirinmobile.data.local.StatusHistoryJson
 import com.example.alirinmobile.data.local.decodeStatusHistoryRaw
 import com.example.alirinmobile.data.local.jsonCodec
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -48,6 +49,13 @@ private fun JsonElement?.arrayOrEmpty(): JsonArray = when (this) {
 private fun decodePhotoListRaw(element: JsonElement?): List<PhotoRefJson> = runCatching {
     val arr = element.arrayOrEmpty()
     if (arr.isEmpty()) emptyList() else jsonCodec.decodeFromJsonElement(photoJsonSerializer, arr)
+}.getOrDefault(emptyList())
+
+private val stringListSerializer = ListSerializer(String.serializer())
+
+private fun decodeStringListRaw(element: JsonElement?): List<String> = runCatching {
+    val arr = element as? JsonArray ?: return emptyList()
+    if (arr.isEmpty()) emptyList() else jsonCodec.decodeFromJsonElement(stringListSerializer, arr)
 }.getOrDefault(emptyList())
 
 private fun decodeBreakdownListRaw(element: JsonElement?): List<RiskBreakdownJson> = runCatching {
@@ -124,6 +132,13 @@ fun SupabaseReportDto.toEntity(
         photosJson = photosJson,
         completionPhotosJson = completionPhotosJson,
         riskBreakdownJson = breakdownJson,
+        aiRiskScore = aiRiskScore,
+        aiRiskReason = aiRiskReason,
+        aiRecommendationsJson = jsonCodec.encodeToString(
+            stringListSerializer,
+            decodeStringListRaw(aiRecommendations),
+        ),
+        aiModel = aiModel,
         statusHistoryJson = historyJson,
         fieldNotesJson = fieldNotesJson,
         syncStatus = existingSyncStatus,

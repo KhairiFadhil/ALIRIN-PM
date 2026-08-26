@@ -113,6 +113,11 @@ data class Report(
     val photos: List<PhotoRef> = emptyList(),
     val completionPhotos: List<PhotoRef> = emptyList(),
     val riskBreakdown: List<RiskBreakdownItem> = emptyList(),
+    // Pembanding AI. Urutan penanganan tetap memakai score di atas.
+    val aiRiskScore: Int? = null,
+    val aiRiskReason: String? = null,
+    val aiRecommendations: List<String> = emptyList(),
+    val aiModel: String? = null,
     val fieldNotes: List<FieldNote> = emptyList(),
     val history: List<HistoryEntry> = emptyList(),
     val lat: Double? = null,

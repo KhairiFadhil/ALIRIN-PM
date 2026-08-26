@@ -1,25 +1,43 @@
-# Mengaktifkan AI-Assisted Analysis (Groq)
+# Mengaktifkan AI-Assisted Analysis
 
-Status per 26 Agustus 2026: **aktif dan terverifikasi ujung ke ujung**.
+Status per 26 Agustus 2026: **AI berjalan di Edge Function, bukan lagi di
+perangkat**.
+
+Sebelum P-1, kunci Groq ditanam ke APK lewat `buildConfigField`. Siapa pun yang
+mengunduh APK bisa mengekstraknya — metode yang sama dipakai untuk
+memverifikasinya. Sekarang kuncinya hanya ada sebagai secret project Supabase,
+dan aplikasi cukup memanggil fungsinya.
 
 | Komponen | Status | Bukti |
 |---|---|---|
-| BMKG prakiraan cuaca | **Berfungsi** | Endpoint dites langsung untuk 4 kelurahan, semuanya menjawab |
-| BMKG → risk score | **Berfungsi** | Kolom `rainfall_mm` terisi saat laporan dikirim, jadi faktor Cuaca 25% |
-| Kunci Groq | **Valid** | Berhasil membaca daftar model akun (13 model) |
-| Model `openai/gpt-oss-20b` | **Tersedia** | Ada di daftar model akun; prompt ALIRIN menghasilkan JSON lengkap |
-| Model `llama-3.1-8b-instant` | **Tidak tersedia** | HTTP 404, dan tidak ada di daftar model akun |
+| Kunci Groq di APK | **Sudah tidak ada** | Pemindaian seluruh 15 berkas dex dan entri lain: tidak ada `gsk_` maupun `api.groq.com` |
+| Edge Function `weather-brief` | Kartu prakiraan untuk mobile **dan** web | Label sumber di kartu menyebut `ai` atau `baseline` apa adanya |
+| Edge Function `assess-risk` | Penilai risiko pembanding | Menulis kolom `ai_*`, tidak menyentuh `risk_score` |
+| BMKG prakiraan cuaca | Berfungsi | 126 kode `adm4` dibaca langsung dari endpoint BMKG |
 
-Bila panggilan AI gagal, sistem tetap beralih ke baseline berbasis aturan sesuai
-Proposal §4.3.4, dan alasannya kini tercetak di logcat.
+## Yang tidak berubah: skor baseline
 
-## Langkah mengaktifkan
+`risk_score` tetap ditulis trigger `alirin_apply_risk` dan tetap satu-satunya
+angka yang dipakai mengurutkan penanganan. AI menulis kolom terpisah
+(`ai_risk_score`, `ai_risk_reason`, `ai_recommendations`, `ai_model`,
+`ai_assessed_at`) yang **ditampilkan berdampingan** dengan baseline.
 
-### 1. Ambil kunci
+Itu bukan setengah-setengah, melainkan janji Proposal §4.3.4 yang berbunyi AI
+"dibandingkan dengan baseline serta verifikasi lapangan". Menampilkan satu angka
+saja akan menghapus perbandingannya, dan sistem kehilangan kemampuan menjawab
+"kenapa skornya segini" dengan pasti. Selisih keduanya justru bahan mentah untuk
+evaluasi akurasi yang dijanjikan §4.4.
+
+## Langkah memasang
+
+### 1. Ambil kunci baru
 
 Buat API key di <https://console.groq.com/keys>. Bentuknya `gsk_...`.
 
-### 2. Uji kunci dan model SEBELUM dipasang
+Kunci lama harus **dicabut**: ia terlanjur ikut ke setiap APK yang pernah
+dibangun dengannya.
+
+### 2. Uji kunci dan model sebelum dipasang
 
 ```bash
 curl https://api.groq.com/openai/v1/chat/completions \
@@ -32,45 +50,54 @@ curl https://api.groq.com/openai/v1/chat/completions \
   }'
 ```
 
-Harus menjawab `200` dengan isi JSON. Bila menjawab `model_not_found` atau
-`model_decommissioned`, ganti model — lihat bagian berikutnya.
+Harus menjawab `200`. Bila `model_not_found` atau `model_decommissioned`, ganti
+model — lihat bagian berikutnya.
 
-### 3. Pasang di `local.properties`
-
-```properties
-GROQ_API_KEY=gsk_kunci_anda
-GROQ_MODEL=openai/gpt-oss-20b
-GROQ_REASONING_EFFORT=low
-```
-
-Berkas ini sudah masuk `.gitignore`, jadi kuncinya tidak ikut ter-commit.
-
-### 4. Bangun ulang dan cek
+### 3. Pasang sebagai secret project
 
 ```bash
-gradlew assembleDebug
+cd C:\ALIRIN
+npx supabase login
+npx supabase link --project-ref prfgbvepsyfjwyctgeeq
+npx supabase secrets set GROQ_API_KEY=gsk_kunci_anda
+npx supabase secrets set GROQ_MODEL=openai/gpt-oss-20b
+npx supabase secrets set GROQ_REASONING_EFFORT=low
+```
+
+### 4. Terbitkan fungsinya
+
+```bash
+npx supabase functions deploy weather-brief
+npx supabase functions deploy assess-risk
+```
+
+### 5. Periksa
+
+```bash
+cd app && npm run supabase:status
 ```
 
 Di aplikasi, kartu Beranda berubah judul menjadi **"ANALISIS AI · 3 JAM KE
-DEPAN"** dengan label sumber **"Analisis AI"**. Selama masih berbunyi
-"Aturan baseline", AI belum benar-benar terpakai.
+DEPAN"** dengan label sumber **"Analisis AI"**. Selama masih berbunyi "Aturan
+baseline", fungsi berjalan tetapi Groq-nya belum menyala.
 
-Bila gagal, alasannya tercetak di logcat:
+Alasan kegagalan tercetak di log fungsi:
 
 ```bash
-adb logcat -s AlirinPrediction
+npx supabase functions logs weather-brief
+npx supabase functions logs assess-risk
 ```
 
 ## Soal pilihan model
 
 Proposal menyebut **Llama 3.1 8B** (`llama-3.1-8b-instant`). Model itu
-**terkonfirmasi tidak tersedia** untuk akun ini: permintaan dijawab HTTP 404,
-dan namanya tidak muncul di daftar model akun. Halaman deprecations Groq
-mencantumkan tanggal shutdown 16 Agustus 2026 dengan pengganti
-`openai/gpt-oss-20b`.
+**terkonfirmasi tidak tersedia**: permintaan dijawab HTTP 404 dan namanya tidak
+muncul di daftar model akun. Halaman deprecations Groq mencantumkan tanggal
+shutdown 16 Agustus 2026 dengan pengganti `openai/gpt-oss-20b`.
 
-Model yang dipakai sekarang: **`openai/gpt-oss-20b`**, tercepat dan termurah di
-tier standar. Bisa diganti lewat `GROQ_MODEL` tanpa menyentuh kode.
+Model yang dipakai sekarang: **`openai/gpt-oss-20b`**. Bisa diganti lewat secret
+`GROQ_MODEL` tanpa menyentuh kode dan tanpa membangun ulang APK — itu keuntungan
+lain dari memindahkannya ke server.
 
 Konsekuensi untuk berkas lomba: kalimat proposal yang menyebut "Llama 3.1 8B"
 perlu disesuaikan dengan model yang benar-benar dipakai.
@@ -89,33 +116,21 @@ sebenarnya:
 | `low` | 1024 | Berhasil | ~269 |
 
 Konfigurasi yang dipakai: `reasoning_effort=low` dengan `max_tokens=1024`.
-Empat kali lebih hemat token daripada effort bawaan, dan punya kelonggaran yang
-cukup. Nilai `512` yang dipakai versi sebelumnya gagal berulang pada skenario
-hujan — dan gagalnya tidak terlihat karena semua error ditelan diam-diam.
+Kosongkan `GROQ_REASONING_EFFORT` bila mengganti ke model yang menolak parameter
+ini.
 
-Kosongkan `GROQ_REASONING_EFFORT=` bila mengganti ke model yang menolak
-parameter ini.
+## Bila kunci belum dipasang
 
-## Peringatan keamanan
+Bukan kegagalan. Kedua fungsi mengembalikan baseline berbasis aturan sesuai
+Proposal §4.3.4, dan kartu prakiraan menyebut sumbernya apa adanya.
 
-`buildConfigField` menaruh kunci sebagai string biasa di dalam DEX. Siapa pun
-yang mengunduh APK bisa mengekstraknya — metode yang sama dipakai untuk
-memverifikasi bahwa kunci sekarang benar-benar tertanam.
+Yang harus dihindari: kartu berlabel "Analisis AI" yang isinya sebenarnya
+`if-else`. Label sumber di kartu mengikuti apa yang benar-benar terjadi di
+server, bukan apa yang ingin ditampilkan.
 
-**Rotasi kunci sebelum APK dibagikan ke luar tim.** Kunci yang pernah dikirim
-lewat kanal percakapan, ditempel di dokumen, atau ikut dalam APK yang beredar
-harus dianggap sudah bocor. Batasi juga kuotanya di dashboard Groq supaya
-penyalahgunaan tidak berujung tagihan.
+## Batas kuota
 
-Ini dapat diterima selama masih prototipe dan kuncinya berkuota kecil. Untuk
-pemakaian sungguhan, panggilan Groq harus pindah ke Supabase Edge Function
-sehingga kuncinya tidak pernah ada di perangkat. Lihat rekomendasi P-1 pada
-laporan audit.
-
-## Yang berubah bila AI aktif
-
-Yang **tidak** berubah: risk score. AI saat ini hanya mengisi kartu prakiraan
-(ringkasan + rekomendasi), bukan menilai risiko laporan. Menjadikan AI sebagai
-penilai risiko adalah rekomendasi P-1 (roadmap Tahap 3), dan rancangannya
-menyimpan skor AI berdampingan dengan skor baseline supaya keduanya bisa
-dibandingkan dan diaudit.
+Tetap pasang batas kuota di dashboard Groq. Fungsi `assess-risk` menolak menilai
+ulang laporan yang sama dalam 10 menit, sehingga satu laporan tidak bisa dipakai
+menguras kuota lewat panggilan berulang — tetapi batas kuota tetap lapisan
+terakhir yang paling bisa diandalkan.
