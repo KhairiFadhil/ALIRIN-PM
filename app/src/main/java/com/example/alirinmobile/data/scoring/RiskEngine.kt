@@ -5,6 +5,7 @@ import com.example.alirinmobile.data.RiskLevel
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
@@ -150,6 +151,32 @@ object RiskEngine {
         return (sum.toDouble() / activeTotal).roundToInt().coerceIn(0, 100)
     }
 
+    // Metode sisa terbesar. Tiap faktor mendapat bagian bulat ke bawah, lalu
+    // sisa poin dibagikan ke faktor dengan pecahan terbesar. Cermin dari
+    // public.alirin_apportion di basis data dan apportion() di web.
+    fun apportion(exact: List<Double>, total: Int): List<Int> {
+        val points = exact.map { floor(it).toInt() }.toMutableList()
+        // Pecahannya dibulatkan ke 6 desimal sebelum dibandingkan. Basis data
+        // memakai numeric yang eksak; di sini tipenya Double. Tanpa pembulatan
+        // ini, dua pecahan yang seharusnya seri bisa berbeda pada digit ke-15
+        // dan poin sisanya jatuh ke faktor yang berbeda dari pilihan basis data.
+        val fractions = exact
+            .mapIndexed { i, value -> Math.round((value - points[i]) * 1e6) / 1e6 }
+            .toMutableList()
+
+        var gap = total - points.sum()
+        while (gap > 0) {
+            var best = 0
+            for (i in 1 until fractions.size) {
+                if (fractions[i] > fractions[best]) best = i
+            }
+            points[best] = points[best] + 1
+            fractions[best] = -1.0  // sudah kebagian
+            gap -= 1
+        }
+        return points
+    }
+
     fun evaluate(
         id: String?,
         severity: String,
@@ -170,8 +197,19 @@ object RiskEngine {
 
         val activeTotal = WEIGHT_SEVERITY + WEIGHT_HISTORY + WEIGHT_LOCATION +
             (if (weatherRaw == null) 0 else WEIGHT_WEATHER)
-        fun points(raw: Int, weight: Int) = (raw.toDouble() * weight / activeTotal).roundToInt()
         fun effectiveWeight(weight: Int) = (weight.toDouble() * 100 / activeTotal).roundToInt()
+
+        // Poin dibagi dari skor akhir, bukan dibulatkan sendiri-sendiri, supaya
+        // jumlahnya persis sama dengan angka yang dilihat pengguna.
+        val points = apportion(
+            listOf(
+                severityRaw.toDouble() * WEIGHT_SEVERITY / activeTotal,
+                historyRaw.toDouble() * WEIGHT_HISTORY / activeTotal,
+                if (weatherRaw == null) 0.0 else weatherRaw.toDouble() * WEIGHT_WEATHER / activeTotal,
+                locationRaw.toDouble() * WEIGHT_LOCATION / activeTotal,
+            ),
+            score,
+        )
 
         val nearest = nearestFacility(lat, lng)
         val evidenceFilled = listOf(photoCount > 0, description.trim().length >= 10, true).count { it }
@@ -180,21 +218,21 @@ object RiskEngine {
             RiskBreakdownItem(
                 id = "severity",
                 label = "Keparahan laporan",
-                points = points(severityRaw, WEIGHT_SEVERITY),
+                points = points[0],
                 weight = effectiveWeight(WEIGHT_SEVERITY),
                 detail = "Tingkat $severity",
             ),
             RiskBreakdownItem(
                 id = "history",
                 label = "Histori kejadian",
-                points = points(historyRaw, WEIGHT_HISTORY),
+                points = points[1],
                 weight = effectiveWeight(WEIGHT_HISTORY),
                 detail = "$count laporan lain dalam radius 350 m, 180 hari terakhir",
             ),
             RiskBreakdownItem(
                 id = "weather",
                 label = "Cuaca",
-                points = if (weatherRaw == null) 0 else points(weatherRaw, WEIGHT_WEATHER),
+                points = points[2],
                 weight = if (weatherRaw == null) 0 else effectiveWeight(WEIGHT_WEATHER),
                 detail = if (weatherRaw == null) {
                     "Data BMKG tidak tersedia, bobot dialihkan ke faktor lain"
@@ -205,7 +243,7 @@ object RiskEngine {
             RiskBreakdownItem(
                 id = "location",
                 label = "Dampak lokasi",
-                points = points(locationRaw, WEIGHT_LOCATION),
+                points = points[3],
                 weight = effectiveWeight(WEIGHT_LOCATION),
                 detail = nearest?.let { "${it.first.name}, ${"%.1f".format(it.second)} km" }
                     ?: "Tidak ada fasilitas publik terdekat",

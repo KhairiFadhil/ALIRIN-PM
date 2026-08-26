@@ -123,6 +123,39 @@ class RiskEngineTest {
         assertTrue(result.breakdown.first { it.id == "weather" }.detail!!.contains("dialihkan"))
     }
 
+    // P-2: rincian skor ditampilkan ke pengguna, jadi angkanya harus berjumlah.
+    @Test
+    fun `sisa poin jatuh ke pecahan terbesar`() {
+        assertEquals(listOf(46, 0, 0, 7), RiskEngine.apportion(listOf(46.6, 0.0, 0.0, 6.9), 53))
+        assertEquals(listOf(35, 25, 25, 15), RiskEngine.apportion(listOf(35.0, 25.0, 25.0, 15.0), 100))
+    }
+
+    // Pecahan seri harus jatuh ke faktor pertama di semua implementasi, bukan
+    // ke faktor yang kebetulan menang di digit ke-15 float.
+    @Test
+    fun `sisa jatuh ke faktor pertama saat pecahannya seri`() {
+        assertEquals(listOf(47, 0, 0, 6), RiskEngine.apportion(listOf(46.67, 0.0, 0.0, 6.67), 53))
+        assertEquals(listOf(3, 3), RiskEngine.apportion(listOf(2.5, 2.5), 6))
+    }
+
+    @Test
+    fun `jumlah poin selalu sama dengan skor`() {
+        for (severity in listOf("ringan", "sedang", "parah", "kritis")) {
+            for (rainfall in listOf(null, 0.0, 0.5, 3.0, 8.0, 15.0, 40.0)) {
+                val result = RiskEngine.evaluate(
+                    id = "x", severity = severity, lat = -5.3971, lng = 105.2668,
+                    createdAtMs = createdAt, rainfallMm = rainfall, photoCount = 1,
+                    description = "Air menggenang di jalan.",
+                )
+                assertEquals(
+                    "$severity/$rainfall",
+                    result.score,
+                    result.breakdown.sumOf { it.points },
+                )
+            }
+        }
+    }
+
     @Test
     fun `skor deterministik untuk masukan yang sama`() {
         fun run() = RiskEngine.evaluate(

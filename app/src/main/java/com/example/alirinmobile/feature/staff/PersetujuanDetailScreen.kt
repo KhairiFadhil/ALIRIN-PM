@@ -98,6 +98,9 @@ fun PersetujuanDetailScreen(
             ) {
                 HeroCard(report)
                 if (report.description.isNotBlank()) ReporterDescription(report)
+                AlirinCard(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(18.dp)) {
+                    RiskBreakdownCard(items = report.riskBreakdown)
+                }
                 if (report.photos.isNotEmpty()) PhotoStripCard(report)
                 ValidationSignalsCard(report, allReports)
                 MapSnippetCard(report)

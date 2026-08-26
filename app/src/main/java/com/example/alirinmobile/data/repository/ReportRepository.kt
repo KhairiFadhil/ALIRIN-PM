@@ -305,8 +305,13 @@ class ReportRepository(
     suspend fun syncNow(): Result<Int> = runCatching {
         val isStaff = authRepo.isStaff()
         val dtos: List<SupabaseReportDto> = if (isStaff) {
+            // Tabel mentah tidak membawa tabel anak; relasinya harus diminta
+            // eksplisit. Tanpa ini petugas kehilangan foto, rincian skor, dan
+            // riwayat status -- view public_reports sudah menyertakan ketiganya.
             supabase.from("reports")
-                .select { order("created_at", Order.DESCENDING) }
+                .select(
+                    Columns.raw("*, report_photos(*), risk_breakdowns(*), report_status_history(*)")
+                ) { order("created_at", Order.DESCENDING) }
                 .decodeList()
         } else {
             supabase.from("public_reports")
