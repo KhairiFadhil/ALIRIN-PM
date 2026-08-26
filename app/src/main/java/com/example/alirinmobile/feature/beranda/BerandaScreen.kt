@@ -73,9 +73,24 @@ fun BerandaScreen(
     val alerts by alertsVm.alerts.collectAsStateWithLifecycle()
     val areaKecamatan = selected?.kecamatan ?: "Bandar Lampung"
 
-    val kritisCount = reports.count { it.risk == RiskLevel.Kritis }
     val ctx = androidx.compose.ui.platform.LocalContext.current
-    val activeCount = reports.count { it.status != ReportStatus.Completed && it.status != ReportStatus.Rejected }
+
+    // Titik kritis DI AREA yang sedang ditampilkan, bukan se-kota. Labelnya
+    // "di $areaKecamatan", jadi hitungannya harus wilayah itu juga.
+    val areaAktif = selected?.kecamatan
+    val kritisCount = reports.count { r ->
+        r.risk == RiskLevel.Kritis &&
+            r.status != ReportStatus.Completed && r.status != ReportStatus.Rejected &&
+            (areaAktif == null || r.kecamatan.equals(areaAktif, ignoreCase = true))
+    }
+
+    // Notifikasi berbicara soal "laporan KAMU", jadi menghitung laporan milik
+    // perangkat ini (myReports) -- bukan seluruh laporan kota. Sebelumnya ia
+    // memakai total kota, sehingga muncul "6 laporan kamu" walau pengguna belum
+    // pernah melapor.
+    val myActiveCount = myReports.count {
+        it.status != ReportStatus.Completed && it.status != ReportStatus.Rejected
+    }
 
     // Titik rawan terdekat = laporan aktif (bukan selesai/ditolak/arsip) yang punya
     // koordinat, sortir berdasarkan skor risiko, ambil 3 teratas. Kalau posisi user
@@ -142,11 +157,11 @@ fun BerandaScreen(
             initials = initials,
             title = if (loggedIn) "Halo, $displayName" else "Warga",
             subtitle = if (loggedIn) "Akun aktif" else "Mode anonim - ketuk untuk akun",
-            hasNotif = activeCount > 0,
+            hasNotif = myActiveCount > 0,
             onProfile = { showAccount = true },
             onBell = {
                 ctx.toast(
-                    if (activeCount > 0) "$activeCount laporan kamu sedang diproses." else "Belum ada notifikasi baru.",
+                    if (myActiveCount > 0) "$myActiveCount laporan kamu sedang diproses." else "Belum ada notifikasi baru.",
                 )
             },
         )

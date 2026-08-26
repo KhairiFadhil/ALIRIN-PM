@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alirinmobile.data.Report
 import com.example.alirinmobile.data.ReportStatus
+import com.example.alirinmobile.data.repository.ReportCodegen
 import com.example.alirinmobile.ui.components.*
 import com.example.alirinmobile.ui.theme.*
 
@@ -25,7 +26,44 @@ fun StaffStatistikScreen(reports: List<Report>) {
         it.status == ReportStatus.Verified || it.status == ReportStatus.Scheduled ||
         it.status == ReportStatus.InProgress || it.status == ReportStatus.Completed
     }
-    val bars = listOf(2, 3, 4, 3, 5, 6, 4, 7, 5, 4, 6, 5, 3, 4)
+    // Grafik 14 hari dari data nyata: jumlah laporan per hari, hari ini di kanan.
+    // Sebelumnya deret ini dipatok tetap (2,3,4,...) sehingga grafiknya bohong.
+    val dayMs = 86_400_000L
+    val now = System.currentTimeMillis()
+    val startOfToday = now - (now % dayMs)
+    val bars = (13 downTo 0).map { back ->
+        val lo = startOfToday - back * dayMs
+        val hi = lo + dayMs
+        reports.count { r ->
+            val t = ReportCodegen.parseIsoMillis(r.createdAt) ?: return@count false
+            t in lo until hi
+        }
+    }
+    val avgPerDay = bars.sum().toDouble() / bars.size
+
+    // Label tanggal dari rentang sebenarnya (awal, tengah, hari ini).
+    val idDate = java.text.SimpleDateFormat("d MMM", java.util.Locale("id"))
+    val dayLabels = listOf(13, 7, 0).map { back ->
+        idDate.format(java.util.Date(startOfToday - back * dayMs))
+    }
+
+    // Waktu respons rata-rata: dari 'masuk' ke langkah verifikasi/penanganan
+    // pertama, di laporan yang sudah bergerak. "-" bila belum ada datanya.
+    val responseHours = reports.mapNotNull { r ->
+        val masuk = r.history.firstOrNull { it.status == ReportStatus.Pending }?.when_
+            ?.let { ReportCodegen.parseIsoMillis(it) }
+            ?: ReportCodegen.parseIsoMillis(r.createdAt)
+        val ditangani = r.history.firstOrNull {
+            it.status == ReportStatus.Verified || it.status == ReportStatus.Scheduled ||
+            it.status == ReportStatus.InProgress || it.status == ReportStatus.Completed
+        }?.when_?.let { ReportCodegen.parseIsoMillis(it) }
+        if (masuk != null && ditangani != null && ditangani >= masuk)
+            (ditangani - masuk).toDouble() / 3_600_000L else null
+    }
+    val avgResponseLabel = if (responseHours.isEmpty()) "-"
+        else "%.1fj".format(responseHours.average())
+
+    val bulanIni = java.text.SimpleDateFormat("MMMM yyyy", java.util.Locale("id")).format(java.util.Date(now))
 
     val palette = listOf(Primary, RiskTinggiDot, RiskWaspadaDot, Ink3, RiskKritisDot, Sky)
     val total = reports.size.coerceAtLeast(1)
@@ -44,7 +82,7 @@ fun StaffStatistikScreen(reports: List<Report>) {
         .map { it.key to it.value }
 
     Column(Modifier.fillMaxSize().background(Bg)) {
-        AlirinTopBar(title = "Statistik", subtitle = "Wilayah Kemiling · Mei 2026")
+        AlirinTopBar(title = "Statistik", subtitle = "Bandar Lampung · $bulanIni")
         Column(
             Modifier
                 .weight(1f)
@@ -86,7 +124,7 @@ fun StaffStatistikScreen(reports: List<Report>) {
                         }
                         Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
                             Text(
-                                "2.4h",
+                                avgResponseLabel,
                                 color = PrimaryOnDark,
                                 fontSize = 36.sp,
                                 fontWeight = FontWeight.W800,
@@ -118,7 +156,7 @@ fun StaffStatistikScreen(reports: List<Report>) {
                         }
                         Column(horizontalAlignment = Alignment.End) {
                             Text("Rata-rata", style = AlirinText.caption)
-                            Text("4.2/hari", fontSize = 16.sp, fontWeight = FontWeight.W700, color = Primary, modifier = Modifier.padding(top = 2.dp))
+                            Text("%.1f/hari".format(avgPerDay), fontSize = 16.sp, fontWeight = FontWeight.W700, color = Primary, modifier = Modifier.padding(top = 2.dp))
                         }
                     }
 
@@ -127,7 +165,7 @@ fun StaffStatistikScreen(reports: List<Report>) {
                         verticalAlignment = Alignment.Bottom,
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        val maxV = bars.max()
+                        val maxV = bars.max().coerceAtLeast(1)
                         bars.forEachIndexed { i, v ->
                             Box(
                                 Modifier
@@ -142,7 +180,7 @@ fun StaffStatistikScreen(reports: List<Report>) {
                         Modifier.fillMaxWidth().padding(top = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        listOf("1 Mei", "7 Mei", "13 Mei").forEach {
+                        dayLabels.forEach {
                             Text(it, color = Muted, fontSize = 10.5.sp, fontWeight = FontWeight.W500)
                         }
                     }
