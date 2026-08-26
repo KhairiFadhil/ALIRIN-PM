@@ -24,10 +24,24 @@ private data class KelurahanFile(
 class KelurahanRepository(private val appContext: Context) {
     private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
 
+    // Acuan terakhir yang SELALU ada, walau aset gagal dibaca. Durian Payung,
+    // Tanjung Karang Pusat -- pusat kota. Tanpa ini, list.first() pada aset
+    // kosong melempar NoSuchElementException dan menjatuhkan seluruh alur lapor.
+    private val hardcodedDefault = Kelurahan("Tanjung Karang Pusat", "Durian Payung", "18.71.06.1001")
+
+    // Pemuatan aset dibungkus: berkas hilang atau rusak tidak boleh membuat
+    // aplikasi crash saat pertama kali menyentuh data wilayah. Bila gagal,
+    // master kosong -> validasi menolak semua dan pengguna diarahkan memilih,
+    // bukan aplikasi tertutup.
     private val file: KelurahanFile by lazy {
-        val raw = appContext.assets.open("bandar_lampung_kelurahan.json")
-            .bufferedReader().use { it.readText() }
-        json.decodeFromString<KelurahanFile>(raw)
+        runCatching {
+            val raw = appContext.assets.open("bandar_lampung_kelurahan.json")
+                .bufferedReader().use { it.readText() }
+            json.decodeFromString<KelurahanFile>(raw)
+        }.getOrElse {
+            android.util.Log.e("AlirinKelurahan", "gagal memuat master wilayah: ${it.message}")
+            KelurahanFile()
+        }
     }
 
     val list: List<Kelurahan> get() = file.items
@@ -35,7 +49,9 @@ class KelurahanRepository(private val appContext: Context) {
     val areas: Map<String, List<String>> get() = file.areas
 
     val default: Kelurahan
-        get() = list.firstOrNull { it.adm4 == "18.71.13.1007" } ?: list.first()
+        get() = list.firstOrNull { it.adm4 == "18.71.13.1007" }
+            ?: list.firstOrNull()
+            ?: hardcodedDefault
 
     // Kelurahan persis -> kelurahan lain di kecamatan yang sama -> acuan kota.
     // Seluruh 126 kelurahan kini punya kodenya sendiri, jadi jalur pencadangan

@@ -89,4 +89,15 @@ class AreaMatcherTest {
         assertTrue(AreaMatcher.isValidArea(full, "Tanjung Karang Pusat", "Pasir Gintung"))
         assertTrue(AreaMatcher.isValidArea(full, "Teluk Betung Utara", "Gulak Galik"))
     }
+
+    // Bila master wilayah gagal dimuat, peta kosong tidak boleh melempar:
+    // validasi menolak semua dan pencocokan mengembalikan null, sehingga
+    // pengguna diarahkan memilih -- bukan aplikasi crash.
+    @Test
+    fun `peta kosong aman, tidak melempar`() {
+        val kosong = emptyMap<String, List<String>>()
+        assertFalse(AreaMatcher.isValidArea(kosong, "Rajabasa", "Gedong Meneng"))
+        assertNull(AreaMatcher.match(kosong, "Rajabasa", "Gedong Meneng"))
+        assertNull(AreaMatcher.match(kosong, null, null))
+    }
 }
