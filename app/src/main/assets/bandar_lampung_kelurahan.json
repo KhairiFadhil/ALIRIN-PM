@@ -171,632 +171,884 @@
     {
       "kecamatan": "Kedaton",
       "kelurahan": "Kedaton",
-      "adm4": "18.71.01.1003"
+      "adm4": "18.71.01.1003",
+      "lat": -5.3833538112,
+      "lng": 105.2634916252
     },
     {
       "kecamatan": "Kedaton",
       "kelurahan": "Surabaya",
-      "adm4": "18.71.01.1004"
+      "adm4": "18.71.01.1004",
+      "lat": -5.3916140832,
+      "lng": 105.2637511281
     },
     {
       "kecamatan": "Kedaton",
       "kelurahan": "Sukamenanti",
-      "adm4": "18.71.01.1005"
+      "adm4": "18.71.01.1005",
+      "lat": -5.3927993636,
+      "lng": 105.2528160541
     },
     {
       "kecamatan": "Kedaton",
       "kelurahan": "Sidodadi",
-      "adm4": "18.71.01.1006"
+      "adm4": "18.71.01.1006",
+      "lat": -5.3925802059,
+      "lng": 105.2592386393
     },
     {
       "kecamatan": "Kedaton",
       "kelurahan": "Sukamenanti Baru",
-      "adm4": "18.71.01.1009"
+      "adm4": "18.71.01.1009",
+      "lat": -5.3949585657,
+      "lng": 105.2553070879
     },
     {
       "kecamatan": "Kedaton",
       "kelurahan": "Penengahan",
-      "adm4": "18.71.01.1010"
+      "adm4": "18.71.01.1010",
+      "lat": -5.40032239,
+      "lng": 105.2596372496
     },
     {
       "kecamatan": "Kedaton",
       "kelurahan": "Penengahan Raya",
-      "adm4": "18.71.01.1012"
+      "adm4": "18.71.01.1012",
+      "lat": -5.4012084133,
+      "lng": 105.2554822935
     },
     {
       "kecamatan": "Sukarame",
       "kelurahan": "Sukarame",
-      "adm4": "18.71.02.1003"
+      "adm4": "18.71.02.1003",
+      "lat": -5.3876462162,
+      "lng": 105.2996544044
     },
     {
       "kecamatan": "Sukarame",
       "kelurahan": "Way Dadi",
-      "adm4": "18.71.02.1004"
+      "adm4": "18.71.02.1004",
+      "lat": -5.3815126741,
+      "lng": 105.2930946434
     },
     {
       "kecamatan": "Sukarame",
       "kelurahan": "Sukarame Baru",
-      "adm4": "18.71.02.1006"
+      "adm4": "18.71.02.1006",
+      "lat": -5.3862862943,
+      "lng": 105.3135638632
     },
     {
       "kecamatan": "Sukarame",
       "kelurahan": "Way Dadi Baru",
-      "adm4": "18.71.02.1007"
+      "adm4": "18.71.02.1007",
+      "lat": -5.3750446674,
+      "lng": 105.2868231694
     },
     {
       "kecamatan": "Sukarame",
       "kelurahan": "Korpri Jaya",
-      "adm4": "18.71.02.1008"
+      "adm4": "18.71.02.1008",
+      "lat": -5.3713468515,
+      "lng": 105.3041667376
     },
     {
       "kecamatan": "Sukarame",
       "kelurahan": "Korpri Raya",
-      "adm4": "18.71.02.1009"
+      "adm4": "18.71.02.1009",
+      "lat": -5.3684401413,
+      "lng": 105.2984505017
     },
     {
       "kecamatan": "Tanjung Karang Barat",
       "kelurahan": "Gedong Air",
-      "adm4": "18.71.03.1001"
+      "adm4": "18.71.03.1001",
+      "lat": -5.4013390412,
+      "lng": 105.2442395639
     },
     {
       "kecamatan": "Tanjung Karang Barat",
       "kelurahan": "Sukajawa",
-      "adm4": "18.71.03.1002"
+      "adm4": "18.71.03.1002",
+      "lat": -5.4055134455,
+      "lng": 105.2489161908
     },
     {
       "kecamatan": "Tanjung Karang Barat",
       "kelurahan": "Susunan Baru",
-      "adm4": "18.71.03.1004"
+      "adm4": "18.71.03.1004",
+      "lat": -5.405513229,
+      "lng": 105.2291815022
     },
     {
       "kecamatan": "Tanjung Karang Barat",
       "kelurahan": "Sukadanaham",
-      "adm4": "18.71.03.1006"
+      "adm4": "18.71.03.1006",
+      "lat": -5.4196118382,
+      "lng": 105.2278824073
     },
     {
       "kecamatan": "Tanjung Karang Barat",
       "kelurahan": "Kelapa Tiga Permai",
-      "adm4": "18.71.03.1008"
+      "adm4": "18.71.03.1008",
+      "lat": -5.4097142034,
+      "lng": 105.2410288471
     },
     {
       "kecamatan": "Tanjung Karang Barat",
       "kelurahan": "Sukajawa Baru",
-      "adm4": "18.71.03.1010"
+      "adm4": "18.71.03.1010",
+      "lat": -5.4083604139,
+      "lng": 105.2518186207
     },
     {
       "kecamatan": "Tanjung Karang Barat",
       "kelurahan": "Segala Mider",
-      "adm4": "18.71.03.1011"
+      "adm4": "18.71.03.1011",
+      "lat": -5.3903310115,
+      "lng": 105.2457136614
     },
     {
       "kecamatan": "Panjang",
       "kelurahan": "Panjang Selatan",
-      "adm4": "18.71.04.1001"
+      "adm4": "18.71.04.1001",
+      "lat": -5.4788128638,
+      "lng": 105.3234358229
     },
     {
       "kecamatan": "Panjang",
       "kelurahan": "Srengsem",
-      "adm4": "18.71.04.1002"
+      "adm4": "18.71.04.1002",
+      "lat": -5.5006168253,
+      "lng": 105.3370035159
     },
     {
       "kecamatan": "Panjang",
       "kelurahan": "Panjang Utara",
-      "adm4": "18.71.04.1003"
+      "adm4": "18.71.04.1003",
+      "lat": -5.4720965646,
+      "lng": 105.3208620893
     },
     {
       "kecamatan": "Panjang",
       "kelurahan": "Pidada",
-      "adm4": "18.71.04.1004"
+      "adm4": "18.71.04.1004",
+      "lat": -5.4609757906,
+      "lng": 105.3226346069
     },
     {
       "kecamatan": "Panjang",
       "kelurahan": "Karang Maritim",
-      "adm4": "18.71.04.1007"
+      "adm4": "18.71.04.1007",
+      "lat": -5.4844946655,
+      "lng": 105.3289358678
     },
     {
       "kecamatan": "Panjang",
       "kelurahan": "Way Lunik",
-      "adm4": "18.71.04.1008"
+      "adm4": "18.71.04.1008",
+      "lat": -5.4513633234,
+      "lng": 105.3097799431
     },
     {
       "kecamatan": "Panjang",
       "kelurahan": "Ketapang",
-      "adm4": "18.71.04.1009"
+      "adm4": "18.71.04.1009",
+      "lat": -5.4353103797,
+      "lng": 105.296736247
     },
     {
       "kecamatan": "Panjang",
       "kelurahan": "Ketapang Kuala",
-      "adm4": "18.71.04.1010"
+      "adm4": "18.71.04.1010",
+      "lat": -5.4436487026,
+      "lng": 105.3038693839
     },
     {
       "kecamatan": "Tanjung Karang Timur",
       "kelurahan": "Kota Baru",
-      "adm4": "18.71.05.1002"
+      "adm4": "18.71.05.1002",
+      "lat": -5.4170224228,
+      "lng": 105.2714825597
     },
     {
       "kecamatan": "Tanjung Karang Timur",
       "kelurahan": "Tanjung Agung",
-      "adm4": "18.71.05.1003"
+      "adm4": "18.71.05.1003",
+      "lat": -5.4111455691,
+      "lng": 105.2667222529
     },
     {
       "kecamatan": "Tanjung Karang Timur",
       "kelurahan": "Kebon Jeruk",
-      "adm4": "18.71.05.1004"
+      "adm4": "18.71.05.1004",
+      "lat": -5.411566967,
+      "lng": 105.2634458197
     },
     {
       "kecamatan": "Tanjung Karang Timur",
       "kelurahan": "Sawah Lama",
-      "adm4": "18.71.05.1005"
+      "adm4": "18.71.05.1005",
+      "lat": -5.4086128646,
+      "lng": 105.2627380735
     },
     {
       "kecamatan": "Tanjung Karang Timur",
       "kelurahan": "Sawah Brebes",
-      "adm4": "18.71.05.1006"
+      "adm4": "18.71.05.1006",
+      "lat": -5.4057302493,
+      "lng": 105.2639936947
     },
     {
       "kecamatan": "Tanjung Karang Pusat",
       "kelurahan": "Durian Payung",
-      "adm4": "18.71.06.1001"
+      "adm4": "18.71.06.1001",
+      "lat": -5.4210258057,
+      "lng": 105.2448564105
     },
     {
       "kecamatan": "Tanjung Karang Pusat",
       "kelurahan": "Gotong Royong",
-      "adm4": "18.71.06.1002"
+      "adm4": "18.71.06.1002",
+      "lat": -5.4248503247,
+      "lng": 105.2549989054
     },
     {
       "kecamatan": "Tanjung Karang Pusat",
       "kelurahan": "Palapa",
-      "adm4": "18.71.06.1005"
+      "adm4": "18.71.06.1005",
+      "lat": -5.4177212647,
+      "lng": 105.2515616877
     },
     {
       "kecamatan": "Tanjung Karang Pusat",
       "kelurahan": "Kaliawi",
-      "adm4": "18.71.06.1006"
+      "adm4": "18.71.06.1006",
+      "lat": -5.4138255746,
+      "lng": 105.2512023807
     },
     {
       "kecamatan": "Tanjung Karang Pusat",
       "kelurahan": "Kelapa Tiga",
-      "adm4": "18.71.06.1007"
+      "adm4": "18.71.06.1007",
+      "lat": -5.4109638237,
+      "lng": 105.250475218
     },
     {
       "kecamatan": "Tanjung Karang Pusat",
       "kelurahan": "Pasir Gintung",
-      "adm4": "18.71.06.1010"
+      "adm4": "18.71.06.1010",
+      "lat": -5.4058871173,
+      "lng": 105.256448908
     },
     {
       "kecamatan": "Tanjung Karang Pusat",
       "kelurahan": "Kaliawi Persada",
-      "adm4": "18.71.06.1012"
+      "adm4": "18.71.06.1012",
+      "lat": -5.4140174201,
+      "lng": 105.2428300363
     },
     {
       "kecamatan": "Teluk Betung Selatan",
       "kelurahan": "Pesawahan",
-      "adm4": "18.71.07.1001"
+      "adm4": "18.71.07.1001",
+      "lat": -5.4516887278,
+      "lng": 105.2632720682
     },
     {
       "kecamatan": "Teluk Betung Selatan",
       "kelurahan": "Teluk Betung",
-      "adm4": "18.71.07.1002"
+      "adm4": "18.71.07.1002",
+      "lat": -5.4463095656,
+      "lng": 105.2676516041
     },
     {
       "kecamatan": "Teluk Betung Selatan",
       "kelurahan": "Talang",
-      "adm4": "18.71.07.1008"
+      "adm4": "18.71.07.1008",
+      "lat": -5.4442830897,
+      "lng": 105.2583329866
     },
     {
       "kecamatan": "Teluk Betung Selatan",
       "kelurahan": "Gedong Pakuon",
-      "adm4": "18.71.07.1009"
+      "adm4": "18.71.07.1009",
+      "lat": -5.443076527,
+      "lng": 105.2536648827
     },
     {
       "kecamatan": "Teluk Betung Selatan",
       "kelurahan": "Sumur Putri",
-      "adm4": "18.71.07.1012"
+      "adm4": "18.71.07.1012",
+      "lat": -5.4330260361,
+      "lng": 105.2455105006
     },
     {
       "kecamatan": "Teluk Betung Selatan",
       "kelurahan": "Gunung Mas",
-      "adm4": "18.71.07.1013"
+      "adm4": "18.71.07.1013",
+      "lat": -5.4425110626,
+      "lng": 105.2681965428
     },
     {
       "kecamatan": "Teluk Betung Barat",
       "kelurahan": "Bakung",
-      "adm4": "18.71.08.1005"
+      "adm4": "18.71.08.1005",
+      "lat": -5.4545343323,
+      "lng": 105.238018412
     },
     {
       "kecamatan": "Teluk Betung Barat",
       "kelurahan": "Kuripan",
-      "adm4": "18.71.08.1006"
+      "adm4": "18.71.08.1006",
+      "lat": -5.4499015421,
+      "lng": 105.2540992237
     },
     {
       "kecamatan": "Teluk Betung Barat",
       "kelurahan": "Negeri Olok Gading",
-      "adm4": "18.71.08.1007"
+      "adm4": "18.71.08.1007",
+      "lat": -5.44517247,
+      "lng": 105.2479115327
     },
     {
       "kecamatan": "Teluk Betung Barat",
       "kelurahan": "Sukarame II",
-      "adm4": "18.71.08.1008"
+      "adm4": "18.71.08.1008",
+      "lat": -5.4442920751,
+      "lng": 105.2225367173
     },
     {
       "kecamatan": "Teluk Betung Barat",
       "kelurahan": "Batu Putuk",
-      "adm4": "18.71.08.1009"
+      "adm4": "18.71.08.1009",
+      "lat": -5.4345457569,
+      "lng": 105.2037985474
     },
     {
       "kecamatan": "Teluk Betung Utara",
       "kelurahan": "Kupang Kota",
-      "adm4": "18.71.09.1001"
+      "adm4": "18.71.09.1001",
+      "lat": -5.4411698494,
+      "lng": 105.26248053
     },
     {
       "kecamatan": "Teluk Betung Utara",
       "kelurahan": "Kupang Raya",
-      "adm4": "18.71.09.1003"
+      "adm4": "18.71.09.1003",
+      "lat": -5.438347546,
+      "lng": 105.2749417268
     },
     {
       "kecamatan": "Teluk Betung Utara",
       "kelurahan": "Kupang Teba",
-      "adm4": "18.71.09.1004"
+      "adm4": "18.71.09.1004",
+      "lat": -5.4383687596,
+      "lng": 105.2704124576
     },
     {
       "kecamatan": "Teluk Betung Utara",
       "kelurahan": "Pengajaran",
-      "adm4": "18.71.09.1006"
+      "adm4": "18.71.09.1006",
+      "lat": -5.4301135618,
+      "lng": 105.2513136968
     },
     {
       "kecamatan": "Teluk Betung Utara",
       "kelurahan": "Gulak Galik",
-      "adm4": "18.71.09.1007"
+      "adm4": "18.71.09.1007",
+      "lat": -5.4336111499,
+      "lng": 105.259615172
     },
     {
       "kecamatan": "Teluk Betung Utara",
       "kelurahan": "Sumur Batu",
-      "adm4": "18.71.09.1008"
+      "adm4": "18.71.09.1008",
+      "lat": -5.4309717721,
+      "lng": 105.2651997329
     },
     {
       "kecamatan": "Rajabasa",
       "kelurahan": "Rajabasa",
-      "adm4": "18.71.10.1001"
+      "adm4": "18.71.10.1001",
+      "lat": -5.3644989569,
+      "lng": 105.2345518628
     },
     {
       "kecamatan": "Rajabasa",
       "kelurahan": "Gedong Meneng",
-      "adm4": "18.71.10.1002"
+      "adm4": "18.71.10.1002",
+      "lat": -5.371005201,
+      "lng": 105.2422236245
     },
     {
       "kecamatan": "Rajabasa",
       "kelurahan": "Rajabasa Nunyai",
-      "adm4": "18.71.10.1005"
+      "adm4": "18.71.10.1005",
+      "lat": -5.374252355,
+      "lng": 105.2307416449
     },
     {
       "kecamatan": "Rajabasa",
       "kelurahan": "Rajabasa Pemuka",
-      "adm4": "18.71.10.1006"
+      "adm4": "18.71.10.1006",
+      "lat": -5.3697528577,
+      "lng": 105.2228623513
     },
     {
       "kecamatan": "Rajabasa",
       "kelurahan": "Gedong Meneng Baru",
-      "adm4": "18.71.10.1007"
+      "adm4": "18.71.10.1007",
+      "lat": -5.3787189785,
+      "lng": 105.2465662024
     },
     {
       "kecamatan": "Rajabasa",
       "kelurahan": "Rajabasa Raya",
-      "adm4": "18.71.10.1008"
+      "adm4": "18.71.10.1008",
+      "lat": -5.3542929258,
+      "lng": 105.240230704
     },
     {
       "kecamatan": "Rajabasa",
       "kelurahan": "Rajabasa Jaya",
-      "adm4": "18.71.10.1009"
+      "adm4": "18.71.10.1009",
+      "lat": -5.3421278633,
+      "lng": 105.2537566366
     },
     {
       "kecamatan": "Tanjung Senang",
       "kelurahan": "Tanjung Senang",
-      "adm4": "18.71.11.1001"
+      "adm4": "18.71.11.1001",
+      "lat": -5.3651107285,
+      "lng": 105.2758970963
     },
     {
       "kecamatan": "Tanjung Senang",
       "kelurahan": "Way Kandis",
-      "adm4": "18.71.11.1002"
+      "adm4": "18.71.11.1002",
+      "lat": -5.3511532962,
+      "lng": 105.2835459073
     },
     {
       "kecamatan": "Tanjung Senang",
       "kelurahan": "Labuhan Dalam",
-      "adm4": "18.71.11.1003"
+      "adm4": "18.71.11.1003",
+      "lat": -5.3570664691,
+      "lng": 105.2608337384
     },
     {
       "kecamatan": "Tanjung Senang",
       "kelurahan": "Perumnas Way Kandis",
-      "adm4": "18.71.11.1004"
+      "adm4": "18.71.11.1004",
+      "lat": -5.3639572696,
+      "lng": 105.2880148541
     },
     {
       "kecamatan": "Tanjung Senang",
       "kelurahan": "Pematang Wangi",
-      "adm4": "18.71.11.1005"
+      "adm4": "18.71.11.1005",
+      "lat": -5.3569640786,
+      "lng": 105.2763787439
     },
     {
       "kecamatan": "Sukabumi",
       "kelurahan": "Sukabumi",
-      "adm4": "18.71.12.1002"
+      "adm4": "18.71.12.1002",
+      "lat": -5.3994702624,
+      "lng": 105.3104911625
     },
     {
       "kecamatan": "Sukabumi",
       "kelurahan": "Sukabumi Indah",
-      "adm4": "18.71.12.1004"
+      "adm4": "18.71.12.1004",
+      "lat": -5.3990773958,
+      "lng": 105.2929114715
     },
     {
       "kecamatan": "Sukabumi",
       "kelurahan": "Campang Raya",
-      "adm4": "18.71.12.1007"
+      "adm4": "18.71.12.1007",
+      "lat": -5.4174167443,
+      "lng": 105.3273091972
     },
     {
       "kecamatan": "Sukabumi",
       "kelurahan": "Nusantara Permai",
-      "adm4": "18.71.12.1008"
+      "adm4": "18.71.12.1008",
+      "lat": -5.4034943374,
+      "lng": 105.3081089409
     },
     {
       "kecamatan": "Sukabumi",
       "kelurahan": "Campang Jaya",
-      "adm4": "18.71.12.1009"
+      "adm4": "18.71.12.1009",
+      "lat": -5.4126633227,
+      "lng": 105.3055572894
     },
     {
       "kecamatan": "Sukabumi",
       "kelurahan": "Way Gubak",
-      "adm4": "18.71.12.1010"
+      "adm4": "18.71.12.1010",
+      "lat": -5.4306167709,
+      "lng": 105.3109198226
     },
     {
       "kecamatan": "Sukabumi",
       "kelurahan": "Way Laga",
-      "adm4": "18.71.12.1011"
+      "adm4": "18.71.12.1011",
+      "lat": -5.4406634111,
+      "lng": 105.3259047277
     },
     {
       "kecamatan": "Kemiling",
       "kelurahan": "Sumber Rejo",
-      "adm4": "18.71.13.1001"
+      "adm4": "18.71.13.1001",
+      "lat": -5.3921161022,
+      "lng": 105.2113630291
     },
     {
       "kecamatan": "Kemiling",
       "kelurahan": "Beringin Jaya",
-      "adm4": "18.71.13.1003"
+      "adm4": "18.71.13.1003",
+      "lat": -5.4050663245,
+      "lng": 105.207618354
     },
     {
       "kecamatan": "Kemiling",
       "kelurahan": "Kemiling Permai",
-      "adm4": "18.71.13.1004"
+      "adm4": "18.71.13.1004",
+      "lat": -5.3760584359,
+      "lng": 105.2125801504
     },
     {
       "kecamatan": "Kemiling",
       "kelurahan": "Sumber Agung",
-      "adm4": "18.71.13.1005"
+      "adm4": "18.71.13.1005",
+      "lat": -5.4103716068,
+      "lng": 105.1887810198
     },
     {
       "kecamatan": "Kemiling",
       "kelurahan": "Kedaung",
-      "adm4": "18.71.13.1006"
+      "adm4": "18.71.13.1006",
+      "lat": -5.4167156622,
+      "lng": 105.2049195596
     },
     {
       "kecamatan": "Kemiling",
       "kelurahan": "Pinang Jaya",
-      "adm4": "18.71.13.1007"
+      "adm4": "18.71.13.1007",
+      "lat": -5.3948823893,
+      "lng": 105.1946456769
     },
     {
       "kecamatan": "Kemiling",
       "kelurahan": "Sumber Rejo Sejahtera",
-      "adm4": "18.71.13.1008"
+      "adm4": "18.71.13.1008",
+      "lat": -5.4004610121,
+      "lng": 105.218219702
     },
     {
       "kecamatan": "Kemiling",
       "kelurahan": "Kemiling Raya",
-      "adm4": "18.71.13.1009"
+      "adm4": "18.71.13.1009",
+      "lat": -5.3846884755,
+      "lng": 105.2141060461
     },
     {
       "kecamatan": "Kemiling",
       "kelurahan": "Beringin Raya",
-      "adm4": "18.71.13.1010"
+      "adm4": "18.71.13.1010",
+      "lat": -5.3982027286,
+      "lng": 105.2030312643
     },
     {
       "kecamatan": "Labuhan Ratu",
       "kelurahan": "Labuhan Ratu",
-      "adm4": "18.71.14.1001"
+      "adm4": "18.71.14.1001",
+      "lat": -5.3683781156,
+      "lng": 105.2577779209
     },
     {
       "kecamatan": "Labuhan Ratu",
       "kelurahan": "Labuhan Ratu Raya",
-      "adm4": "18.71.14.1002"
+      "adm4": "18.71.14.1002",
+      "lat": -5.3800696862,
+      "lng": 105.2531760464
     },
     {
       "kecamatan": "Labuhan Ratu",
       "kelurahan": "Sepang Jaya",
-      "adm4": "18.71.14.1003"
+      "adm4": "18.71.14.1003",
+      "lat": -5.3741408688,
+      "lng": 105.2690687944
     },
     {
       "kecamatan": "Labuhan Ratu",
       "kelurahan": "Kota Sepang",
-      "adm4": "18.71.14.1004"
+      "adm4": "18.71.14.1004",
+      "lat": -5.3758020537,
+      "lng": 105.2627883668
     },
     {
       "kecamatan": "Labuhan Ratu",
       "kelurahan": "Kampung Baru Raya",
-      "adm4": "18.71.14.1006"
+      "adm4": "18.71.14.1006",
+      "lat": -5.3605868102,
+      "lng": 105.2511253138
     },
     {
       "kecamatan": "Labuhan Ratu",
       "kelurahan": "Kampung Baru",
-      "adm4": "18.71.14.1007"
+      "adm4": "18.71.14.1007",
+      "lat": -5.3661434968,
+      "lng": 105.2480953225
     },
     {
       "kecamatan": "Way Halim",
       "kelurahan": "Perumnas Way Halim",
-      "adm4": "18.71.15.1001"
+      "adm4": "18.71.15.1001",
+      "lat": -5.3783629175,
+      "lng": 105.2775042051
     },
     {
       "kecamatan": "Way Halim",
       "kelurahan": "Way Halim Permai",
-      "adm4": "18.71.15.1002"
+      "adm4": "18.71.15.1002",
+      "lat": -5.3865645213,
+      "lng": 105.2794735743
     },
     {
       "kecamatan": "Way Halim",
       "kelurahan": "Gunung Sulah",
-      "adm4": "18.71.15.1003"
+      "adm4": "18.71.15.1003",
+      "lat": -5.3919058095,
+      "lng": 105.2717084851
     },
     {
       "kecamatan": "Way Halim",
       "kelurahan": "Jagabaya I",
-      "adm4": "18.71.15.1004"
+      "adm4": "18.71.15.1004",
+      "lat": -5.4026198283,
+      "lng": 105.2634143179
     },
     {
       "kecamatan": "Way Halim",
       "kelurahan": "Jagabaya II",
-      "adm4": "18.71.15.1005"
+      "adm4": "18.71.15.1005",
+      "lat": -5.400060732,
+      "lng": 105.2675134857
     },
     {
       "kecamatan": "Way Halim",
       "kelurahan": "Jagabaya III",
-      "adm4": "18.71.15.1006"
+      "adm4": "18.71.15.1006",
+      "lat": -5.3990528772,
+      "lng": 105.2770228382
     },
     {
       "kecamatan": "Langkapura",
       "kelurahan": "Langkapura",
-      "adm4": "18.71.16.1001"
+      "adm4": "18.71.16.1001",
+      "lat": -5.3867549031,
+      "lng": 105.2254730836
     },
     {
       "kecamatan": "Langkapura",
       "kelurahan": "Langkapura Baru",
-      "adm4": "18.71.16.1002"
+      "adm4": "18.71.16.1002",
+      "lat": -5.3957660056,
+      "lng": 105.2282841308
     },
     {
       "kecamatan": "Langkapura",
       "kelurahan": "Gunung Terang",
-      "adm4": "18.71.16.1003"
+      "adm4": "18.71.16.1003",
+      "lat": -5.3843474724,
+      "lng": 105.2355487852
     },
     {
       "kecamatan": "Langkapura",
       "kelurahan": "Bilabong Jaya",
-      "adm4": "18.71.16.1005"
+      "adm4": "18.71.16.1005",
+      "lat": -5.4010743523,
+      "lng": 105.2266312027
     },
     {
       "kecamatan": "Langkapura",
       "kelurahan": "Gunung Agung",
-      "adm4": "18.71.16.1006"
+      "adm4": "18.71.16.1006",
+      "lat": -5.3958330323,
+      "lng": 105.2368582921
     },
     {
       "kecamatan": "Enggal",
       "kelurahan": "Enggal",
-      "adm4": "18.71.17.1001"
+      "adm4": "18.71.17.1001",
+      "lat": -5.4200322451,
+      "lng": 105.2603812734
     },
     {
       "kecamatan": "Enggal",
       "kelurahan": "Pelita",
-      "adm4": "18.71.17.1002"
+      "adm4": "18.71.17.1002",
+      "lat": -5.4187042352,
+      "lng": 105.2566785814
     },
     {
       "kecamatan": "Enggal",
       "kelurahan": "Tanjung Karang",
-      "adm4": "18.71.17.1003"
+      "adm4": "18.71.17.1003",
+      "lat": -5.4131084498,
+      "lng": 105.2580319732
     },
     {
       "kecamatan": "Enggal",
       "kelurahan": "Gunung Sari",
-      "adm4": "18.71.17.1004"
+      "adm4": "18.71.17.1004",
+      "lat": -5.4087134599,
+      "lng": 105.2589830289
     },
     {
       "kecamatan": "Enggal",
       "kelurahan": "Rawa Laut",
-      "adm4": "18.71.17.1005"
+      "adm4": "18.71.17.1005",
+      "lat": -5.4222930759,
+      "lng": 105.2657581027
     },
     {
       "kecamatan": "Enggal",
       "kelurahan": "Pahoman",
-      "adm4": "18.71.17.1006"
+      "adm4": "18.71.17.1006",
+      "lat": -5.428645276,
+      "lng": 105.2721687334
     },
     {
       "kecamatan": "Kedamaian",
       "kelurahan": "Kedamaian",
-      "adm4": "18.71.18.1001"
+      "adm4": "18.71.18.1001",
+      "lat": -5.4104856394,
+      "lng": 105.2742404124
     },
     {
       "kecamatan": "Kedamaian",
       "kelurahan": "Bumi Kedamaian",
-      "adm4": "18.71.18.1002"
+      "adm4": "18.71.18.1002",
+      "lat": -5.4162244852,
+      "lng": 105.2890662259
     },
     {
       "kecamatan": "Kedamaian",
       "kelurahan": "Tanjung Agung Raya",
-      "adm4": "18.71.18.1003"
+      "adm4": "18.71.18.1003",
+      "lat": -5.411321292,
+      "lng": 105.2689630326
     },
     {
       "kecamatan": "Kedamaian",
       "kelurahan": "Tanjung Baru",
-      "adm4": "18.71.18.1004"
+      "adm4": "18.71.18.1004",
+      "lat": -5.4067723088,
+      "lng": 105.2810626512
     },
     {
       "kecamatan": "Kedamaian",
       "kelurahan": "Kalibalau Kencana",
-      "adm4": "18.71.18.1005"
+      "adm4": "18.71.18.1005",
+      "lat": -5.3994582172,
+      "lng": 105.2869297179
     },
     {
       "kecamatan": "Kedamaian",
       "kelurahan": "Tanjung Raya",
-      "adm4": "18.71.18.1006"
+      "adm4": "18.71.18.1006",
+      "lat": -5.4218150603,
+      "lng": 105.2776809306
     },
     {
       "kecamatan": "Kedamaian",
       "kelurahan": "Tanjung Gading",
-      "adm4": "18.71.18.1007"
+      "adm4": "18.71.18.1007",
+      "lat": -5.4276407394,
+      "lng": 105.2829954564
     },
     {
       "kecamatan": "Teluk Betung Timur",
       "kelurahan": "Kota Karang",
-      "adm4": "18.71.19.1001"
+      "adm4": "18.71.19.1001",
+      "lat": -5.4574992884,
+      "lng": 105.2618688486
     },
     {
       "kecamatan": "Teluk Betung Timur",
       "kelurahan": "Kota Karang Raya",
-      "adm4": "18.71.19.1002"
+      "adm4": "18.71.19.1002",
+      "lat": -5.4577444267,
+      "lng": 105.2570663663
     },
     {
       "kecamatan": "Teluk Betung Timur",
       "kelurahan": "Parwata",
-      "adm4": "18.71.19.1003"
+      "adm4": "18.71.19.1003",
+      "lat": -5.4541857836,
+      "lng": 105.2548719166
     },
     {
       "kecamatan": "Teluk Betung Timur",
       "kelurahan": "Keteguhan",
-      "adm4": "18.71.19.1004"
+      "adm4": "18.71.19.1004",
+      "lat": -5.4624745885,
+      "lng": 105.2379431879
     },
     {
       "kecamatan": "Teluk Betung Timur",
       "kelurahan": "Sukamaju",
-      "adm4": "18.71.19.1005"
+      "adm4": "18.71.19.1005",
+      "lat": -5.4693370856,
+      "lng": 105.2407185442
     },
     {
       "kecamatan": "Teluk Betung Timur",
       "kelurahan": "Way Tataan",
-      "adm4": "18.71.19.1006"
+      "adm4": "18.71.19.1006",
+      "lat": -5.4800021,
+      "lng": 105.2371687476
     },
     {
       "kecamatan": "Bumi Waras",
       "kelurahan": "Sukaraja",
-      "adm4": "18.71.20.1001"
+      "adm4": "18.71.20.1001",
+      "lat": -5.4445131206,
+      "lng": 105.2906942546
     },
     {
       "kecamatan": "Bumi Waras",
       "kelurahan": "Bumi Waras",
-      "adm4": "18.71.20.1002"
+      "adm4": "18.71.20.1002",
+      "lat": -5.4441004899,
+      "lng": 105.2785406546
     },
     {
       "kecamatan": "Bumi Waras",
       "kelurahan": "Garuntang",
-      "adm4": "18.71.20.1003"
+      "adm4": "18.71.20.1003",
+      "lat": -5.4390558795,
+      "lng": 105.2930489897
     },
     {
       "kecamatan": "Bumi Waras",
       "kelurahan": "Bumi Raya",
-      "adm4": "18.71.20.1004"
+      "adm4": "18.71.20.1004",
+      "lat": -5.4365152531,
+      "lng": 105.2817495774
     },
     {
       "kecamatan": "Bumi Waras",
       "kelurahan": "Kangkung",
-      "adm4": "18.71.20.1005"
+      "adm4": "18.71.20.1005",
+      "lat": -5.448649985,
+      "lng": 105.2691635589
     }
   ]
 }

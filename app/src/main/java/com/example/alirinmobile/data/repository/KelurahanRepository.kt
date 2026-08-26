@@ -10,6 +10,11 @@ data class Kelurahan(
     val kecamatan: String,
     val kelurahan: String,
     val adm4: String,
+    // Koordinat pusat kelurahan (dari BMKG). Dipakai mencari kelurahan terdekat
+    // dari posisi GPS pengguna, supaya area cuaca dan default lapor mengikuti
+    // lokasi -- bukan tetap Kemiling.
+    val lat: Double? = null,
+    val lng: Double? = null,
 )
 
 @Serializable
@@ -80,4 +85,22 @@ class KelurahanRepository(private val appContext: Context) {
 
     fun matchArea(kecamatanRaw: String?, kelurahanRaw: String?): Pair<String, String>? =
         AreaMatcher.match(areas, kecamatanRaw, kelurahanRaw)
+
+    // Kelurahan terdekat dari posisi pengguna. Deterministik dan offline: jarak
+    // haversine ke titik pusat tiap kelurahan, ambil yang terkecil. Mengembalikan
+    // null bila tidak ada satu pun item berkoordinat (mis. aset gagal muat).
+    fun nearest(lat: Double, lng: Double): Kelurahan? =
+        list.asSequence()
+            .filter { it.lat != null && it.lng != null }
+            .minByOrNull { haversineKm(lat, lng, it.lat!!, it.lng!!) }
+
+    private fun haversineKm(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
+        val r = 6371.0
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLng = Math.toRadians(lng2 - lng1)
+        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+            Math.sin(dLng / 2) * Math.sin(dLng / 2)
+        return r * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    }
 }

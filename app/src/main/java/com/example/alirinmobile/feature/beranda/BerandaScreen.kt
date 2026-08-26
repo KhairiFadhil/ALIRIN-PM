@@ -18,6 +18,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.alirinmobile.AlirinApplication
 import com.example.alirinmobile.data.*
 import com.example.alirinmobile.data.network.dto.AiForecast
 import com.example.alirinmobile.data.repository.Kelurahan
@@ -82,6 +85,23 @@ fun BerandaScreen(
     val liveLoc by locVm.live.collectAsStateWithLifecycle()
     val lastLoc by locVm.last.collectAsStateWithLifecycle()
     val userLoc = liveLoc ?: lastLoc
+
+    // P-lokasi: area cuaca & prediksi mengikuti posisi pengguna. Tanpa ini area
+    // tetap di default (Kemiling) walau pengguna ada di kecamatan lain. Hanya
+    // dipicu ulang saat kelurahan TERDEKAT berubah, bukan tiap kedip GPS, dan
+    // hanya bila pengguna belum memilih area secara manual.
+    val kelurahanRepoB = remember { AlirinApplication.get().kelurahanRepository }
+    var autoAreaAdm4 by rememberSaveable { mutableStateOf<String?>(null) }
+    var userPickedArea by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(userLoc?.lat, userLoc?.lng) {
+        val loc = userLoc ?: return@LaunchedEffect
+        if (userPickedArea) return@LaunchedEffect
+        val near = kelurahanRepoB.nearest(loc.lat, loc.lng) ?: return@LaunchedEffect
+        if (near.adm4 != autoAreaAdm4) {
+            autoAreaAdm4 = near.adm4
+            weatherVm.pick(near)
+        }
+    }
     val nearby = remember(reports, userLoc) {
         reports
             .asSequence()
@@ -499,12 +519,17 @@ private fun weatherStripLabels(
             val desc = hour?.weatherDesc?.takeIf { it.isNotBlank() } ?: "Prakiraan terbaru"
             val temp = hour?.t?.let { "$it°C" }.orEmpty()
             val precip = hour?.tp?.takeIf { it > 0.0 }?.let { "· hujan ${"%.1f".format(it)} mm" }.orEmpty()
+            // Jam prakiraan dimunculkan supaya angka suhu tidak dikira suhu
+            // "sekarang". BMKG memberi prakiraan slot 3 jam, jadi 26° bisa jadi
+            // ramalan pukul 18:00 -- berbeda wajar dari suhu kini di app cuaca.
+            val jam = hour?.localDatetime?.substringAfter(' ')?.take(5)?.takeIf { it.contains(':') }
             val title = buildString {
                 append(desc)
                 if (temp.isNotBlank()) append(" · ").append(temp)
             }
             val sub = buildString {
                 append("BMKG · ").append(areaLabel)
+                if (jam != null) append(" · prakiraan ").append(jam)
                 if (precip.isNotBlank()) append(" ").append(precip)
             }
             title to sub

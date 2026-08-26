@@ -73,14 +73,18 @@ fun LokasiStep(
         val ln = form.lng
         if (la != null && ln != null) {
             delay(500)
-            val place = withContext(Dispatchers.IO) { reverseGeocode(ctx, la, ln) }
-            // Hanya dipakai bila cocok dengan master wilayah. Tebakan yang tidak
-            // cocok dibiarkan kosong agar pengguna memilih sendiri, bukan
-            // ditulis apa adanya lalu ditolak saat pengiriman.
-            val matched = kelurahanRepo.matchArea(place?.first, place?.second)
-            if (matched != null) {
+            // Sumber utama: kelurahan TERDEKAT dari titik, dihitung dari
+            // koordinat pusat kelurahan. Deterministik dan selalu sah, sehingga
+            // wilayah otomatis mengikuti lokasi -- inti keluhan sebelumnya.
+            val nearest = kelurahanRepo.nearest(la, ln)
+            // Cadangan: hasil reverse-geocode, hanya bila cocok master. Dipakai
+            // saat koordinat kelurahan belum tersedia (aset lama).
+            val geocoded = withContext(Dispatchers.IO) { reverseGeocode(ctx, la, ln) }
+                .let { kelurahanRepo.matchArea(it?.first, it?.second) }
+            val pick = nearest?.let { it.kecamatan to it.kelurahan } ?: geocoded
+            if (pick != null) {
                 currentOnUpdate(
-                    currentForm.copy(kecamatan = matched.first, kelurahan = matched.second)
+                    currentForm.copy(kecamatan = pick.first, kelurahan = pick.second)
                 )
             }
         }
