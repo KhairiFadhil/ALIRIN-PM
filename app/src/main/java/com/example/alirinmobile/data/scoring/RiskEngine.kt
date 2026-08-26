@@ -98,6 +98,55 @@ object RiskEngine {
         else -> "Hujan sangat lebat"
     }
 
+    // P-3 - Hujan di hulu ikut menentukan risiko di hilir.
+    //
+    // Sumbangannya dikalikan kekuatan relasi dibagi 3, sehingga relasi yang
+    // disebut langsung oleh warga (kekuatan 3) diteruskan penuh dan relasi arah
+    // aliran umum hanya sebagian. Yang dipakai adalah yang terbesar antara
+    // hujan lokal dan sumbangan hulu -- bukan dijumlahkan, karena sub-skor
+    // Cuaca menyatakan intensitas hujan, bukan volume.
+    //
+    // Cermin dari public.alirin_rain_context dan combineRainfall di web.
+    data class Upstream(val kecamatan: String, val rainfallMm: Double?, val kekuatan: Int)
+
+    data class RainContext(
+        val effective: Double?,
+        val fromUpstream: Boolean,
+        val upstream: Upstream?,
+        val contribution: Double?,
+    )
+
+    fun combineRainfall(localMm: Double?, upstream: Upstream? = null): RainContext {
+        // null berarti "tidak tahu", nol berarti "tidak hujan". Keduanya tidak
+        // boleh tertukar.
+        val local = localMm?.takeIf { it >= 0 }
+        val upRain = upstream?.rainfallMm?.takeIf { it >= 0 }
+        val contribution = if (upRain != null && upstream.kekuatan in 1..3) {
+            upRain * (upstream.kekuatan / 3.0)
+        } else {
+            null
+        }
+
+        if (local == null && contribution == null) {
+            return RainContext(null, false, null, null)
+        }
+
+        val effective = maxOf(local ?: 0.0, contribution ?: 0.0)
+        val fromUpstream = contribution != null && contribution > (local ?: 0.0)
+        return RainContext(
+            effective = effective,
+            fromUpstream = fromUpstream,
+            upstream = if (fromUpstream) upstream else null,
+            contribution = if (fromUpstream) contribution else null,
+        )
+    }
+
+    private fun kekuatanLabel(kekuatan: Int): String = when (kekuatan) {
+        3 -> "kuat"
+        2 -> "sedang"
+        else -> "lemah"
+    }
+
     fun historyCount(
         id: String?,
         lat: Double,
@@ -187,11 +236,13 @@ object RiskEngine {
         photoCount: Int,
         description: String,
         neighbours: List<NeighbourReport> = emptyList(),
+        upstream: Upstream? = null,
     ): Result {
+        val rain = combineRainfall(rainfallMm, upstream)
         val severityRaw = severityScore(severity)
         val count = historyCount(id, lat, lng, createdAtMs, neighbours)
         val historyRaw = historyScore(count)
-        val weatherRaw = weatherScore(rainfallMm)
+        val weatherRaw = weatherScore(rain.effective)
         val locationRaw = locationScore(lat, lng)
         val score = combine(severityRaw, historyRaw, weatherRaw, locationRaw)
 
@@ -234,10 +285,19 @@ object RiskEngine {
                 label = "Cuaca",
                 points = points[2],
                 weight = if (weatherRaw == null) 0 else effectiveWeight(WEIGHT_WEATHER),
-                detail = if (weatherRaw == null) {
-                    "Data BMKG tidak tersedia, bobot dialihkan ke faktor lain"
-                } else {
-                    "${describeRainfall(rainfallMm)}, ${"%.1f".format(rainfallMm)} mm dalam 3 jam (BMKG)"
+                // Teksnya harus menyebut hulu ketika hulu yang menentukan. Tanpa
+                // itu, pengguna melihat skor cuaca tinggi sementara di tempatnya
+                // sedang cerah, dan angkanya tampak salah padahal justru itu
+                // intinya.
+                detail = when {
+                    weatherRaw == null ->
+                        "Data BMKG tidak tersedia, bobot dialihkan ke faktor lain"
+                    rain.fromUpstream && rain.upstream != null ->
+                        "${describeRainfall(rain.upstream.rainfallMm)} di hulu ${rain.upstream.kecamatan}" +
+                            " (${"%.1f".format(rain.upstream.rainfallMm)} mm, relasi ${kekuatanLabel(rain.upstream.kekuatan)})" +
+                            ", lokal ${"%.1f".format(rainfallMm ?: 0.0)} mm"
+                    else ->
+                        "${describeRainfall(rainfallMm)}, ${"%.1f".format(rainfallMm ?: 0.0)} mm dalam 3 jam (BMKG)"
                 },
             ),
             RiskBreakdownItem(

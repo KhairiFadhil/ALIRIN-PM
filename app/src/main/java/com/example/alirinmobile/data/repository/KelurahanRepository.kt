@@ -17,7 +17,7 @@ private data class KelurahanFile(
     @SerialName("_note") val note: String? = null,
     // Master lengkap kecamatan -> daftar kelurahan, untuk validasi wilayah.
     val areas: Map<String, List<String>> = emptyMap(),
-    // Hanya kelurahan yang kode adm4 BMKG-nya terverifikasi, untuk cuaca.
+    // Kode adm4 BMKG untuk seluruh 126 kelurahan, untuk cuaca.
     val items: List<Kelurahan> = emptyList(),
 )
 
@@ -38,9 +38,8 @@ class KelurahanRepository(private val appContext: Context) {
         get() = list.firstOrNull { it.adm4 == "18.71.13.1007" } ?: list.first()
 
     // Kelurahan persis -> kelurahan lain di kecamatan yang sama -> acuan kota.
-    // Baru 20 dari 126 kelurahan punya kode adm4 terverifikasi. Hujan 3 jam BMKG
-    // bersifat regional sehingga pencadangan tingkat kecamatan tetap bermakna,
-    // dan yang dihindari adalah mengarang kode wilayah.
+    // Seluruh 126 kelurahan kini punya kodenya sendiri, jadi jalur pencadangan
+    // hanya terpakai bila nama wilayahnya tidak dikenali sama sekali.
     // Kembar dengan resolveAdm4 di C:\ALIRIN\app\src\data\bandarLampungAreas.js
     fun resolveAdm4(kecamatan: String, kelurahan: String): String {
         val kec = kecamatan.trim()

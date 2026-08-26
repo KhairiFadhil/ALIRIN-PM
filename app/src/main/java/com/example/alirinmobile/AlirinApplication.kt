@@ -21,6 +21,7 @@ import com.example.alirinmobile.data.repository.KelurahanRepository
 import com.example.alirinmobile.data.repository.LocationRepository
 import com.example.alirinmobile.data.repository.PredictionRepository
 import com.example.alirinmobile.data.repository.ReportRepository
+import com.example.alirinmobile.data.repository.UpstreamRepository
 import com.example.alirinmobile.data.repository.WeatherRepository
 import com.example.alirinmobile.data.sync.SyncWorker
 import kotlinx.coroutines.CoroutineScope
@@ -46,6 +47,8 @@ class AlirinApplication : Application() {
         private set
     lateinit var locationRepository: LocationRepository
         private set
+    lateinit var upstreamRepository: UpstreamRepository
+        private set
 
     val applicationScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -62,6 +65,7 @@ class AlirinApplication : Application() {
         kelurahanRepository = KelurahanRepository(this)
         val db = AlirinDatabase.get(this)
         weatherRepository = WeatherRepository(apiClient)
+        upstreamRepository = UpstreamRepository(supabase, weatherRepository, kelurahanRepository)
         reportRepository = ReportRepository(
             dao = db.reportDao(),
             supabase = supabase,
@@ -70,6 +74,7 @@ class AlirinApplication : Application() {
             authRepo = authRepository,
             kelurahanRepo = kelurahanRepository,
             weatherRepo = weatherRepository,
+            upstreamRepo = upstreamRepository,
         )
         predictionRepository = PredictionRepository(apiClient, weatherRepository)
         locationRepository = LocationRepository(this)

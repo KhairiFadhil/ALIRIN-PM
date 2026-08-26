@@ -67,6 +67,7 @@ class ReportRepository(
     private val authRepo: AuthRepository,
     private val kelurahanRepo: KelurahanRepository,
     private val weatherRepo: WeatherRepository,
+    private val upstreamRepo: UpstreamRepository,
 ) {
 
     // Batas Kota Bandar Lampung, sama dengan CITY_BOUNDS di web dan constraint
@@ -132,6 +133,12 @@ class ReportRepository(
         val rainfallMm = weatherRepo.rainfallMmFor(
             kelurahanRepo.resolveAdm4(form.kecamatan, form.kelurahan)
         )
+        if (rainfallMm != null) upstreamRepo.saveAreaWeather(form.kecamatan, rainfallMm)
+
+        // Hujan di kecamatan hulu ikut diambil dan disimpan, supaya trigger di
+        // basis data punya bahan untuk faktor hulu-hilir (P-3). Pratinjau skor
+        // memakai masukan yang sama agar tidak berbeda dari hasil server.
+        val upstream = upstreamRepo.primeUpstream(form.kecamatan)
 
         val risk = computeRisk(
             id = id,
@@ -142,6 +149,7 @@ class ReportRepository(
             rainfallMm = rainfallMm,
             photoCount = form.photos.size,
             description = form.deskripsi,
+            upstream = upstream,
         )
 
         val localPhotos = form.photos.mapNotNull { photo ->
@@ -525,6 +533,7 @@ class ReportRepository(
         rainfallMm: Double?,
         photoCount: Int,
         description: String,
+        upstream: RiskEngine.Upstream? = null,
     ): RiskEngine.Result {
         val neighbours = runCatching {
             dao.neighbourRows().map {
@@ -548,6 +557,7 @@ class ReportRepository(
             photoCount = photoCount,
             description = description,
             neighbours = neighbours,
+            upstream = upstream,
         )
     }
 

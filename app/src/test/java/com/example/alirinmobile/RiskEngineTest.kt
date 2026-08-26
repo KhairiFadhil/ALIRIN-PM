@@ -156,6 +156,63 @@ class RiskEngineTest {
         }
     }
 
+    // P-3: hujan di hulu ikut menentukan risiko di hilir.
+    private val kemilingLebat = RiskEngine.Upstream("Kemiling", 18.0, 3)
+
+    @Test
+    fun `sumbangan hulu dipakai saat hujan lokal lebih kecil`() {
+        val rain = RiskEngine.combineRainfall(0.5, kemilingLebat)
+        assertEquals(18.0, rain.effective!!, 0.0001)
+        assertTrue(rain.fromUpstream)
+    }
+
+    @Test
+    fun `hujan lokal dipertahankan saat lebih besar`() {
+        val rain = RiskEngine.combineRainfall(30.0, kemilingLebat)
+        assertEquals(30.0, rain.effective!!, 0.0001)
+        assertTrue(!rain.fromUpstream)
+    }
+
+    @Test
+    fun `sumbangan hulu diredam sesuai kekuatan relasi`() {
+        assertEquals(6.0, RiskEngine.combineRainfall(0.0, RiskEngine.Upstream("Kemiling", 18.0, 1)).effective!!, 0.0001)
+        assertEquals(12.0, RiskEngine.combineRainfall(0.0, RiskEngine.Upstream("Kemiling", 18.0, 2)).effective!!, 0.0001)
+    }
+
+    @Test
+    fun `cuaca tetap tidak diketahui saat lokal dan hulu sama-sama kosong`() {
+        assertNull(RiskEngine.combineRainfall(null, null).effective)
+        assertNull(RiskEngine.combineRainfall(null, RiskEngine.Upstream("Kemiling", null, 3)).effective)
+    }
+
+    @Test
+    fun `kekuatan di luar 1 sampai 3 diabaikan`() {
+        assertEquals(2.0, RiskEngine.combineRainfall(2.0, RiskEngine.Upstream("X", 90.0, 9)).effective!!, 0.0001)
+        assertEquals(2.0, RiskEngine.combineRainfall(2.0, RiskEngine.Upstream("X", 90.0, 0)).effective!!, 0.0001)
+    }
+
+    @Test
+    fun `skor hilir naik walau di lokasinya tidak hujan`() {
+        fun run(upstream: RiskEngine.Upstream?) = RiskEngine.evaluate(
+            id = "x", severity = "sedang", lat = -5.3971, lng = 105.2668,
+            createdAtMs = createdAt, rainfallMm = 0.0, photoCount = 1,
+            description = "Air menggenang di jalan.", upstream = upstream,
+        )
+        assertTrue(run(kemilingLebat).score > run(null).score)
+    }
+
+    @Test
+    fun `rincian menyebut kecamatan hulu`() {
+        val result = RiskEngine.evaluate(
+            id = "x", severity = "sedang", lat = -5.3971, lng = 105.2668,
+            createdAtMs = createdAt, rainfallMm = 0.5, photoCount = 1,
+            description = "Air menggenang di jalan.", upstream = kemilingLebat,
+        )
+        val detail = result.breakdown.first { it.id == "weather" }.detail!!
+        assertTrue(detail.contains("hulu Kemiling"))
+        assertTrue(detail.contains("relasi kuat"))
+    }
+
     @Test
     fun `skor deterministik untuk masukan yang sama`() {
         fun run() = RiskEngine.evaluate(

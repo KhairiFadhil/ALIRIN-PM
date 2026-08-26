@@ -1,5 +1,4 @@
 {
-  "_note": "Blok \"areas\" adalah master lengkap 20 kecamatan / 126 kelurahan Kota Bandar Lampung, dipakai untuk validasi wilayah laporan; harus sama dengan KECAMATAN_DATA di C:/ALIRIN/app/src/data/bandarLampungAreas.js. Blok \"items\" hanya memuat kelurahan yang kode adm4 BMKG-nya sudah terverifikasi, dipakai untuk prakiraan cuaca. Kelurahan tanpa adm4 memakai pencadangan tingkat kecamatan lalu titik acuan kota.",
   "areas": {
     "Bumi Waras": [
       "Bumi Raya",
@@ -136,7 +135,7 @@
       "Sukarame II"
     ],
     "Teluk Betung Selatan": [
-      "Gedong Pakuan",
+      "Gedong Pakuon",
       "Gunung Mas",
       "Pesawahan",
       "Sumur Putri",
@@ -147,7 +146,7 @@
       "Keteguhan",
       "Kota Karang",
       "Kota Karang Raya",
-      "Perwata",
+      "Parwata",
       "Sukamaju",
       "Way Tataan"
     ],
@@ -170,18 +169,393 @@
   },
   "items": [
     {
+      "kecamatan": "Kedaton",
+      "kelurahan": "Kedaton",
+      "adm4": "18.71.01.1003"
+    },
+    {
+      "kecamatan": "Kedaton",
+      "kelurahan": "Surabaya",
+      "adm4": "18.71.01.1004"
+    },
+    {
+      "kecamatan": "Kedaton",
+      "kelurahan": "Sukamenanti",
+      "adm4": "18.71.01.1005"
+    },
+    {
+      "kecamatan": "Kedaton",
+      "kelurahan": "Sidodadi",
+      "adm4": "18.71.01.1006"
+    },
+    {
+      "kecamatan": "Kedaton",
+      "kelurahan": "Sukamenanti Baru",
+      "adm4": "18.71.01.1009"
+    },
+    {
+      "kecamatan": "Kedaton",
+      "kelurahan": "Penengahan",
+      "adm4": "18.71.01.1010"
+    },
+    {
+      "kecamatan": "Kedaton",
+      "kelurahan": "Penengahan Raya",
+      "adm4": "18.71.01.1012"
+    },
+    {
+      "kecamatan": "Sukarame",
+      "kelurahan": "Sukarame",
+      "adm4": "18.71.02.1003"
+    },
+    {
+      "kecamatan": "Sukarame",
+      "kelurahan": "Way Dadi",
+      "adm4": "18.71.02.1004"
+    },
+    {
+      "kecamatan": "Sukarame",
+      "kelurahan": "Sukarame Baru",
+      "adm4": "18.71.02.1006"
+    },
+    {
+      "kecamatan": "Sukarame",
+      "kelurahan": "Way Dadi Baru",
+      "adm4": "18.71.02.1007"
+    },
+    {
+      "kecamatan": "Sukarame",
+      "kelurahan": "Korpri Jaya",
+      "adm4": "18.71.02.1008"
+    },
+    {
+      "kecamatan": "Sukarame",
+      "kelurahan": "Korpri Raya",
+      "adm4": "18.71.02.1009"
+    },
+    {
+      "kecamatan": "Tanjung Karang Barat",
+      "kelurahan": "Gedong Air",
+      "adm4": "18.71.03.1001"
+    },
+    {
+      "kecamatan": "Tanjung Karang Barat",
+      "kelurahan": "Sukajawa",
+      "adm4": "18.71.03.1002"
+    },
+    {
+      "kecamatan": "Tanjung Karang Barat",
+      "kelurahan": "Susunan Baru",
+      "adm4": "18.71.03.1004"
+    },
+    {
+      "kecamatan": "Tanjung Karang Barat",
+      "kelurahan": "Sukadanaham",
+      "adm4": "18.71.03.1006"
+    },
+    {
+      "kecamatan": "Tanjung Karang Barat",
+      "kelurahan": "Kelapa Tiga Permai",
+      "adm4": "18.71.03.1008"
+    },
+    {
+      "kecamatan": "Tanjung Karang Barat",
+      "kelurahan": "Sukajawa Baru",
+      "adm4": "18.71.03.1010"
+    },
+    {
+      "kecamatan": "Tanjung Karang Barat",
+      "kelurahan": "Segala Mider",
+      "adm4": "18.71.03.1011"
+    },
+    {
+      "kecamatan": "Panjang",
+      "kelurahan": "Panjang Selatan",
+      "adm4": "18.71.04.1001"
+    },
+    {
+      "kecamatan": "Panjang",
+      "kelurahan": "Srengsem",
+      "adm4": "18.71.04.1002"
+    },
+    {
+      "kecamatan": "Panjang",
+      "kelurahan": "Panjang Utara",
+      "adm4": "18.71.04.1003"
+    },
+    {
+      "kecamatan": "Panjang",
+      "kelurahan": "Pidada",
+      "adm4": "18.71.04.1004"
+    },
+    {
+      "kecamatan": "Panjang",
+      "kelurahan": "Karang Maritim",
+      "adm4": "18.71.04.1007"
+    },
+    {
+      "kecamatan": "Panjang",
+      "kelurahan": "Way Lunik",
+      "adm4": "18.71.04.1008"
+    },
+    {
+      "kecamatan": "Panjang",
+      "kelurahan": "Ketapang",
+      "adm4": "18.71.04.1009"
+    },
+    {
+      "kecamatan": "Panjang",
+      "kelurahan": "Ketapang Kuala",
+      "adm4": "18.71.04.1010"
+    },
+    {
+      "kecamatan": "Tanjung Karang Timur",
+      "kelurahan": "Kota Baru",
+      "adm4": "18.71.05.1002"
+    },
+    {
+      "kecamatan": "Tanjung Karang Timur",
+      "kelurahan": "Tanjung Agung",
+      "adm4": "18.71.05.1003"
+    },
+    {
+      "kecamatan": "Tanjung Karang Timur",
+      "kelurahan": "Kebon Jeruk",
+      "adm4": "18.71.05.1004"
+    },
+    {
+      "kecamatan": "Tanjung Karang Timur",
+      "kelurahan": "Sawah Lama",
+      "adm4": "18.71.05.1005"
+    },
+    {
+      "kecamatan": "Tanjung Karang Timur",
+      "kelurahan": "Sawah Brebes",
+      "adm4": "18.71.05.1006"
+    },
+    {
+      "kecamatan": "Tanjung Karang Pusat",
+      "kelurahan": "Durian Payung",
+      "adm4": "18.71.06.1001"
+    },
+    {
+      "kecamatan": "Tanjung Karang Pusat",
+      "kelurahan": "Gotong Royong",
+      "adm4": "18.71.06.1002"
+    },
+    {
+      "kecamatan": "Tanjung Karang Pusat",
+      "kelurahan": "Palapa",
+      "adm4": "18.71.06.1005"
+    },
+    {
+      "kecamatan": "Tanjung Karang Pusat",
+      "kelurahan": "Kaliawi",
+      "adm4": "18.71.06.1006"
+    },
+    {
+      "kecamatan": "Tanjung Karang Pusat",
+      "kelurahan": "Kelapa Tiga",
+      "adm4": "18.71.06.1007"
+    },
+    {
+      "kecamatan": "Tanjung Karang Pusat",
+      "kelurahan": "Pasir Gintung",
+      "adm4": "18.71.06.1010"
+    },
+    {
+      "kecamatan": "Tanjung Karang Pusat",
+      "kelurahan": "Kaliawi Persada",
+      "adm4": "18.71.06.1012"
+    },
+    {
+      "kecamatan": "Teluk Betung Selatan",
+      "kelurahan": "Pesawahan",
+      "adm4": "18.71.07.1001"
+    },
+    {
+      "kecamatan": "Teluk Betung Selatan",
+      "kelurahan": "Teluk Betung",
+      "adm4": "18.71.07.1002"
+    },
+    {
+      "kecamatan": "Teluk Betung Selatan",
+      "kelurahan": "Talang",
+      "adm4": "18.71.07.1008"
+    },
+    {
+      "kecamatan": "Teluk Betung Selatan",
+      "kelurahan": "Gedong Pakuon",
+      "adm4": "18.71.07.1009"
+    },
+    {
+      "kecamatan": "Teluk Betung Selatan",
+      "kelurahan": "Sumur Putri",
+      "adm4": "18.71.07.1012"
+    },
+    {
+      "kecamatan": "Teluk Betung Selatan",
+      "kelurahan": "Gunung Mas",
+      "adm4": "18.71.07.1013"
+    },
+    {
+      "kecamatan": "Teluk Betung Barat",
+      "kelurahan": "Bakung",
+      "adm4": "18.71.08.1005"
+    },
+    {
+      "kecamatan": "Teluk Betung Barat",
+      "kelurahan": "Kuripan",
+      "adm4": "18.71.08.1006"
+    },
+    {
+      "kecamatan": "Teluk Betung Barat",
+      "kelurahan": "Negeri Olok Gading",
+      "adm4": "18.71.08.1007"
+    },
+    {
+      "kecamatan": "Teluk Betung Barat",
+      "kelurahan": "Sukarame II",
+      "adm4": "18.71.08.1008"
+    },
+    {
+      "kecamatan": "Teluk Betung Barat",
+      "kelurahan": "Batu Putuk",
+      "adm4": "18.71.08.1009"
+    },
+    {
+      "kecamatan": "Teluk Betung Utara",
+      "kelurahan": "Kupang Kota",
+      "adm4": "18.71.09.1001"
+    },
+    {
+      "kecamatan": "Teluk Betung Utara",
+      "kelurahan": "Kupang Raya",
+      "adm4": "18.71.09.1003"
+    },
+    {
+      "kecamatan": "Teluk Betung Utara",
+      "kelurahan": "Kupang Teba",
+      "adm4": "18.71.09.1004"
+    },
+    {
+      "kecamatan": "Teluk Betung Utara",
+      "kelurahan": "Pengajaran",
+      "adm4": "18.71.09.1006"
+    },
+    {
+      "kecamatan": "Teluk Betung Utara",
+      "kelurahan": "Gulak Galik",
+      "adm4": "18.71.09.1007"
+    },
+    {
+      "kecamatan": "Teluk Betung Utara",
+      "kelurahan": "Sumur Batu",
+      "adm4": "18.71.09.1008"
+    },
+    {
+      "kecamatan": "Rajabasa",
+      "kelurahan": "Rajabasa",
+      "adm4": "18.71.10.1001"
+    },
+    {
+      "kecamatan": "Rajabasa",
+      "kelurahan": "Gedong Meneng",
+      "adm4": "18.71.10.1002"
+    },
+    {
+      "kecamatan": "Rajabasa",
+      "kelurahan": "Rajabasa Nunyai",
+      "adm4": "18.71.10.1005"
+    },
+    {
+      "kecamatan": "Rajabasa",
+      "kelurahan": "Rajabasa Pemuka",
+      "adm4": "18.71.10.1006"
+    },
+    {
+      "kecamatan": "Rajabasa",
+      "kelurahan": "Gedong Meneng Baru",
+      "adm4": "18.71.10.1007"
+    },
+    {
+      "kecamatan": "Rajabasa",
+      "kelurahan": "Rajabasa Raya",
+      "adm4": "18.71.10.1008"
+    },
+    {
+      "kecamatan": "Rajabasa",
+      "kelurahan": "Rajabasa Jaya",
+      "adm4": "18.71.10.1009"
+    },
+    {
+      "kecamatan": "Tanjung Senang",
+      "kelurahan": "Tanjung Senang",
+      "adm4": "18.71.11.1001"
+    },
+    {
+      "kecamatan": "Tanjung Senang",
+      "kelurahan": "Way Kandis",
+      "adm4": "18.71.11.1002"
+    },
+    {
+      "kecamatan": "Tanjung Senang",
+      "kelurahan": "Labuhan Dalam",
+      "adm4": "18.71.11.1003"
+    },
+    {
+      "kecamatan": "Tanjung Senang",
+      "kelurahan": "Perumnas Way Kandis",
+      "adm4": "18.71.11.1004"
+    },
+    {
+      "kecamatan": "Tanjung Senang",
+      "kelurahan": "Pematang Wangi",
+      "adm4": "18.71.11.1005"
+    },
+    {
+      "kecamatan": "Sukabumi",
+      "kelurahan": "Sukabumi",
+      "adm4": "18.71.12.1002"
+    },
+    {
+      "kecamatan": "Sukabumi",
+      "kelurahan": "Sukabumi Indah",
+      "adm4": "18.71.12.1004"
+    },
+    {
+      "kecamatan": "Sukabumi",
+      "kelurahan": "Campang Raya",
+      "adm4": "18.71.12.1007"
+    },
+    {
+      "kecamatan": "Sukabumi",
+      "kelurahan": "Nusantara Permai",
+      "adm4": "18.71.12.1008"
+    },
+    {
+      "kecamatan": "Sukabumi",
+      "kelurahan": "Campang Jaya",
+      "adm4": "18.71.12.1009"
+    },
+    {
+      "kecamatan": "Sukabumi",
+      "kelurahan": "Way Gubak",
+      "adm4": "18.71.12.1010"
+    },
+    {
+      "kecamatan": "Sukabumi",
+      "kelurahan": "Way Laga",
+      "adm4": "18.71.12.1011"
+    },
+    {
       "kecamatan": "Kemiling",
-      "kelurahan": "Beringin Jaya",
+      "kelurahan": "Sumber Rejo",
       "adm4": "18.71.13.1001"
     },
     {
       "kecamatan": "Kemiling",
-      "kelurahan": "Beringin Raya",
-      "adm4": "18.71.13.1002"
-    },
-    {
-      "kecamatan": "Kemiling",
-      "kelurahan": "Kedaung",
+      "kelurahan": "Beringin Jaya",
       "adm4": "18.71.13.1003"
     },
     {
@@ -191,8 +565,13 @@
     },
     {
       "kecamatan": "Kemiling",
-      "kelurahan": "Kemiling Raya",
+      "kelurahan": "Sumber Agung",
       "adm4": "18.71.13.1005"
+    },
+    {
+      "kecamatan": "Kemiling",
+      "kelurahan": "Kedaung",
+      "adm4": "18.71.13.1006"
     },
     {
       "kecamatan": "Kemiling",
@@ -200,74 +579,224 @@
       "adm4": "18.71.13.1007"
     },
     {
-      "kecamatan": "Rajabasa",
-      "kelurahan": "Rajabasa",
-      "adm4": "18.71.10.1001"
+      "kecamatan": "Kemiling",
+      "kelurahan": "Sumber Rejo Sejahtera",
+      "adm4": "18.71.13.1008"
     },
     {
-      "kecamatan": "Rajabasa",
-      "kelurahan": "Rajabasa Jaya",
-      "adm4": "18.71.10.1002"
+      "kecamatan": "Kemiling",
+      "kelurahan": "Kemiling Raya",
+      "adm4": "18.71.13.1009"
     },
     {
-      "kecamatan": "Rajabasa",
-      "kelurahan": "Rajabasa Raya",
-      "adm4": "18.71.10.1006"
-    },
-    {
-      "kecamatan": "Sukarame",
-      "kelurahan": "Sukarame",
-      "adm4": "18.71.06.1001"
-    },
-    {
-      "kecamatan": "Sukarame",
-      "kelurahan": "Way Dadi",
-      "adm4": "18.71.06.1003"
-    },
-    {
-      "kecamatan": "Kedaton",
-      "kelurahan": "Kedaton",
-      "adm4": "18.71.05.1001"
-    },
-    {
-      "kecamatan": "Kedaton",
-      "kelurahan": "Sidodadi",
-      "adm4": "18.71.05.1004"
-    },
-    {
-      "kecamatan": "Way Halim",
-      "kelurahan": "Way Halim Permai",
-      "adm4": "18.71.15.1006"
-    },
-    {
-      "kecamatan": "Way Halim",
-      "kelurahan": "Perumnas Way Halim",
-      "adm4": "18.71.15.1005"
-    },
-    {
-      "kecamatan": "Sukabumi",
-      "kelurahan": "Sukabumi Indah",
-      "adm4": "18.71.12.1005"
-    },
-    {
-      "kecamatan": "Sukabumi",
-      "kelurahan": "Sukabumi",
-      "adm4": "18.71.12.1004"
-    },
-    {
-      "kecamatan": "Tanjung Karang Pusat",
-      "kelurahan": "Gotong Royong",
-      "adm4": "18.71.03.1002"
-    },
-    {
-      "kecamatan": "Tanjung Karang Pusat",
-      "kelurahan": "Palapa",
-      "adm4": "18.71.03.1006"
+      "kecamatan": "Kemiling",
+      "kelurahan": "Beringin Raya",
+      "adm4": "18.71.13.1010"
     },
     {
       "kecamatan": "Labuhan Ratu",
       "kelurahan": "Labuhan Ratu",
+      "adm4": "18.71.14.1001"
+    },
+    {
+      "kecamatan": "Labuhan Ratu",
+      "kelurahan": "Labuhan Ratu Raya",
+      "adm4": "18.71.14.1002"
+    },
+    {
+      "kecamatan": "Labuhan Ratu",
+      "kelurahan": "Sepang Jaya",
+      "adm4": "18.71.14.1003"
+    },
+    {
+      "kecamatan": "Labuhan Ratu",
+      "kelurahan": "Kota Sepang",
       "adm4": "18.71.14.1004"
+    },
+    {
+      "kecamatan": "Labuhan Ratu",
+      "kelurahan": "Kampung Baru Raya",
+      "adm4": "18.71.14.1006"
+    },
+    {
+      "kecamatan": "Labuhan Ratu",
+      "kelurahan": "Kampung Baru",
+      "adm4": "18.71.14.1007"
+    },
+    {
+      "kecamatan": "Way Halim",
+      "kelurahan": "Perumnas Way Halim",
+      "adm4": "18.71.15.1001"
+    },
+    {
+      "kecamatan": "Way Halim",
+      "kelurahan": "Way Halim Permai",
+      "adm4": "18.71.15.1002"
+    },
+    {
+      "kecamatan": "Way Halim",
+      "kelurahan": "Gunung Sulah",
+      "adm4": "18.71.15.1003"
+    },
+    {
+      "kecamatan": "Way Halim",
+      "kelurahan": "Jagabaya I",
+      "adm4": "18.71.15.1004"
+    },
+    {
+      "kecamatan": "Way Halim",
+      "kelurahan": "Jagabaya II",
+      "adm4": "18.71.15.1005"
+    },
+    {
+      "kecamatan": "Way Halim",
+      "kelurahan": "Jagabaya III",
+      "adm4": "18.71.15.1006"
+    },
+    {
+      "kecamatan": "Langkapura",
+      "kelurahan": "Langkapura",
+      "adm4": "18.71.16.1001"
+    },
+    {
+      "kecamatan": "Langkapura",
+      "kelurahan": "Langkapura Baru",
+      "adm4": "18.71.16.1002"
+    },
+    {
+      "kecamatan": "Langkapura",
+      "kelurahan": "Gunung Terang",
+      "adm4": "18.71.16.1003"
+    },
+    {
+      "kecamatan": "Langkapura",
+      "kelurahan": "Bilabong Jaya",
+      "adm4": "18.71.16.1005"
+    },
+    {
+      "kecamatan": "Langkapura",
+      "kelurahan": "Gunung Agung",
+      "adm4": "18.71.16.1006"
+    },
+    {
+      "kecamatan": "Enggal",
+      "kelurahan": "Enggal",
+      "adm4": "18.71.17.1001"
+    },
+    {
+      "kecamatan": "Enggal",
+      "kelurahan": "Pelita",
+      "adm4": "18.71.17.1002"
+    },
+    {
+      "kecamatan": "Enggal",
+      "kelurahan": "Tanjung Karang",
+      "adm4": "18.71.17.1003"
+    },
+    {
+      "kecamatan": "Enggal",
+      "kelurahan": "Gunung Sari",
+      "adm4": "18.71.17.1004"
+    },
+    {
+      "kecamatan": "Enggal",
+      "kelurahan": "Rawa Laut",
+      "adm4": "18.71.17.1005"
+    },
+    {
+      "kecamatan": "Enggal",
+      "kelurahan": "Pahoman",
+      "adm4": "18.71.17.1006"
+    },
+    {
+      "kecamatan": "Kedamaian",
+      "kelurahan": "Kedamaian",
+      "adm4": "18.71.18.1001"
+    },
+    {
+      "kecamatan": "Kedamaian",
+      "kelurahan": "Bumi Kedamaian",
+      "adm4": "18.71.18.1002"
+    },
+    {
+      "kecamatan": "Kedamaian",
+      "kelurahan": "Tanjung Agung Raya",
+      "adm4": "18.71.18.1003"
+    },
+    {
+      "kecamatan": "Kedamaian",
+      "kelurahan": "Tanjung Baru",
+      "adm4": "18.71.18.1004"
+    },
+    {
+      "kecamatan": "Kedamaian",
+      "kelurahan": "Kalibalau Kencana",
+      "adm4": "18.71.18.1005"
+    },
+    {
+      "kecamatan": "Kedamaian",
+      "kelurahan": "Tanjung Raya",
+      "adm4": "18.71.18.1006"
+    },
+    {
+      "kecamatan": "Kedamaian",
+      "kelurahan": "Tanjung Gading",
+      "adm4": "18.71.18.1007"
+    },
+    {
+      "kecamatan": "Teluk Betung Timur",
+      "kelurahan": "Kota Karang",
+      "adm4": "18.71.19.1001"
+    },
+    {
+      "kecamatan": "Teluk Betung Timur",
+      "kelurahan": "Kota Karang Raya",
+      "adm4": "18.71.19.1002"
+    },
+    {
+      "kecamatan": "Teluk Betung Timur",
+      "kelurahan": "Parwata",
+      "adm4": "18.71.19.1003"
+    },
+    {
+      "kecamatan": "Teluk Betung Timur",
+      "kelurahan": "Keteguhan",
+      "adm4": "18.71.19.1004"
+    },
+    {
+      "kecamatan": "Teluk Betung Timur",
+      "kelurahan": "Sukamaju",
+      "adm4": "18.71.19.1005"
+    },
+    {
+      "kecamatan": "Teluk Betung Timur",
+      "kelurahan": "Way Tataan",
+      "adm4": "18.71.19.1006"
+    },
+    {
+      "kecamatan": "Bumi Waras",
+      "kelurahan": "Sukaraja",
+      "adm4": "18.71.20.1001"
+    },
+    {
+      "kecamatan": "Bumi Waras",
+      "kelurahan": "Bumi Waras",
+      "adm4": "18.71.20.1002"
+    },
+    {
+      "kecamatan": "Bumi Waras",
+      "kelurahan": "Garuntang",
+      "adm4": "18.71.20.1003"
+    },
+    {
+      "kecamatan": "Bumi Waras",
+      "kelurahan": "Bumi Raya",
+      "adm4": "18.71.20.1004"
+    },
+    {
+      "kecamatan": "Bumi Waras",
+      "kelurahan": "Kangkung",
+      "adm4": "18.71.20.1005"
     }
   ]
 }
